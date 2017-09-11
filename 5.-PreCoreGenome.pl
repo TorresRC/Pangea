@@ -162,7 +162,7 @@ $NewCounter = $Counter+1;
 $NoNewGenes = scalar@QryIDs;
 for($c=0; $c<$NoNewGenes; $c++){
         $NewORFId = $QryIDs[$c];
-        $NewORF = "ORF" ."_". $NewCounter+$a;
+        $NewORF = "ORF" ."_". $NewCounter+$c;
 	$SharedORFPath = $ORFsPath ."/". $NewORF;
         MakeDir($SharedORFPath);  
         
