@@ -11,7 +11,7 @@
 
 use strict; 
 use List::MoreUtils qw{any};
-use lib '/Users/RC/lib';
+use lib '/Users/rc/lib';
 use Routines;
 
 my ($Usage, $ProjectName, $List, $TrustedORFeome, $CPUs);
@@ -33,12 +33,13 @@ my ($MainPath, $Project, $ORFeomesPath, $ProjectGenomeList, $Sub, $Qry, $QryFile
     $fastaAln, $SeqExt, $AlnExt, $HmmExt, $OutHmm, $PreCoreFile, $LogFile, $PanGenome,
     $DuplicateSubIDs, $QryIDsFile, $DuplicateBlastHits, $Duplicate, $stoExt, $stoAln,
     $PanGenomesDB, $TrustedORFeomePrefix, $QryIDs, $QryIdIndex, $NoTrustedGenes,
-    $NoNewGenes, $c, $NewGene, $GeneId, $PanGenomeStats, $PanGenomeSize);
+    $NoNewGenes, $c, $NewGene, $GeneId, $PanGenomeStats, $PanGenomeSize, $NewORFId, $NewCounter,
+    $NewORF, $NewORFPath, $NewORFSeq, $NewORFAln, $NewORFHmm);
 my (@List, @BlastReport, @ReportFields, @Duplicates, @QryIDs);
 my (%IDs);
 my $OutReport = [ ];
 
-$MainPath               = "/Users/RC/CoreGenome/MacOS";
+$MainPath               = "/Users/rc/CoreGenome";
 $Project                = $MainPath ."/". $ProjectName;
 $ProjectGenomeList      = $Project ."/". $List;
 @List = ReadFile($ProjectGenomeList);
@@ -117,24 +118,28 @@ for ($i=0; $i<$n; $i++){
 
 	print "Analyzing ORF $Counter: \n";
 
-	MakeDir($SharedORFPath); 
+	MakeDir($SharedORFPath);
+        Extract($TrustedORFeomePrefix,$PanGenome,$SubId,$SubOut);
+        Extract($Qry,$QryDb,$QryId,$QryOut);
+        Align($SubOut,$QryOut,$ToAlign,$fastaAln);
+        HMM($CPUs,$OutHmm,$fastaAln);
 
-	print "\tExtracting ORF from $TrustedORFeomePrefix...";	
-	$cmd = `blastdbcmd -db $PanGenomesDB -dbtype nucl -entry "$SubId" -out $SubOut`;
-	print "Done!\n";
-
-	print "\tExtracting ORF from $Qry...";
-	$cmd = `blastdbcmd -db $QryDb -dbtype nucl -entry "$QryId" -out $QryOut`;
-	print "Done!\n";
-
-	print "\tAligning sequences...";
-	$cmd = `cat $SubOut $QryOut > $ToAlign`;
-	$cmd = `muscle -in $ToAlign -out $fastaAln -quiet`;
-	print "Done!\n";
-
-	print "\tBuilding a HMM...";
-	$cmd = `hmmbuild --dna --cpu $CPUs $OutHmm $fastaAln`;
-	print "Done!\n\n";
+	#print "\tExtracting ORF from $TrustedORFeomePrefix...";	
+	#$cmd = `blastdbcmd -db $PanGenomesDB -dbtype nucl -entry "$SubId" -out $SubOut`;
+	#print "Done!\n";
+	#
+	#print "\tExtracting ORF from $Qry...";
+	#$cmd = `blastdbcmd -db $QryDb -dbtype nucl -entry "$QryId" -out $QryOut`;
+	#print "Done!\n";
+	#
+	#print "\tAligning sequences...";
+	#$cmd = `cat $SubOut $QryOut > $ToAlign`;
+	#$cmd = `muscle -in $ToAlign -out $fastaAln -quiet`;
+	#print "Done!\n";
+	#
+	#print "\tBuilding a HMM...";
+	#$cmd = `hmmbuild --dna --cpu $CPUs $OutHmm $fastaAln`;
+	#print "Done!\n\n";
         
  	$OutReport -> [0][0] = "";		
         $OutReport -> [$i+1][0] = $SharedORF;
@@ -155,33 +160,40 @@ foreach $Duplicate(@Duplicates){
         system("grep -E $Duplicate $BlastReport >> $DuplicateBlastHits");
 }
 
-#Pan-Genome building step
+#Adding Non Shared ORFs and Pan-Genome building step
 print "\nBuilding Pan-Genome file\n";
 system("cp $TrustedFile $PanGenome");
-$NewCounter = $Counter+1;
 $NoNewGenes = scalar@QryIDs;
-for($c=0; $c<$NoNewGenes; $c++){
-        $NewORFId = $QryIDs[$c];
-        $NewORF = "ORF" ."_". $NewCounter+$c;
-	$SharedORFPath = $ORFsPath ."/". $NewORF;
-        MakeDir($SharedORFPath);  
-        
+for($a=0; $a<$NoNewGenes; $a++){
+        $NewORFId = $QryIDs[$a];
+        $NewCounter = $Counter+$a+1;
+        $NewORF = "ORF" ."_". $NewCounter;
+	$NewORFPath = $ORFsPath ."/". $NewORF;
+        $NewORFSeq = $NewORFPath ."/". $Qry ."-". $NewORFId . $SeqExt;
+        $NewORFHmm = $NewORFPath ."/". $Qry ."-". $NewORFId . $HmmExt;
+        $NewORFAln = $NewORFPath ."/". "1-" . $NewORF . $AlnExt;
+
+        print "Analyzing ORF $NewCounter: \n";
+
+        MakeDir($NewORFPath);
+        Extract($Qry,$QryDb,$NewORFId,$NewORFSeq);
+        $cmd = `cp $NewORFSeq $NewORFAln`;
+        HMM($CPUs,$NewORFHmm,$NewORFAln);
         
         $cmd = `blastdbcmd -db $QryDb -dbtype nucl -entry "$NewORFId" >> $PanGenome`;
-        Progress($NoNewGenes,$c);
+        
+        $OutReport -> [$NewCounter][0] = $NewORF; 
+        #$OutReport -> [$i+1][1] = $SubId;
+        $OutReport -> [$NewCounter][2] = $NewORFId;
+        
+        Progress($NoNewGenes,$a);
 }
-$PanGenomeSize=`grep ">" $PanGenome | wc -l`;
-chomp $PanGenomeSize;
-open (FILE, ">$PanGenomeStats");
-        print FILE "Old Pan-Genome: $NoTrustedGenes\nNew Genes: $NoNewGenes\nNew Pan-Genome: $PanGenomeSize";
-close FILE;
-print "Done!\n";
 
 #PreCore-Genome building step
 open (FILE, ">>$PreCoreFile");
-for($a=0; $a<$n+1; $a++){
-    for ($b=0; $b<3; $b++){
-        print FILE $OutReport -> [$a][$b], ",";
+for($b=0; $b<$NewCounter+1; $b++){
+    for ($c=0; $c<3; $c++){
+        print FILE $OutReport -> [$b][$c], ",";
     }
     print FILE "\n";
 }
@@ -191,5 +203,37 @@ close FILE;
 print "\nUpdating Trusted Orfeome Data Base with $NoNewGenes new genes...";
 $cmd = `makeblastdb -in $PanGenome -dbtype nucl -parse_seqids -out $PanGenomesDB`;
 print "Done!\n";
+
+#
+$PanGenomeSize=`grep ">" $PanGenome | wc -l`;
+chomp $PanGenomeSize;
+open (FILE, ">$PanGenomeStats");
+        print FILE "Old Pan-Genome: $NoTrustedGenes\nNew Genes: $NoNewGenes\nNew Pan-Genome: $PanGenomeSize";
+close FILE;
+print "Done!\n";
+
+
+###############################################################################
+sub Extract{
+        my ($Qry, $DataBase,$Entry,$OutSeq, $null) = @_;
+        print "\tExtracting ORF from $Qry...";	
+        $cmd = `blastdbcmd -db $DataBase -dbtype nucl -entry "$Entry" -out $OutSeq`;
+        print "Done!\n";
+}
+
+sub Align{
+        my ($Seq1, $Seq2, $ToAlign, $AlnFile, $null) = @_;
+	print "\tAligning sequences...";
+	$cmd = `cat $Seq1 $Seq2 > $ToAlign`;
+	$cmd = `muscle -in $ToAlign -out $AlnFile -quiet`;
+	print "Done!\n";
+}
+
+sub HMM{
+        my ($CPUs, $HmmFile, $AlnFile, $null) = @_;
+	print "\tBuilding a HMM...";
+	$cmd = `hmmbuild --dna --cpu $CPUs $HmmFile $AlnFile`;
+	print "Done!\n\n";
+}
 
 exit;
