@@ -11,7 +11,7 @@
 
 use strict; 
 use List::MoreUtils qw{any};
-use lib '/home/rtorres/CoreGenome/src/lib';
+use lib '/Users/rc/CoreGenome/src/lib';
 use Routines;
 
 my ($Usage, $ProjectName, $List, $TrustedORFeome, $CPUs);
@@ -34,12 +34,14 @@ my ($MainPath, $Project, $ORFeomesPath, $ProjectGenomeList, $Sub, $Qry, $QryFile
     $DuplicateSubIDs, $QryIDsFile, $DuplicateBlastHits, $Duplicate, $stoExt, $stoAln,
     $PanGenomesDB, $TrustedORFeomePrefix, $QryIDs, $QryIdIndex, $NoTrustedGenes,
     $NoNewGenes, $c, $NewGene, $GeneId, $Stats, $PanGenomeSize, $NewORFId, $NewCounter,
-    $NewORF, $NewORFPath, $NewORFSeq, $NewORFAln, $NewORFHmm, $Summary,$CoreGenomeSize);
-my (@List, @BlastReport, @ReportFields, @Duplicates, @QryIDs);
+    $NewORF, $NewORFPath, $NewORFSeq, $NewORFAln, $NewORFHmm, $Summary,$CoreGenomeSize,
+    $TrustedIDs, $TrustedIdIndex, $NoNonSharedORFs, $NonSharedORFId, $NonSharedCounter,
+    $NonSharedORF, $NonSharedORFPath, $NonSharedORFSeq, $NonSharedORFHmm, $NonSharedORFAln);
+my (@List, @BlastReport, @ReportFields, @Duplicates, @QryIDs, @TrustedIDs);
 my (%IDs);
 my $OutReport = [ ];
 
-$MainPath               = "/home/rtorres/CoreGenome";
+$MainPath               = "/Users/rc/CoreGenome";
 $Project                = $MainPath ."/". $ProjectName;
 $ProjectGenomeList      = $Project ."/". $List;
 @List = ReadFile($ProjectGenomeList);
@@ -79,10 +81,15 @@ $LogFile                = $Project ."/". $ProjectName . ".log";
 $NoTrustedGenes = `grep ">" $TrustedFile | wc -l`;
 chomp $NoTrustedGenes;
 
-#Complete query genes ID 
+#Query gene IDs 
 $QryIDs = `grep ">" $QryFile`;
 $QryIDs =~ s/>//g;
 @QryIDs = split('\n',$QryIDs);
+
+#Trusted gene IDs
+$TrustedIDs = `grep ">" $TrustedFile`;
+$TrustedIDs =~ s/>//g;
+@TrustedIDs = split('\n',$TrustedIDs);
 
 MakeDir ($ORFsPath);
 open (STDERR, "| tee -ai $LogFile") or die "$0: dup: $!";
@@ -104,17 +111,33 @@ for ($i=0; $i<$n; $i++){
         close FILE;
         
 	#Removing Shared Genes from Query
-        $QryIdIndex = grep {$QryIDs[$_] eq $QryId} 0..$#QryIDs;
-        if (any {$_ eq $QryId} @QryIDs){
-                splice @QryIDs, $QryIdIndex-1, 1;
+        #if (any {$_ eq $QryId} @QryIDs){
+        for(my $x=0;$x<scalar@QryIDs;$x++){
+                $ID = $QryIDs[$x];
+        #foreach $ID(@QryIDs){
+                #print $ID;
+                $ID =~ s/\s//g;
+                if($ID eq $QryId){
+                        splice @QryIDs, $x, 1;
+                        #$QryIdIndex = grep {$QryIDs[$_] eq $QryId} 0..$#QryIDs;
+                        #splice @QryIDs, $QryIdIndex-1, 1;
+                }
         }
 
 	#Removing Shared Genes from Trusted ORFeome
-	$QryIdIndex = grep {$QryIDs[$_] eq $QryId} 0..$#QryIDs;
-        if (any {$_ eq $QryId} @QryIDs){
-                splice @QryIDs, $QryIdIndex-1, 1;
+        #if (any {$_ eq $SubId} @TrustedIDs){
+        for(my $z=0;$z<scalar@TrustedIDs; $z++){
+                $ID = $TrustedIDs[$z];
+        #foreach $ID(@TrustedIDs){
+                #print $ID;
+                $ID =~ s/\s//g;
+                if($ID eq $SubId){
+                        splice @TrustedIDs, $z, 1;
+                        #$TrustedIdIndex = grep {$TrustedIDs[$_] eq $SubId} 0..$#TrustedIDs;
+                        #splice @TrustedIDs, $TrustedIdIndex-1, 1;
+                }
         }
-
+        
 	$SharedORF = "ORF" ."_". $Counter;
 	$SharedORFPath = $ORFsPath ."/". $SharedORF;
 	
@@ -154,19 +177,44 @@ foreach $Duplicate(@Duplicates){
 }
 
 #Adding Non Shared ORFs and Pan-Genome building step
-print "\nAnalyzing New ORFs\n";
 system("cp $TrustedFile $PanGenomeSeq");
+
+print "\nProcessing Non Shared Genes\n";
+$NoNonSharedORFs = scalar@TrustedIDs;
+for($a=0; $a<$NoNonSharedORFs; $a++){
+        $NonSharedORFId = $TrustedIDs[$a];
+        $NonSharedCounter = $Counter+$a+1;
+        $NonSharedORF = "ORF" ."_". $NonSharedCounter;
+        $NonSharedORFPath = $ORFsPath ."/". $NonSharedORF;
+        $NonSharedORFSeq = $NonSharedORFPath ."/". $TrustedORFeomePrefix ."-". $NonSharedORFId . $SeqExt;
+        $NonSharedORFHmm = $NonSharedORFPath ."/". $TrustedORFeomePrefix ."-". $NonSharedORFId . $HmmExt;
+        $NonSharedORFAln = $NonSharedORFPath ."/". "1-" . $NonSharedORF . $AlnExt;
+        
+        print "\nProcessing ORF $NonSharedCounter: \n";
+        
+        MakeDir($NonSharedORFPath);
+        Extract($TrustedORFeomePrefix,$PanGenomesDB,$NonSharedORFId,$NonSharedORFSeq);
+        $cmd = `cp $NonSharedORFSeq $NonSharedORFAln`;
+        HMM($CPUs,$NonSharedORFHmm,$NonSharedORFAln);
+        
+        $OutReport -> [$NonSharedCounter][0] = $NonSharedORF; 
+        $OutReport -> [$NonSharedCounter][1] = $NonSharedORFId;
+        $OutReport -> [$NonSharedCounter][2] = "";
+}
+
+print "\nProcessing New ORFs\n";
 $NoNewGenes = scalar@QryIDs;
-for($a=0; $a<$NoNewGenes; $a++){
-        $NewORFId = $QryIDs[$a];
-        $NewCounter = $Counter+$a+1;
+
+for($b=0; $b<$NoNewGenes; $b++){
+        $NewORFId = $QryIDs[$b];
+        $NewCounter = $NonSharedCounter+$b+1;
         $NewORF = "ORF" ."_". $NewCounter;
 	$NewORFPath = $ORFsPath ."/". $NewORF;
         $NewORFSeq = $NewORFPath ."/". $Qry ."-". $NewORFId . $SeqExt;
         $NewORFHmm = $NewORFPath ."/". $Qry ."-". $NewORFId . $HmmExt;
         $NewORFAln = $NewORFPath ."/". "1-" . $NewORF . $AlnExt;
 
-        print "\nAnalyzing ORF $NewCounter: \n";
+        print "\nProcessing ORF $NewCounter: \n";
 
         MakeDir($NewORFPath);
         Extract($Qry,$QryDb,$NewORFId,$NewORFSeq);
