@@ -11,12 +11,12 @@
 
 use strict; 
 use List::MoreUtils qw{any};
-use lib '/home/rtorres/CoreGenome/src/lib';
+use lib '/Users/rc/CoreGenome/src/lib';
 use Routines;
 
-my ($Usage, $ProjectName, $List, $TrustedORFeome, $CPUs);
+my ($Usage, $ProjectName, $List, $TrustedORFeome, $eValue, $PIdent, $CPUs);
 
-$Usage = "\tUsage: PreCoreGenome.pl <Project Name> <Genomes_List_File.ext> <TrustedORFeome.fasta> <CPUs>\n";
+$Usage = "\tUsage: PreCoreGenome.pl <Project Name> <Genomes_List_File.ext> <TrustedORFeome.fasta> <e-value> <Perc Ident> <CPUs>\n";
 unless(@ARGV) {
         print $Usage;
         exit;
@@ -25,21 +25,26 @@ chomp @ARGV;
 $ProjectName = $ARGV[0];
 $List = $ARGV[1];
 $TrustedORFeome = $ARGV[2];
-$CPUs = $ARGV[3];
+$eValue = $ARGV[3];
+$PIdent = $ARGV[4];
+$CPUs = $ARGV[5];
 
 my ($MainPath, $Project, $ORFeomesPath, $ProjectGenomeList, $Sub, $Qry, $QryFile,
     $TrustedFile, $SubDb, $QryDb, $BlastReport, $cmd, $ORFsPath, $BlastPath, $Counter, $i,
     $n, $SubId, $QryId, $SharedORF, $SharedORFPath, $SubOut, $QryOut, $ToAlign, $ID,
     $fastaAln, $SeqExt, $AlnExt, $HmmExt, $OutHmm, $PanGenomeReport, $LogFile, $PanGenomeSeq,
-    $DuplicateSubIDs, $QryIDsFile, $DuplicateBlastHits, $Duplicate, $stoExt, $stoAln,
-    $PanGenomesDB, $TrustedORFeomePrefix, $QryIDs, $QryIdIndex, $NoTrustedGenes,
+    $DuplicatedTrustedIDs, $DuplicatedQryIDs, $QryIDsFile, $DuplicatedBlastHits, $Duplicate,
+    $stoExt, $stoAln, $PanGenomesDB, $TrustedORFeomePrefix, $QryIDs, $QryIdIndex, $NoTrustedGenes,
     $NoNewGenes, $c, $NewGene, $GeneId, $Stats, $PanGenomeSize, $NewORFId, $NewCounter,
-    $NewORF, $NewORFPath, $NewORFSeq, $NewORFAln, $NewORFHmm, $Summary,$CoreGenomeSize);
-my (@List, @BlastReport, @ReportFields, @Duplicates, @QryIDs);
+    $NewORF, $NewORFPath, $NewORFSeq, $NewORFAln, $NewORFHmm, $Summary,$CoreGenomeSize,
+    $TrustedIDs, $TrustedIdIndex, $NoNonSharedORFs, $NonSharedORFId, $NonSharedCounter,
+    $NonSharedORF, $NonSharedORFPath, $NonSharedORFSeq, $NonSharedORFHmm, $NonSharedORFAln, $x,
+    $z, $d, $e, $TrustedIDsFile);
+my (@List, @BlastReport, @ReportFields, @Duplicates, @QryIDs, @TrustedIDs);
 my (%IDs);
 my $OutReport = [ ];
 
-$MainPath               = "/home/rtorres/CoreGenome";
+$MainPath               = "/Users/rc/CoreGenome";
 $Project                = $MainPath ."/". $ProjectName;
 $ProjectGenomeList      = $Project ."/". $List;
 @List = ReadFile($ProjectGenomeList);
@@ -64,14 +69,15 @@ $QryDb                  = $BlastPath ."/". $Qry;
 $PanGenomesDB           = $BlastPath ."/". "PanGenomeDB";
 
 #Output
-#$BlastReport           = $Project ."/". $ProjectName ."-". $Qry ."_vs_". $TrustedORFeomePrefix ."_BlastReport.txt";
 $BlastReport            = $Project ."/". $ProjectName . "_UniqueBlastComparison.txt";
-$PanGenomeReport        = $Project ."/". $ProjectName . "_PanGenome.csv";
+$PanGenomeReport        = $Project ."/". $ProjectName . "_Presence_Absence.csv";
 $PanGenomeSeq           = $Project ."/". $ProjectName . "_PanGenome" . $SeqExt;
 $Stats         		= $Project ."/". $ProjectName . "_Statistics.csv";
 $QryIDsFile             = $Project ."/". $ProjectName . "_Shared_" . $Qry . "GenesIDs.txt";
-$DuplicateSubIDs        = $Project ."/". $ProjectName . "_ProbableDuplicateGenes.txt";
-$DuplicateBlastHits     = $Project ."/". $ProjectName . "_DuplicateBlastHits.txt";
+$TrustedIDsFile         = $Project ."/". $ProjectName . "_Shared_" . $TrustedORFeomePrefix . "GenesIDs.txt";
+$DuplicatedTrustedIDs   = $Project ."/". $ProjectName . "_BlastTrustedDuplicatedGenes.txt";
+$DuplicatedQryIDs       = $Project ."/". $ProjectName . "_BlastQueryDuplicatedGenes.txt";
+$DuplicatedBlastHits    = $Project ."/". $ProjectName . "_DuplicateBlastReport.txt";
 $Summary		= $Project ."/". $ProjectName . "_Summary.txt";
 $LogFile                = $Project ."/". $ProjectName . ".log";
 
@@ -79,16 +85,21 @@ $LogFile                = $Project ."/". $ProjectName . ".log";
 $NoTrustedGenes = `grep ">" $TrustedFile | wc -l`;
 chomp $NoTrustedGenes;
 
-#Complete query genes ID 
+#Query gene IDs 
 $QryIDs = `grep ">" $QryFile`;
 $QryIDs =~ s/>//g;
 @QryIDs = split('\n',$QryIDs);
+
+#Trusted gene IDs
+$TrustedIDs = `grep ">" $TrustedFile`;
+$TrustedIDs =~ s/>//g;
+@TrustedIDs = split('\n',$TrustedIDs);
 
 MakeDir ($ORFsPath);
 open (STDERR, "| tee -ai $LogFile") or die "$0: dup: $!";
 
 print "\nLooking for the first shared ORFs between $TrustedORFeomePrefix and $Qry:\n";
-$cmd = `blastn -query $QryFile -db $PanGenomesDB -out $BlastReport -outfmt '6 qacc sacc qlen slen length qstart qend sstart send pident evalue bitscore' -evalue 1e-10 -max_hsps 1 -max_target_seqs 1 -qcov_hsp_perc 90 -perc_identity 80 -num_threads $CPUs`;
+$cmd = `blastn -query $QryFile -db $PanGenomesDB -out $BlastReport -outfmt '6 qacc sacc length qlen slen qstart qend sstart send pident evalue bitscore' -evalue $eValue -max_hsps 1 -max_target_seqs 1 -qcov_hsp_perc 90 -perc_identity $PIdent -num_threads $CPUs`;
 	
 @BlastReport = ReadFile($BlastReport);
 $CoreGenomeSize = scalar@BlastReport;
@@ -99,22 +110,34 @@ for ($i=0; $i<$n; $i++){
 	$QryId = $ReportFields[0];
 	$SubId = $ReportFields[1];
         
+        
+        #Obtaining Duplicate Blast Hits from both Query and Trusted sequences 
         open (FILE, ">>$QryIDsFile");
                 print FILE "$QryId\n";
         close FILE;
         
-	#Removing Shared Genes from Query
-        $QryIdIndex = grep {$QryIDs[$_] eq $QryId} 0..$#QryIDs;
-        if (any {$_ eq $QryId} @QryIDs){
-                splice @QryIDs, $QryIdIndex-1, 1;
+        open (FILE, ">>$TrustedIDsFile");
+                print FILE "$SubId\n";
+        close FILE;
+        
+	#Keep only non query shared genes
+        for($x=0;$x<scalar@QryIDs;$x++){
+                $ID = $QryIDs[$x];
+                $ID =~ s/\s//g;
+                if($ID eq $QryId){
+                        splice @QryIDs, $x, 1;
+                }
         }
 
-	#Removing Shared Genes from Trusted ORFeome
-	$QryIdIndex = grep {$QryIDs[$_] eq $QryId} 0..$#QryIDs;
-        if (any {$_ eq $QryId} @QryIDs){
-                splice @QryIDs, $QryIdIndex-1, 1;
+	#keep only non trusted shared genes
+        for($z=0;$z<scalar@TrustedIDs; $z++){
+                $ID = $TrustedIDs[$z];
+                $ID =~ s/\s//g;
+                if($ID eq $SubId){
+                        splice @TrustedIDs, $z, 1;
+                }
         }
-
+        
 	$SharedORF = "ORF" ."_". $Counter;
 	$SharedORFPath = $ORFsPath ."/". $SharedORF;
 	
@@ -144,29 +167,59 @@ for ($i=0; $i<$n; $i++){
         $OutReport -> [$i+1][2] = $QryId;
 }
 
-#Duplicated Qry Genes
-system("uniq -d $QryIDsFile > $DuplicateSubIDs");
-
-@Duplicates = ReadFile($DuplicateSubIDs);
+#Obtaining Duplicated Genes Files 
+system("uniq -d $TrustedIDsFile > $DuplicatedTrustedIDs");
+@Duplicates = ReadFile($DuplicatedTrustedIDs);
 chomp @Duplicates;
 foreach $Duplicate(@Duplicates){
-        system("grep -E $Duplicate $BlastReport >> $DuplicateBlastHits");
+        system("grep -E $Duplicate $BlastReport >> $DuplicatedBlastHits");
+}
+
+system("uniq -d $QryIDsFile > $DuplicatedQryIDs");
+@Duplicates = ReadFile($DuplicatedQryIDs);
+chomp @Duplicates;
+foreach $Duplicate(@Duplicates){
+        system("grep -E $Duplicate $BlastReport >> $DuplicatedBlastHits");
 }
 
 #Adding Non Shared ORFs and Pan-Genome building step
-print "\nAnalyzing New ORFs\n";
 system("cp $TrustedFile $PanGenomeSeq");
+
+print "\nProcessing Non Shared Genes\n"; #  <- Non shared genes from trusted orfeome
+$NoNonSharedORFs = scalar@TrustedIDs;
+for($a=0; $a<$NoNonSharedORFs; $a++){
+        $NonSharedORFId = $TrustedIDs[$a];
+        $NonSharedCounter = $Counter+$a+1;
+        $NonSharedORF = "ORF" ."_". $NonSharedCounter;
+        $NonSharedORFPath = $ORFsPath ."/". $NonSharedORF;
+        $NonSharedORFSeq = $NonSharedORFPath ."/". $TrustedORFeomePrefix ."-". $NonSharedORFId . $SeqExt;
+        $NonSharedORFHmm = $NonSharedORFPath ."/". $TrustedORFeomePrefix ."-". $NonSharedORFId . $HmmExt;
+        $NonSharedORFAln = $NonSharedORFPath ."/". "1-" . $NonSharedORF . $AlnExt;
+        
+        print "\nProcessing ORF $NonSharedCounter: \n";
+        
+        MakeDir($NonSharedORFPath);
+        Extract($TrustedORFeomePrefix,$PanGenomesDB,$NonSharedORFId,$NonSharedORFSeq);
+        $cmd = `cp $NonSharedORFSeq $NonSharedORFAln`;
+        HMM($CPUs,$NonSharedORFHmm,$NonSharedORFAln);
+        
+        $OutReport -> [$NonSharedCounter][0] = $NonSharedORF; 
+        $OutReport -> [$NonSharedCounter][1] = $NonSharedORFId;
+        $OutReport -> [$NonSharedCounter][2] = "";
+}
+
+print "\nProcessing New ORFs\n"; # <- Non shared genes from query file
 $NoNewGenes = scalar@QryIDs;
-for($a=0; $a<$NoNewGenes; $a++){
-        $NewORFId = $QryIDs[$a];
-        $NewCounter = $Counter+$a+1;
+for($b=0; $b<$NoNewGenes; $b++){
+        $NewORFId = $QryIDs[$b];
+        $NewCounter = $NonSharedCounter+$b+1;
         $NewORF = "ORF" ."_". $NewCounter;
 	$NewORFPath = $ORFsPath ."/". $NewORF;
         $NewORFSeq = $NewORFPath ."/". $Qry ."-". $NewORFId . $SeqExt;
         $NewORFHmm = $NewORFPath ."/". $Qry ."-". $NewORFId . $HmmExt;
         $NewORFAln = $NewORFPath ."/". "1-" . $NewORF . $AlnExt;
 
-        print "\nAnalyzing ORF $NewCounter: \n";
+        print "\nProcessing ORF $NewCounter: \n";
 
         MakeDir($NewORFPath);
         Extract($Qry,$QryDb,$NewORFId,$NewORFSeq);
@@ -182,11 +235,11 @@ for($a=0; $a<$NoNewGenes; $a++){
         $OutReport -> [$NewCounter][2] = $NewORFId;
 }
 
-#Building a Pan-Genome Report
+#Building a Presence amd Absence genes file
 open (FILE, ">>$PanGenomeReport");
-for($b=0; $b<$NewCounter+1; $b++){
-    for ($c=0; $c<3; $c++){
-        print FILE $OutReport -> [$b][$c], ",";
+for($d=0; $d<$NewCounter+1; $d++){
+    for ($e=0; $e<3; $e++){
+        print FILE $OutReport -> [$d][$e], ",";
     }
     print FILE "\n";
 }
@@ -211,6 +264,7 @@ open (FILE, ">$Stats");
 	print FILE "1,$Qry,$CoreGenomeSize,$PanGenomeSize,$NoNewGenes\n";
 close FILE;
 
+exit;
 
 ###############################################################################
 sub Extract{
@@ -234,5 +288,3 @@ sub HMM{
 	$cmd = `hmmbuild --dna --cpu $CPUs $HmmFile $AlnFile`;
 	print "Done!\n";
 }
-
-exit;
