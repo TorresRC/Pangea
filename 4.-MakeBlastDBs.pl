@@ -9,52 +9,59 @@
 # Fecha:         10 de abril de 2017                                            #
 #################################################################################
 use strict;                                                                      
-use lib '/home/bioinformatica/CoreGenome/src/lib';
-#use lib '/Users/Roberto/Documents/lib';                              
+#use lib '/home/bioinformatica/CoreGenome/src/lib';
+use lib '/Users/RC/lib';                              
 use Routines;                                                                    
 
-my ($Usage, $ProjectName, $List);
+my ($Usage, $ProjectName, $List, $TrustedORFeome);
 
-$Usage = "\tUsage: MakeBlastDBs.pl <Project Name> <List File Name>\n";
+$Usage = "\tUsage: MakeBlastDBs.pl <Project_Name> <Path/To/List_File.ext> <Path/To/Trusted_ORFeome.fasta>\n";
 unless(@ARGV) {
         print $Usage;
         exit;
 }
 chomp @ARGV;
 $ProjectName = $ARGV[0];
-$List = $ARGV[1];                                                               
+$List = $ARGV[1];
+$TrustedORFeome = $ARGV[2];
 
-my ($MainPath, $Project, $ORFeomesPath, $MainList, $BlastPath, $ext,
+my ($MainPath, $Project, $ORFeomesPath, $MainList, $BlastPath, $TrustedORFeomeDB, $SeqExt,
 	$i, $n, $Qry, $InputFile, $Db, $cmd, $LogFile);
 my (@List);                                                     
 
-#$MainPath = "/Users/Roberto/CoreGenome";
-$MainPath = "/home/bioinformatica/CoreGenome";
+$MainPath = "/Users/RC/CoreGenome/MacOS";
+#$MainPath = "/home/bioinformatica/CoreGenome";
 $Project = $MainPath ."/". $ProjectName;
 $MainList = $Project ."/". $List;                                               
 #$ORFeomesPath = $Project ."/". "ORFeomes";
-$ORFeomesPath = $MainPath ."/". "ORFeomes"; 
+$ORFeomesPath = $MainPath ."/". "ORFeomes";
 #$BlastPath = $Project ."/". "Blast";
 $BlastPath = $MainPath ."/". "Blast";
-$ext = ".fasta";
+$TrustedORFeomeDB = $BlastPath ."/". "TrustedORFeomeDB";
+$SeqExt = ".fasta";
 $LogFile = $Project ."/". $ProjectName . ".log";
 
 
 open (STDERR, "| tee -ai $LogFile") or die "$0: dup: $!";
 
+print "\nBuilding data bases:\n";
+
 MakeDir($BlastPath);                                                             
 
 @List = ReadFile($MainList);                                                     
-$n = scalar@List;                                                                
+$n = scalar@List;
+
+$cmd = `makeblastdb -in $TrustedORFeome -dbtype nucl -parse_seqids -out $TrustedORFeomeDB`;
 
 for ($i=0; $i<$n; $i++){                                                         
 	$Qry = $List[$i];                                                        
 
-	$InputFile = $ORFeomesPath ."/". $Qry . $ext;                             
+	$InputFile = $ORFeomesPath ."/". $Qry . $SeqExt;                             
 	$Db = $BlastPath ."/". $Qry;                                          
 
 	$cmd = `makeblastdb -in $InputFile -dbtype nucl -parse_seqids -out $Db`;  
 
 	Progress($n, $i);
 }
+print "Complete!\n";
 exit;
