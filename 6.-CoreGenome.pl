@@ -10,7 +10,7 @@
 #################################################################################
 
 use strict;
-use lib '/home/bioinformatica/CoreGenome/src/lib';
+use lib '/Users/RC/lib';
 use Routines;
 
 my ($Usage, $ProjectName, $List, $CPUs);
@@ -26,7 +26,7 @@ $List = $ARGV[1];
 $CPUs = $ARGV[2];
 
 my($MainPath, $Project, $MainList, $ORFeomesPath, $BlastPath, $ORFsPath,
-   $PresenceAbsenceReport, $SharedORFs, $SeqExt, $AlnExt, $HmmExt, $n, $m, $o,
+   $PreCoreGenomeFile, $SharedORFs, $SeqExt, $AlnExt, $HmmExt, $n, $m, $o,
    $Count, $i, $Counter, $QryGenomeName, $TestingORF, $QryGenomeSeq, $Hmm,
    $ORFTemp, $QryGenomeDb, $cmd, $ORFpath, $Line, $ORFStoAln, $Entry, $Strand,
    $QryORFSeq, $BestHit, $Row, $Fh, $c, $d, $e, $Reference, $Closest, $GeneTemp,
@@ -41,36 +41,34 @@ my(@List, @PreCoreGenome, @nHMMerReport, @BestHitArray, @DataInRow,
 my $NewReport = [ ];
 my $PermutationsFile = [ ];
 
+#$MainPath = "/Users/Roberto/CoreGenome";
+$MainPath = "/home/bioinformatica/CoreGenome";
+$Project = $MainPath ."/". $ProjectName;
 
-$MainPath	= "/home/bioinformatica/CoreGenome";
-$Project	= $MainPath ."/". $ProjectName;
-
-$MainList	= $Project ."/". $List;
-$ORFeomesPath	= $Project ."/". "ORFeomes";
-$BlastPath	= $Project ."/". "Blast";
-$ORFsPath	= $Project."/". "ORFs";
-$PresenceAbsenceReport = $Project ."/". $ProjectName . "_Presence_Absence.csv";
-$SharedORFs	= $Project ."/". $ProjectName . "_SharedORFs.csv";
-$CoreGenomeFile	= $Project ."/". $ProjectName . "_CoreGenome.csv";
-$LogFile	= $Project ."/". $ProjectName . ".log";
-$CoreSeqsPath	= $Project ."/". "CoreSequences";
-
-
-$Stat		= $Project ."/". $ProjectName . "_CoreStatistics.txt";
-$Summary	= $Project ."/". $ProjectName . "_Summary.txt";
-$Stats         	= $Project ."/". $ProjectName . "_Statistics.csv";
+$MainList = $Project ."/". $List;
+#$ORFeomesPath = $Project ."/". "ORFeomes";
+$ORFeomesPath = $MainPath ."/". "ORFeomes";
+#$BlastPath = $Project ."/". "Blast";
+$BlastPath = $MainPath ."/". "Blast";
+$ORFsPath = $Project."/". "ORFs";
+$PreCoreGenomeFile = $Project ."/". $ProjectName . "_PreCoreGenome.csv";
+$SharedORFs = $Project ."/". $ProjectName . "_SharedORFs.csv";
+$CoreGenomeFile = $Project ."/". $ProjectName . "_CoreGenome.csv";
+$LogFile = $Project ."/". $ProjectName . ".log";
+$CoreSeqsPath = $Project ."/". "CoreSequences";
+$Stat = $Project ."/". $ProjectName . "_CoreStatistics.txt";
 
 MakeDir($CoreSeqsPath);
 
 $SeqExt = ".fasta";
-$AlnExt = ".aln.fasta";
+$AlnExt = ".aln";
 $HmmExt = ".hmm";
 
 open (STDERR, "| tee -ai $LogFile") or die "$0: dup: $!";
 
 @List = ReadFile($MainList);
 $m = scalar@List;
-@PreCoreGenome = ReadFile($PresenceAbsenceReport);
+@PreCoreGenome = ReadFile($PreCoreGenomeFile);
 $n = scalar@PreCoreGenome;
 
 for ($a=0; $a<$n; $a++){
