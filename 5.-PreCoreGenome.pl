@@ -31,7 +31,7 @@ $CPUs = $ARGV[5];
 
 my ($MainPath, $Project, $ORFeomesPath, $ProjectGenomeList, $Sub, $Qry, $QryFile,
     $TrustedFile, $SubDb, $QryDb, $BlastReport, $cmd, $ORFsPath, $BlastPath, $TrustedORFeomePrefix, $SeqExt,
-    $AlnExt, $stoExt, $HmmExt, $PanGenomeDb, $PanGenomeReport, $PanGenomeSeq, $Stats, $QryIDsFile,
+    $AlnExt, $stoExt, $HmmExt, $PanGenomeDb, $PresenceAbsence, $PanGenomeSeq, $Stats, $QryIDsFile,
     $TrustedIDsFile, $DuplicatedTrustedIDs, $DuplicatedQryIDs, $DuplicatedBlastHits, $Summary, $LogFile,
     $NoQryGenes, $NoTrustedGenes, $CoreGenomeSize, $Count, $Counter, $QryId, $TrustedId, $ID,
     $SharedORF, $SharedORFPath, $TrustedOutFileName, $TrustedOut, $QryOutFileName, $QryOut, $ToAlign, $fastaAln, $stoAln,
@@ -71,7 +71,7 @@ $PanGenomeDb            = $BlastPath ."/". "PanGenomeDb";
 
 #Output
 $BlastReport            = $Project ."/". $ProjectName . "_UniqueBlastComparison.txt";
-$PanGenomeReport        = $Project ."/". $ProjectName . "_Presence_Absence.csv";
+$PresenceAbsence        = $Project ."/". $ProjectName . "_Initial_Presence_Absence.csv";
 $PanGenomeSeq           = $Project ."/". $ProjectName . "_PanGenome" . $SeqExt;
 $Stats         		= $Project ."/". $ProjectName . "_Statistics.csv";
 $QryIDsFile             = $Project ."/". $ProjectName . "_Shared_" . $Qry . "GenesIDs.txt";
@@ -132,8 +132,6 @@ for ($i=0; $i<$n; $i++){
         
 	$SharedORF = "ORF" ."_". $Counter;
 	$SharedORFPath = $ORFsPath ."/". $SharedORF;
-	
-
 	
         $TrustedOut = $SharedORFPath ."/". $TrustedOutFileName;
         $QryOut = $SharedORFPath ."/". $QryOutFileName;
@@ -212,7 +210,7 @@ for($a=0; $a<$NoNonSharedORFs; $a++){
         $NonSharedORF = "ORF" ."_". $NonSharedCounter;
         $NonSharedORFPath = $ORFsPath ."/". $NonSharedORF;
         $NonSharedORFSeq = $NonSharedORFPath ."/". $TrustedORFeomePrefix ."-". $NonSharedORFId . $SeqExt;
-        $NonSharedORFHmm = $NonSharedORFPath ."/". $TrustedORFeomePrefix ."-". $NonSharedORFId . $HmmExt;
+        $NonSharedORFHmm = $NonSharedORFPath ."/". $NonSharedORF . $HmmExt;
         $NonSharedORFAln = $NonSharedORFPath ."/". "1-" . $NonSharedORF . $AlnExt;
         
         print "\nProcessing ORF $NonSharedCounter: \n";
@@ -235,7 +233,7 @@ for($b=0; $b<$NoNewGenes; $b++){
         $NewORF = "ORF" ."_". $NewCounter;
 	$NewORFPath = $ORFsPath ."/". $NewORF;
         $NewORFSeq = $NewORFPath ."/". $Qry ."-". $NewORFId . $SeqExt;
-        $NewORFHmm = $NewORFPath ."/". $Qry ."-". $NewORFId . $HmmExt;
+        $NewORFHmm = $NewORFPath ."/". $NewORF . $HmmExt;
         $NewORFAln = $NewORFPath ."/". "1-" . $NewORF . $AlnExt;
 
         print "\nProcessing ORF $NewCounter: \n";
@@ -254,8 +252,8 @@ for($b=0; $b<$NoNewGenes; $b++){
         $OutReport -> [$NewCounter][2] = $NewORFId;
 }
 
-#Building a Presence and Absence genes file
-open (FILE, ">>$PanGenomeReport");
+#Building a Presence/Absence genes file
+open (FILE, ">>$PresenceAbsence");
 for($d=0; $d<$NewCounter+1; $d++){
     for ($e=0; $e<3; $e++){
         print FILE $OutReport -> [$d][$e], ",";

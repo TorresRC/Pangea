@@ -10,7 +10,7 @@
 #################################################################################
 
 use strict;
-use lib '/Users/RC/lib';
+use lib '/Users/rc/lib';
 use Routines;
 
 my ($Usage, $ProjectName, $List, $CPUs);
@@ -41,18 +41,15 @@ my(@List, @PreCoreGenome, @nHMMerReport, @BestHitArray, @DataInRow,
 my $NewReport = [ ];
 my $PermutationsFile = [ ];
 
-#$MainPath = "/Users/Roberto/CoreGenome";
-$MainPath = "/home/bioinformatica/CoreGenome";
+$MainPath = "/Users/rc/CoreGenome";
 $Project = $MainPath ."/". $ProjectName;
 
 $MainList = $Project ."/". $List;
-#$ORFeomesPath = $Project ."/". "ORFeomes";
 $ORFeomesPath = $MainPath ."/". "ORFeomes";
-#$BlastPath = $Project ."/". "Blast";
 $BlastPath = $MainPath ."/". "Blast";
 $ORFsPath = $Project."/". "ORFs";
-$PreCoreGenomeFile = $Project ."/". $ProjectName . "_PreCoreGenome.csv";
-$SharedORFs = $Project ."/". $ProjectName . "_SharedORFs.csv";
+$PreCoreGenomeFile = $Project ."/". $ProjectName . "_Initial_Presence_Absence.csv";
+$SharedORFs = $Project ."/". $ProjectName . "_Presence_Absence.csv";
 $CoreGenomeFile = $Project ."/". $ProjectName . "_CoreGenome.csv";
 $LogFile = $Project ."/". $ProjectName . ".log";
 $CoreSeqsPath = $Project ."/". "CoreSequences";
@@ -61,7 +58,7 @@ $Stat = $Project ."/". $ProjectName . "_CoreStatistics.txt";
 MakeDir($CoreSeqsPath);
 
 $SeqExt = ".fasta";
-$AlnExt = ".aln";
+$AlnExt = ".aln.fasta";
 $HmmExt = ".hmm";
 
 open (STDERR, "| tee -ai $LogFile") or die "$0: dup: $!";
