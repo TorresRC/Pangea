@@ -10,7 +10,7 @@
 #################################################################################
 
 use strict;
-use lib '/Users/Roberto/lib';
+use lib '/Users/rc/lib';
 use Routines;
 
 my ($Usage, $ProjectName, $List, $CPUs);
@@ -26,46 +26,50 @@ $List = $ARGV[1];
 $CPUs = $ARGV[2];
 
 my($MainPath, $Project, $MainList, $ORFeomesPath, $BlastPath, $ORFsPath,
-   $PresenceAbsence, $SharedORFs, $SeqExt, $AlnExt, $HmmExt, $n, $m, $o,
+   $InitialPresenceAbsence, $PresenceAbsence, $PanGenomeSeq, $Stats, $SeqExt, $AlnExt,
+   $HmmExt, $n, $m, $o, $j, $QryDb, $TotalQryIDs, $TotalNewORFs, $CoreGenomeSize,
    $Count, $i, $Counter, $QryGenomeName, $TestingORF, $QryGenomeSeq, $Hmm,
-   $ORFTemp, $QryGenomeDb, $cmd, $ORFpath, $Line, $ORFStoAln, $Entry, $Strand,
+   $ORFTemp, $cmd, $ORFpath, $Line, $ORFStoAln, $Entry, $Strand,
    $QryORFSeq, $BestHit, $Row, $Fh, $c, $d, $e, $Reference, $Closest, $GeneTemp,
    $ReferenceORFID, $ClosestORFID, $CoreGenomeFile, $LogFile, $Lap, $Element, $p,
    $CoreSeqsPath, $f, $ORF, $g, $Strain, $Db, $OutCore, $h, $Gene, $ORFStoAlnFragment,
    $LastORFAln, $NewORFAln, $QryORFFastaAln, $PreviousAlnPrefix, $CurrentAlnPrefix,
-   $q, $CoreGenes, $Stat);
+   $q, $CoreGenes, $Stat, $PreviousAlnName, $FindingPreviousAln, $x, $ID, $QryId, $NewORFId,
+   $NewCounter, $NewORF, $NewORFPath, $NewORFSeq, $NewORFHmm, $PreviousAln);
 my(@List, @PresenceAbsence, @nHMMerReport, @BestHitArray, @DataInRow,
    @LastReportColumnData, @NewReport, @PresenceAbsenceArray, @PresenceAbsenceFields,
    @SharedORFsArray, @LapArray, @CoreFile, @OrfLine, @CoreData, @Temp, @StoAln,
-   @AlnData, @CoreGenome, @QryIDs);
+   @AlnData, @CoreGenome, @QryIDs, @NewORFs, @SplitPreviousAlnName, @SplitAlnPath);
 my $NewReport = [ ];
 my $PermutationsFile = [ ];
 
-$MainPath = "/Users/Roberto/CoreGenome";
+$MainPath = "/Users/rc/CoreGenome";
 $Project = $MainPath ."/". $ProjectName;
-
-$MainList       = $Project ."/". $List;
-$ORFeomesPath   = $MainPath ."/". "ORFeomes";
-$BlastPath      = $MainPath ."/". "Blast";
-$ORFsPath       = $Project."/". "ORFs";
-$PresenceAbsence= $Project ."/". $ProjectName . "_Initial_Presence_Absence.csv";
-$SharedORFs     = $Project ."/". $ProjectName . "_Presence_Absence.csv";
-$CoreGenomeFile = $Project ."/". $ProjectName . "_CoreGenome.csv";
-$LogFile        = $Project ."/". $ProjectName . ".log";
-$CoreSeqsPath   = $Project ."/". "CoreSequences";
-$Stat           = $Project ."/". $ProjectName . "_CoreStatistics.txt";
-
-MakeDir($CoreSeqsPath);
 
 $SeqExt = ".fasta";
 $AlnExt = ".aln.fasta";
 $HmmExt = ".hmm";
 
+$MainList       = $Project ."/". $List;
+$ORFeomesPath   = $MainPath ."/". "ORFeomes";
+$BlastPath      = $MainPath ."/". "Blast";
+$ORFsPath       = $Project."/". "ORFs";
+$InitialPresenceAbsence= $Project ."/". $ProjectName . "_Initial_Presence_Absence.csv";
+$PresenceAbsence= $Project ."/". $ProjectName . "_Presence_Absence.csv";
+$CoreGenomeFile = $Project ."/". $ProjectName . "_CoreGenome.csv";
+$LogFile        = $Project ."/". $ProjectName . ".log";
+$CoreSeqsPath   = $Project ."/". "CoreSequences";
+$Stat           = $Project ."/". $ProjectName . "_CoreStatistics.txt";
+$PanGenomeSeq   = $Project ."/". $ProjectName . "_PanGenome" . $SeqExt;
+$Stats         	= $Project ."/". $ProjectName . "_Statistics.csv";
+
+MakeDir($CoreSeqsPath);
+
 open (STDERR, "| tee -ai $LogFile") or die "$0: dup: $!";
 
 @List = ReadFile($MainList);
 $m = scalar@List;
-@PresenceAbsence = ReadFile($PresenceAbsence);
+@PresenceAbsence = ReadFile($InitialPresenceAbsence);
 $n = scalar@PresenceAbsence;
 
 for ($a=0; $a<$n; $a++){
@@ -75,89 +79,134 @@ for ($a=0; $a<$n; $a++){
      push (@PresenceAbsenceArray, [@PresenceAbsenceFields]);
 }
 
-$Reference = $PresenceAbsenceArray[0]->[1];
-$Closest = $PresenceAbsenceArray[0]->[2];
+for ($i=0; $i<$n; $i++){
+        for ($j=0; $j<2; $j++){
+                $NewReport -> [$i][$j] = $PresenceAbsenceArray[$i]->[$j];    
+        }
+}
 
-$NewReport -> [0][0] = "";
-$NewReport -> [0][1] = $Reference;
-$NewReport -> [0][2] = $Closest;
 
-for ($b=1; $b<$n; $b++){
-	$TestingORF = $PresenceAbsenceArray[$b]->[0];
-	$ReferenceORFID = $PresenceAbsenceArray[$b]->[1];
-	$ClosestORFID = $PresenceAbsenceArray[$b]->[2];
-	
-	$NewReport -> [$b][0] = $TestingORF;
-	$NewReport -> [$b][1] = $ReferenceORFID;
-	$NewReport -> [$b][2] = $ClosestORFID;
-	
-	$ORFpath = $ORFsPath ."/". $TestingORF;
-	$Hmm = $ORFpath ."/". $TestingORF . $HmmExt;
-	
-     $Count = 1;
-	for ($c=1; $c<$m; $c++){
-		$QryGenomeName = $List[$c];
-		$QryGenomeSeq = $ORFeomesPath ."/". $QryGenomeName . $SeqExt;
-		$ORFTemp = $ORFpath ."/". $QryGenomeName ."_". $TestingORF . ".temp";
-		$QryGenomeDb = $BlastPath ."/". $QryGenomeName;
-	
-		$NewReport -> [0][$c+2] = $QryGenomeName;
-          
-          @QryIDs = AnnotatedGenes($QryGenomeSeq); #Get all names of annotated genes from query
+for ($a=1; $a<$m; $a++){
+        $QryGenomeName = $List[$a];
+        $QryGenomeSeq = $ORFeomesPath ."/". $QryGenomeName . $SeqExt;
+        $QryDb = $BlastPath ."/". $QryGenomeName;
+        
+        $NewReport -> [0][$a+2] = $QryGenomeName;
+        
+        @QryIDs = AnnotatedGenes($QryGenomeSeq); #Get all names of annotated genes from query
+        $TotalQryIDs = scalar@QryIDs;
+        @NewORFs = @QryIDs;
+        $TotalNewORFs = $TotalQryIDs;
+        
+        $CoreGenomeSize = 0;
+        for ($b=1; $b<$n; $b++){
+                $TestingORF = $PresenceAbsenceArray[$b]->[0];
+                $ORFpath = $ORFsPath ."/". $TestingORF;
+                $Hmm = $ORFpath ."/". $TestingORF . $HmmExt;
+                $ORFTemp = $ORFpath ."/". $TestingORF ."-". $QryGenomeName . ".temp";
 	
 		print "\n----------------Looking for $TestingORF in $QryGenomeName----------------\n";
 	
-		system("nhmmer -E 1e-90 --cpu $CPUs --noali --dfamtblout $ORFTemp $Hmm $QryGenomeSeq");
+		system("nhmmer -E 1e-200 --cpu $CPUs --noali --dfamtblout $ORFTemp $Hmm $QryGenomeSeq");
 		
-		@nHMMerReport = ReadFile($ORFTemp);
-		open (FILE, ">$ORFTemp");
-			print FILE $nHMMerReport[0];
-		close FILE;
-		@nHMMerReport = ReadFile($ORFTemp);
+		#@nHMMerReport = ReadFile($ORFTemp);
+		#open (FILE, ">$ORFTemp");
+		#	print FILE $nHMMerReport[0];
+		#close FILE;
+		#@nHMMerReport = ReadFile($ORFTemp);
 	
 		if (-z $ORFTemp){
 			print "The ORF $TestingORF is not present in $QryGenomeName\n";
-               $NewReport -> [$b][$c+2] = "";
-			system("rm $ORFTemp");
+                        
+                        $NewReport -> [$b][$a+2] = "";
+			
+                        system("rm $ORFTemp");
 		}else{
-               $Count++;
+                        @nHMMerReport = ReadFile($ORFTemp);
+                        open (FILE, ">$ORFTemp");
+                                print FILE $nHMMerReport[0];
+                        close FILE;
+                        @nHMMerReport = ReadFile($ORFTemp);
+                        
+                        $CoreGenomeSize++;
 			$BestHit = $nHMMerReport[0];
 			$BestHit =~ s/\s^//g;
 			$BestHit =~ s/\s+/,/g;
 			@BestHitArray = split(",",$BestHit);
 			$Entry = $BestHitArray[0];
 			$Strand = $BestHitArray[8];
-               $PreviousAlnPrefix = $Count-1;
-               $CurrentAlnPrefix = $Count;
-               
 			$QryORFSeq = $ORFpath ."/". $QryGenomeName ."-". $Entry . $SeqExt;
-               $LastORFAln = $ORFpath ."/". $PreviousAlnPrefix ."-". $TestingORF . $AlnExt;
-               $NewORFAln = $ORFpath ."/". $CurrentAlnPrefix ."-". $TestingORF . $AlnExt;
-	
-			$NewReport -> [$b][$c+2] = $Entry;
-               
-               Extract($QryGenomeName,$QryGenomeDb,$Entry,$QryORFSeq);
-	
-			#print "\tExtracting $Entry from $QryGenomeName...";
-			#system("blastdbcmd -db $QryGenomeDb -dbtype nucl -entry \"$Entry\" -out $QryORFSeq");
-			#print "Done!\n";
-	
+
+			$NewReport -> [$b][$a+2] = $Entry;
+                        
+                        Extract($QryGenomeName,$QryDb,$Entry,$QryORFSeq);
+                        
+                        $PreviousAln = "*-". $TestingORF . $AlnExt;
+                        $FindingPreviousAln = `find $ORFsPath -type f -name $PreviousAln`;
+                        @SplitAlnPath = split("/",$FindingPreviousAln);
+                        $PreviousAlnName = $SplitAlnPath[$#SplitAlnPath];
+                        @SplitPreviousAlnName = split("-",$PreviousAlnName);
+                        $PreviousAlnPrefix = $SplitPreviousAlnName[0];
+
+                        $CurrentAlnPrefix = $PreviousAlnPrefix+1;
+                        $LastORFAln = $ORFpath ."/". $PreviousAlnPrefix ."-". $TestingORF . $AlnExt;
+                        $NewORFAln = $ORFpath ."/". $CurrentAlnPrefix ."-". $TestingORF . $AlnExt;
+                        
 			print "\tUpdating hmm profile...";
-               system("hmmalign -o $NewORFAln --trim --mapali $LastORFAln $Hmm $QryORFSeq");
+                        system("hmmalign -o $NewORFAln --trim --mapali $LastORFAln $Hmm $QryORFSeq");
 			system("hmmbuild $Hmm $NewORFAln");
-	          print "Done!\n";
-                
-               #Deleting the file obtained from nhmmer 
+                        print "Done!\n";
+                        
+                        #Deleting the file obtained from nhmmer 
 			print "\tCleaning...";
 			system("rm $ORFTemp $LastORFAln");
 			print "Done!\n";
+                        
+                        for($x=0;$x<$TotalNewORFs;$x++){
+                                $ID = $QryIDs[$x];
+                                if($ID eq $Entry){
+                                        splice @NewORFs, $x, 1;
+                                        $TotalNewORFs--;
+                                }
+                        } 
 		}
 	}
+        
+        print "\nProcessing New ORFs\n"; # <- Non shared genes from query file
+        $TotalNewORFs = scalar@NewORFs;
+        for($c=0; $c<$TotalNewORFs; $c++){
+                $NewORFId = $NewORFs[$c];
+                $NewCounter = $n+$c+1;
+                $NewORF = "ORF" ."_". $NewCounter;
+        	$NewORFPath = $ORFsPath ."/". $NewORF;
+                $NewORFSeq = $NewORFPath ."/". $QryGenomeName ."-". $NewORFId . $SeqExt;
+                $NewORFHmm = $NewORFPath ."/". $NewORF . $HmmExt;
+                $NewORFAln = $NewORFPath ."/". "1-" . $NewORF . $AlnExt;
+        
+                print "\nProcessing ORF $NewCounter: \n";
+        
+                MakeDir($NewORFPath);
+                Extract($QryGenomeName,$QryDb,$NewORFId,$NewORFSeq);
+                $cmd = `cp $NewORFSeq $NewORFAln`;
+                HMM($CPUs,$NewORFHmm,$NewORFAln);
+                
+        	print "\tAdding ORF $NewCounter to PanGenome...";
+                $cmd = `blastdbcmd -db $QryDb -dbtype nucl -entry "$NewORFId" >> $PanGenomeSeq`;
+        	print "Done!\n";
+                
+                $NewReport -> [$NewCounter][$a+2] = $NewORFId;
+        }
+        
+        open (FILE, ">>$Stats");
+	#print FILE "Number Of New Strains,Analyzed Strain,Core Genome,Pan Genome,New Genes\n";
+	print FILE "$a+2,$QryGenomeName,$CoreGenomeSize,$NewCounter,$TotalNewORFs\n";
+        close FILE;
 }
 
+
 #Building a file with all genes present in each genome (...SharedORFs.csv)
-open (FILE, ">>$SharedORFs");
-for($d=0; $d<$n; $d++){
+open (FILE, ">>$PresenceAbsence");
+for($d=0; $d<$NewCounter; $d++){
     for ($e=0; $e<$m+1; $e++){
         print FILE $NewReport -> [$d][$e], ",";
     }
@@ -166,10 +215,10 @@ for($d=0; $d<$n; $d++){
 close FILE;
 
 #Building a file with only those genes that are shared in all genomes (...CoreGenome.csv)
-@SharedORFsArray = ReadFile($SharedORFs);
+@SharedORFsArray = ReadFile($PresenceAbsence);
 
 open (FILE,">>$CoreGenomeFile");
-print FILE "$SharedORFsArray[0]\n";
+        print FILE "$SharedORFsArray[0]\n";
 foreach $Lap(@SharedORFsArray){
        @LapArray = split(",",$Lap);
        chomp@LapArray;
@@ -240,4 +289,11 @@ sub Extract{
         print "\tExtracting ORF from $Qry...";	
         $cmd = `blastdbcmd -db $DataBase -dbtype nucl -entry "$Entry" -out $OutSeq`;
         print "Done!\n";
+}
+
+sub HMM{
+        my ($CPUs, $HmmFile, $AlnFile, $null) = @_;
+	print "\tBuilding a HMM...";
+	$cmd = `hmmbuild --dna --cpu $CPUs $HmmFile $AlnFile`;
+	print "Done!\n";
 }
