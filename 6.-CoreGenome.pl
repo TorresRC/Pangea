@@ -10,7 +10,7 @@
 #################################################################################
 
 use strict;
-use lib '/Users/rc/lib';
+use lib '/home/rtorres/CoreGenome/src/lib';
 use Routines;
 
 my ($Usage, $ProjectName, $List, $CPUs);
@@ -43,7 +43,7 @@ my(@List, @PresenceAbsence, @nHMMerReport, @BestHitArray, @DataInRow,
 my $NewReport = [ ];
 my $PermutationsFile = [ ];
 
-$MainPath = "/Users/rc/CoreGenome";
+$MainPath = "/home/rtorres/CoreGenome";
 $Project = $MainPath ."/". $ProjectName;
 
 $SeqExt = ".fasta";
@@ -80,11 +80,14 @@ for ($a=0; $a<$n; $a++){
 }
 
 for ($i=0; $i<$n; $i++){
-        for ($j=0; $j<2; $j++){
-                $NewReport -> [$i][$j] = $PresenceAbsenceArray[$i]->[$j];    
+        for ($j=0; $j<$o; $j++){
+                if (defined($PresenceAbsenceArray[$i]->[$j])){
+                        $NewReport -> [$i][$j] = $PresenceAbsenceArray[$i]->[$j];
+                }else{
+                        $NewReport -> [$i][$j] = "";
+                }
         }
 }
-
 
 for ($a=1; $a<$m; $a++){
         $QryGenomeName = $List[$a];
@@ -95,7 +98,7 @@ for ($a=1; $a<$m; $a++){
         
         @QryIDs = AnnotatedGenes($QryGenomeSeq); #Get all names of annotated genes from query
         $TotalQryIDs = scalar@QryIDs;
-        @NewORFs = @QryIDs;
+        #@NewORFs = @QryIDs;
         $TotalNewORFs = $TotalQryIDs;
         
         $CoreGenomeSize = 0;
@@ -107,22 +110,11 @@ for ($a=1; $a<$m; $a++){
 	
 		print "\n----------------Looking for $TestingORF in $QryGenomeName----------------\n";
 	
-		system("nhmmer -E 1e-200 --cpu $CPUs --noali --dfamtblout $ORFTemp $Hmm $QryGenomeSeq");
-		
-		#@nHMMerReport = ReadFile($ORFTemp);
-		#open (FILE, ">$ORFTemp");
-		#	print FILE $nHMMerReport[0];
-		#close FILE;
-		#@nHMMerReport = ReadFile($ORFTemp);
-	
-		if (-z $ORFTemp){
-			print "The ORF $TestingORF is not present in $QryGenomeName\n";
-                        
-                        $NewReport -> [$b][$a+2] = "";
-			
-                        system("rm $ORFTemp");
-		}else{
-                        @nHMMerReport = ReadFile($ORFTemp);
+		system("nhmmer -E 1e-200 --cpu $CPUs --noali --dfamtblout $ORFTemp $Hmm $QryGenomeSeq");             
+                
+		@nHMMerReport = ReadFile($ORFTemp);
+                
+                if(@nHMMerReport){
                         open (FILE, ">$ORFTemp");
                                 print FILE $nHMMerReport[0];
                         close FILE;
@@ -162,20 +154,26 @@ for ($a=1; $a<$m; $a++){
 			system("rm $ORFTemp $LastORFAln");
 			print "Done!\n";
                         
+                        #Obataining non sharing ORFs
                         for($x=0;$x<$TotalNewORFs;$x++){
                                 $ID = $QryIDs[$x];
                                 if($ID eq $Entry){
-                                        splice @NewORFs, $x, 1;
+                                        splice @QryIDs, $x, 1;
                                         $TotalNewORFs--;
                                 }
                         } 
-		}
+		}else{
+                        print "The ORF $TestingORF is not present in $QryGenomeName\n";
+                        $NewReport -> [$b][$a+2] = "";
+                        
+                        system("rm $ORFTemp");
+                }
 	}
         
         print "\nProcessing New ORFs\n"; # <- Non shared genes from query file
-        $TotalNewORFs = scalar@NewORFs;
+        $TotalNewORFs = scalar@QryIDs;
         for($c=0; $c<$TotalNewORFs; $c++){
-                $NewORFId = $NewORFs[$c];
+                $NewORFId = $QryIDs[$c];
                 $NewCounter = $n+$c+1;
                 $NewORF = "ORF" ."_". $NewCounter;
         	$NewORFPath = $ORFsPath ."/". $NewORF;
