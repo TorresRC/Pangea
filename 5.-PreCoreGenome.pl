@@ -11,7 +11,7 @@
 
 use strict; 
 use List::MoreUtils qw{any};
-use lib '/Users/rc/CoreGenome/src/lib';
+use lib '/home/rtorres/lib';
 use Routines;
 
 my ($Usage, $ProjectName, $List, $TrustedORFeome, $eValue, $PIdent, $CPUs);
@@ -46,7 +46,7 @@ my (@List, @BlastReport, @ReportFields, @NonSharedQryIDs, @NonSharedTrustedIDs, 
 my (%IDs);
 my $OutReport = [ ];
 
-$MainPath               = "/Users/rc/CoreGenome";
+$MainPath               = "/home/rtorres/CoreGenome";
 $Project                = $MainPath ."/". $ProjectName;
 $ProjectGenomeList      = $Project ."/". $List;
 @List = ReadFile($ProjectGenomeList);
