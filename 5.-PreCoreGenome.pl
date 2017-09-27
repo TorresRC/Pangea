@@ -11,7 +11,7 @@
 
 use strict; 
 use List::MoreUtils qw{any};
-use lib '/home/rtorres/lib';
+use lib '/Users/rc/lib';
 use Routines;
 
 my ($Usage, $ProjectName, $List, $TrustedORFeome, $eValue, $PIdent, $CPUs);
@@ -46,7 +46,7 @@ my (@List, @BlastReport, @ReportFields, @NonSharedQryIDs, @NonSharedTrustedIDs, 
 my (%IDs);
 my $OutReport = [ ];
 
-$MainPath               = "/home/rtorres/CoreGenome";
+$MainPath               = "/Users/rc/CoreGenome";
 $Project                = $MainPath ."/". $ProjectName;
 $ProjectGenomeList      = $Project ."/". $List;
 @List = ReadFile($ProjectGenomeList);
@@ -117,21 +117,6 @@ for ($i=0; $i<$n; $i++){
         
         #@NonSharedQryIDs = DismissORFs($QryId, @NonSharedQryIDs); #Obtaining non shared query genes
         #@NonSharedTrustedIDs = DismissORFs($TrustedId, @NonSharedTrustedIDs); #Obtaining non shared trusted genes
-        
-        #for($x=0;$x<$SharedQryORFsCounter;$x++){
-        #        $ID = $QryIDs[$x];
-        #        if($ID eq $QryId){
-        #                splice @NonSharedQryIDs, $x, 1;
-        #                $SharedQryORFsCounter--;
-        #        }
-        #}
-        #for($z=0;$z<$SharedTrustedORFsCounter; $z++){
-        #        $ID = $TrustedIDs[$z];
-        #        if($ID eq $TrustedId){
-        #                splice @NonSharedTrustedIDs, $z, 1;
-        #                $SharedTrustedORFsCounter--;
-        #        }
-        #}
         
         #Keep only non shared query genes
         for($x=0;$x<$SharedQryORFsCounter;$x++){
@@ -229,7 +214,7 @@ $TotalNonSharedORFs = scalar@TrustedIDs;
 for($a=0; $a<$TotalNonSharedORFs; $a++){
         #$NonSharedORFId = $NonSharedTrustedIDs[$a];
         $NonSharedORFId = $TrustedIDs[$a];
-        $NonSharedCounter = $CoreGenomeSize+$a+1;
+        $NonSharedCounter = sprintf "%.4d",$CoreGenomeSize+$a+1;
         $NonSharedORF = "ORF" ."_". $NonSharedCounter;
         $NonSharedORFPath = $ORFsPath ."/". $NonSharedORF;
         $NonSharedORFSeq = $NonSharedORFPath ."/". $TrustedORFeomePrefix ."-". $NonSharedORFId . $SeqExt;
@@ -254,7 +239,7 @@ $TotalNewORFs = scalar@QryIDs;
 for($b=0; $b<$TotalNewORFs; $b++){
         #$NewORFId = $NonSharedQryIDs[$b];
         $NewORFId = $QryIDs[$b];
-        $NewCounter = $NonSharedCounter+$b+1;
+        $NewCounter = sprintf "%.4d",$NonSharedCounter+$b+1;
         $NewORF = "ORF" ."_". $NewCounter;
 	$NewORFPath = $ORFsPath ."/". $NewORF;
         $NewORFSeq = $NewORFPath ."/". $Qry ."-". $NewORFId . $SeqExt;
@@ -328,25 +313,12 @@ sub GenesInBlastReport{
 sub DismissORFs{
         my ($Id, @IDs, $null) = @_;
         my $n = scalar@IDs;
-        
-        #print "\n$n";
-        #foreach my $temp (@IDs){
-        #        print "\n$temp";
-        #}
-        #print "\n";
-
         for($i=0;$i<$n;$i++){
                 if($IDs[$i] eq $Id){
                         splice @IDs, $i, 1;
                         $n--;
                 }
         }
-        #my $v = scalar@IDs;
-        #print "\n$v";
-        #foreach my $temp (@IDs){
-        #        print "\n$temp";
-        #}
-        #exit;
         return @IDs;
 }
 
