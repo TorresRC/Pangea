@@ -10,12 +10,12 @@
 #################################################################################
 use strict;                                                                      
 #use lib '/home/bioinformatica/CoreGenome/src/lib';
-use lib '/Users/RC/lib';                              
+use lib '/Users/rc/lib';                              
 use Routines;                                                                    
 
 my ($Usage, $ProjectName, $List, $TrustedORFeome);
 
-$Usage = "\tUsage: MakeBlastDBs.pl <Project_Name> <Path/To/List_File.ext> <Path/To/Trusted_ORFeome.fasta>\n";
+$Usage = "\tUsage: MakeBlastDBs.pl <Project_Name> <List_File.ext> <Trusted_ORFeome.fasta>\n";
 unless(@ARGV) {
         print $Usage;
         exit;
@@ -29,7 +29,7 @@ my ($MainPath, $Project, $ORFeomesPath, $MainList, $BlastPath, $TrustedORFeomeDB
 	$i, $n, $Qry, $InputFile, $Db, $cmd, $LogFile);
 my (@List);                                                     
 
-$MainPath = "/Users/RC/CoreGenome/MacOS";
+$MainPath = "/Users/rc/CoreGenome";
 #$MainPath = "/home/bioinformatica/CoreGenome";
 $Project = $MainPath ."/". $ProjectName;
 $MainList = $Project ."/". $List;                                               
@@ -37,7 +37,7 @@ $MainList = $Project ."/". $List;
 $ORFeomesPath = $MainPath ."/". "ORFeomes";
 #$BlastPath = $Project ."/". "Blast";
 $BlastPath = $MainPath ."/". "Blast";
-$TrustedORFeomeDB = $BlastPath ."/". "TrustedORFeomeDB";
+$TrustedORFeomeDB = $BlastPath ."/". "PanGenomeDb";
 $SeqExt = ".fasta";
 $LogFile = $Project ."/". $ProjectName . ".log";
 
