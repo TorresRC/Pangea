@@ -9,7 +9,7 @@
 # Fecha:         10 de abril de 2017                                            #
 #################################################################################
 use strict;                                                                      
-use lib '/home/bioinformatica/CoreGenome/src//lib';                              
+use lib '/home/rtorres/CoreGenome/src/lib';                              
 use Routines;                                                                    
 
 my ($Usage, $ProjectName, $List, $TrustedORFeome);
@@ -28,7 +28,7 @@ my ($MainPath, $Project, $ORFeomesPath, $MainList, $BlastPath, $TrustedORFeomeDB
 	$i, $n, $Qry, $InputFile, $Db, $cmd, $LogFile);
 my (@List);                                                     
 
-$MainPath = "/home/bioinformatica/CoreGenome";
+$MainPath = "/home/rtorres/CoreGenome";
 $Project = $MainPath ."/". $ProjectName;
 $MainList = $Project ."/". $List;                                               
 $ORFeomesPath = $MainPath ."/". "ORFeomes";
