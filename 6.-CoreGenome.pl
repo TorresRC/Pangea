@@ -10,7 +10,7 @@
 #################################################################################
 
 use strict;
-use lib '/home/bioinformatica/CoreGenome/src/lib';
+use lib '/home/rtorres/CoreGenome/src/lib';
 use Routines;
 
 my ($Usage, $ProjectName, $List, $CPUs);
@@ -44,7 +44,7 @@ my $NewReport = [ ];
 my $PermutationsFile = [ ];
 my $Statistics = [ ];
 
-$MainPath = "/home/bioinformatica/CoreGenome";
+$MainPath = "/home/rtorres/CoreGenome";
 $Project = $MainPath ."/". $ProjectName;
 
 $SeqExt = ".fasta";
@@ -206,7 +206,7 @@ for ($a=1; $a<$TotalQry; $a++){
    #     
         open (FILE, ">$PresenceAbsence");
         for($d=0; $d<$NewCounter+1; $d++){
-                for ($e=0; $e<$TotalQry+2; $e++){
+                for ($e=0; $e<$a+3; $e++){
                         print FILE $NewReport -> [$d][$e], ",";
                 }
                 print FILE "\n";
@@ -228,7 +228,7 @@ for ($a=1; $a<$TotalQry; $a++){
                                      $Count++;
                               }
                        }
-                       if($Count == $TotalQry+$a){
+                       if($Count == $a+3){
                            print FILE "$Lap\n";   
                        }
                 }
@@ -238,11 +238,11 @@ for ($a=1; $a<$TotalQry; $a++){
         $q = scalar@CoreGenome;
         $CoreGenes = $q-1;
 
-        open (FILE, ">>$Stat");
+        open (FILE, ">$Stat");
                 print FILE "Project Name: $ProjectName\n";
                 print FILE "Included Genomes List File: $MainList\n";
                 print FILE "Number of taxa: $TotalQry\n";
-                print FILE "Number of CoreGenes: $CoreGenes";
+                print FILE "Number of CoreGenes: $CoreGenes\n";
         close FILE;
         
         $NewStrains = $a+1;
