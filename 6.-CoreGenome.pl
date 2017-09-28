@@ -10,7 +10,7 @@
 #################################################################################
 
 use strict;
-use lib '/home/bioinformatica/CoreGenome/src/lib';
+use lib '/Users/rc/lib';
 use Routines;
 
 my ($Usage, $ProjectName, $List, $CPUs);
@@ -44,7 +44,7 @@ my $NewReport = [ ];
 my $PermutationsFile = [ ];
 my $Statistics = [ ];
 
-$MainPath = "/home/bioinformatica/CoreGenome";
+$MainPath = "/Users/rc/CoreGenome";
 $Project = $MainPath ."/". $ProjectName;
 
 $SeqExt = ".fasta";
@@ -92,7 +92,7 @@ for ($i=0; $i<$TotalPresenceAbsence; $i++){
 
 for ($a=1; $a<$TotalQry; $a++){
         $QryGenomeName = $List[$a];
-        $QryGenomeSeq = $ORFeomesPath ."/". $QryGenomeName . ".ffn";
+        $QryGenomeSeq = $ORFeomesPath ."/". $QryGenomeName . ".fasta";
         $QryDb = $BlastPath ."/". $QryGenomeName;
         
         $NewReport -> [0][$a+2] = $QryGenomeName;
