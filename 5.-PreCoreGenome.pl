@@ -11,7 +11,7 @@
 
 use strict; 
 use List::MoreUtils qw{any};
-use lib '/home/bioinformatica/CoreGenome/src/lib';
+use lib '/Users/rc/lib';
 use Routines;
 
 my ($Usage, $ProjectName, $List, $TrustedORFeome, $eValue, $PIdent, $CPUs);
@@ -46,7 +46,7 @@ my (@List, @BlastReport, @ReportFields, @NonSharedQryIDs, @NonSharedTrustedIDs, 
 my (%IDs);
 my $OutReport = [ ];
 
-$MainPath               = "/home/bioinformatica/CoreGenome";
+$MainPath               = "/Users/rc/CoreGenome";
 $Project                = $MainPath ."/". $ProjectName;
 $ProjectGenomeList      = $Project ."/". $List;
 @List = ReadFile($ProjectGenomeList);
@@ -65,7 +65,7 @@ $BlastPath              = $MainPath ."/". "Blast";
 $ORFsPath               = $Project ."/". "ORFs";
 
 #Inputs
-$QryFile                = $ORFeomesPath ."/". $Qry . ".ffn";
+$QryFile                = $ORFeomesPath ."/". $Qry . ".fasta";
 $TrustedFile            = $MainPath ."/". $TrustedORFeome;
 $QryDb                  = $BlastPath ."/". $Qry;
 $PanGenomeDb            = $BlastPath ."/". "PanGenomeDb";
