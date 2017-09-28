@@ -9,8 +9,7 @@
 # Fecha:         10 de abril de 2017                                            #
 #################################################################################
 use strict;                                                                      
-#use lib '/home/bioinformatica/CoreGenome/src/lib';
-use lib '/Users/rc/lib';                              
+use lib '/home/bioinformatica/CoreGenome/src//lib';                              
 use Routines;                                                                    
 
 my ($Usage, $ProjectName, $List, $TrustedORFeome);
@@ -29,16 +28,13 @@ my ($MainPath, $Project, $ORFeomesPath, $MainList, $BlastPath, $TrustedORFeomeDB
 	$i, $n, $Qry, $InputFile, $Db, $cmd, $LogFile);
 my (@List);                                                     
 
-$MainPath = "/Users/rc/CoreGenome";
-#$MainPath = "/home/bioinformatica/CoreGenome";
+$MainPath = "/home/bioinformatica/CoreGenome";
 $Project = $MainPath ."/". $ProjectName;
 $MainList = $Project ."/". $List;                                               
-#$ORFeomesPath = $Project ."/". "ORFeomes";
 $ORFeomesPath = $MainPath ."/". "ORFeomes";
-#$BlastPath = $Project ."/". "Blast";
 $BlastPath = $MainPath ."/". "Blast";
 $TrustedORFeomeDB = $BlastPath ."/". "PanGenomeDb";
-$SeqExt = ".fasta";
+$SeqExt = ".ffn";
 $LogFile = $Project ."/". $ProjectName . ".log";
 
 
