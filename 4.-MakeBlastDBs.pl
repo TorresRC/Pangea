@@ -9,11 +9,7 @@
 # Fecha:         10 de abril de 2017                                            #
 #################################################################################
 use strict;                                                                      
-<<<<<<< HEAD
 use lib '/Users/rc/lib';                              
-=======
-use lib '/home/rtorres/CoreGenome/src/lib';                              
->>>>>>> aa8c6dd45c371acd7a3170bc7f331ee8ffd4352f
 use Routines;                                                                    
 
 my ($Usage, $ProjectName, $List, $TrustedORFeome);
@@ -32,17 +28,13 @@ my ($MainPath, $Project, $ORFeomesPath, $MainList, $BlastPath, $TrustedORFeomeDB
 	$i, $n, $Qry, $InputFile, $Db, $cmd, $LogFile);
 my (@List);                                                     
 
-<<<<<<< HEAD
 $MainPath = "/Users/rc/CoreGenome";
-=======
-$MainPath = "/home/rtorres/CoreGenome";
->>>>>>> aa8c6dd45c371acd7a3170bc7f331ee8ffd4352f
 $Project = $MainPath ."/". $ProjectName;
 $MainList = $Project ."/". $List;                                               
 $ORFeomesPath = $MainPath ."/". "ORFeomes";
 $BlastPath = $MainPath ."/". "Blast";
 $TrustedORFeomeDB = $BlastPath ."/". "PanGenomeDb";
-$SeqExt = ".fasta";
+$SeqExt = ".ffn";
 $LogFile = $Project ."/". $ProjectName . ".log";
 
 
