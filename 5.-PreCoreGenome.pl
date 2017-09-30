@@ -11,11 +11,7 @@
 
 use strict; 
 use List::MoreUtils qw{any};
-<<<<<<< HEAD
 use lib '/Users/rc/lib';
-=======
-use lib '/home/rtorres/CoreGenome/src/lib';
->>>>>>> aa8c6dd45c371acd7a3170bc7f331ee8ffd4352f
 use Routines;
 
 my ($Usage, $ProjectName, $List, $TrustedORFeome, $eValue, $PIdent, $CPUs);
@@ -50,11 +46,7 @@ my (@List, @BlastReport, @ReportFields, @NonSharedQryIDs, @NonSharedTrustedIDs, 
 my (%IDs);
 my $OutReport = [ ];
 
-<<<<<<< HEAD
 $MainPath               = "/Users/rc/CoreGenome";
-=======
-$MainPath               = "/home/rtorres/CoreGenome";
->>>>>>> aa8c6dd45c371acd7a3170bc7f331ee8ffd4352f
 $Project                = $MainPath ."/". $ProjectName;
 $ProjectGenomeList      = $Project ."/". $List;
 @List = ReadFile($ProjectGenomeList);
@@ -73,7 +65,7 @@ $BlastPath              = $MainPath ."/". "Blast";
 $ORFsPath               = $Project ."/". "ORFs";
 
 #Inputs
-$QryFile                = $ORFeomesPath ."/". $Qry . ".fasta";
+$QryFile                = $ORFeomesPath ."/". $Qry . ".ffn";
 $TrustedFile            = $MainPath ."/". $TrustedORFeome;
 $QryDb                  = $BlastPath ."/". $Qry;
 $PanGenomeDb            = $BlastPath ."/". "PanGenomeDb";
@@ -294,7 +286,7 @@ close FILE;
 
 #Statistics File
 open (FILE, ">$Stats");
-	print FILE "Number Of New Strains,Analyzed Strain,Core Genome,Pan Genome,New Genes\n";
+	print FILE "NumberOfNewStrains,AnalyzedStrain,CoreGenome,PanGenome,NewGenes\n";
 	print FILE "0,$TrustedORFeomePrefix,$TotalTrustedORFs,$TotalTrustedORFs,0\n";
 	print FILE "1,$Qry,$CoreGenomeSize,$PanGenomeSize,$TotalNewORFs\n";
 close FILE;
