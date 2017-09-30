@@ -10,12 +10,9 @@
 #################################################################################
 
 use strict;
-<<<<<<< HEAD
 use lib '/Users/rc/lib';
-=======
-use lib '/home/rtorres/CoreGenome/src/lib';
->>>>>>> aa8c6dd45c371acd7a3170bc7f331ee8ffd4352f
 use Routines;
+use List::MoreUtils qw{any};
 
 my ($Usage, $ProjectName, $List, $CPUs);
 
@@ -43,16 +40,12 @@ my($MainPath, $Project, $MainList, $ORFeomesPath, $BlastPath, $ORFsPath,
 my(@List, @PresenceAbsence, @nHMMerReport, @BestHitArray, @DataInRow,
    @LastReportColumnData, @NewReport, @PresenceAbsenceArray, @PresenceAbsenceFields,
    @SharedORFsArray, @LapArray, @CoreFile, @OrfLine, @CoreData, @Temp, @StoAln,
-   @AlnData, @CoreGenome, @QryIDs, @NewORFs, @SplitPreviousAlnName, @SplitAlnPath);
+   @AlnData, @CoreGenome, @QryIDs, @NewORFs, @SplitPreviousAlnName, @SplitAlnPath, @AnalyzedORFs);
 my $NewReport = [ ];
 my $PermutationsFile = [ ];
 my $Statistics = [ ];
 
-<<<<<<< HEAD
 $MainPath = "/Users/rc/CoreGenome";
-=======
-$MainPath = "/home/rtorres/CoreGenome";
->>>>>>> aa8c6dd45c371acd7a3170bc7f331ee8ffd4352f
 $Project = $MainPath ."/". $ProjectName;
 
 $SeqExt = ".fasta";
@@ -100,7 +93,7 @@ for ($i=0; $i<$TotalPresenceAbsence; $i++){
 
 for ($a=1; $a<$TotalQry; $a++){
         $QryGenomeName = $List[$a];
-        $QryGenomeSeq = $ORFeomesPath ."/". $QryGenomeName . ".fasta";
+        $QryGenomeSeq = $ORFeomesPath ."/". $QryGenomeName . ".ffn";
         $QryDb = $BlastPath ."/". $QryGenomeName;
         
         $NewReport -> [0][$a+2] = $QryGenomeName;
@@ -112,6 +105,7 @@ for ($a=1; $a<$TotalQry; $a++){
         $nPanGenome = `grep ">" -c $PanGenomeSeq`;
         
         $Counter = 0;
+        @AnalyzedORFs = "";
         for ($b=1; $b<$nPanGenome+1; $b++){
                 
                 $Counter = sprintf "%.4d", $b;
@@ -126,7 +120,6 @@ for ($a=1; $a<$TotalQry; $a++){
 		system("nhmmer -E 1e-10 --cpu $CPUs --noali --dfamtblout $ORFTemp $Hmm $QryGenomeSeq");             
                 
 		@nHMMerReport = ReadFile($ORFTemp);
-                
                 if(@nHMMerReport){
                         open (FILE, ">$ORFTemp");
                                 print FILE $nHMMerReport[0];
@@ -141,40 +134,46 @@ for ($a=1; $a<$TotalQry; $a++){
 			$Entry = $BestHitArray[0];
 			$Strand = $BestHitArray[8];
 			$QryORFSeq = $ORFpath ."/". $QryGenomeName ."-". $Entry . $SeqExt;
-
-			$NewReport -> [$b][$a+2] = $Entry;
                         
-                        Extract($QryGenomeName,$QryDb,$Entry,$QryORFSeq);
-                        
-                        $PreviousAln = "*-". $TestingORF . $AlnExt;
-                        $FindingPreviousAln = `find $ORFsPath -type f -name $PreviousAln`;
-                        @SplitAlnPath = split("/",$FindingPreviousAln);
-                        $PreviousAlnName = $SplitAlnPath[$#SplitAlnPath];
-                        @SplitPreviousAlnName = split("-",$PreviousAlnName);
-                        $PreviousAlnPrefix = $SplitPreviousAlnName[0];
-
-                        $CurrentAlnPrefix = $PreviousAlnPrefix+1;
-                        $LastORFAln = $ORFpath ."/". $PreviousAlnPrefix ."-". $TestingORF . $AlnExt;
-                        $NewORFAln = $ORFpath ."/". $CurrentAlnPrefix ."-". $TestingORF . $AlnExt;
-                        
-			print "\tUpdating hmm profile...";
-                        system("hmmalign -o $NewORFAln --trim --mapali $LastORFAln $Hmm $QryORFSeq");
-			system("hmmbuild $Hmm $NewORFAln");
-                        print "Done!\n";
-                        
-                        #Deleting the file obtained from nhmmer 
-			print "\tCleaning...";
-			system("rm $ORFTemp $LastORFAln");
-			print "Done!\n";
-                        
-                        #Obataining new ORFs IDs
-                        for($x=0;$x<$TotalNewORFs;$x++){
-                                $ID = $QryIDs[$x];
-                                if($ID eq $Entry){
-                                        splice @QryIDs, $x, 1;
-                                        $TotalNewORFs--;
+                        if ( any { $_ eq $Entry} @AnalyzedORFs){     
+                                print "\n$Entry is already analyzed\n";    
+                        }else{
+                                unshift @AnalyzedORFs, $Entry;
+                                
+                                $NewReport -> [$b][$a+2] = $Entry;
+                                
+                                Extract($QryGenomeName,$QryDb,$Entry,$QryORFSeq);
+                                
+                                $PreviousAln = "*-". $TestingORF . $AlnExt;
+                                $FindingPreviousAln = `find $ORFsPath -type f -name $PreviousAln`;
+                                @SplitAlnPath = split("/",$FindingPreviousAln);
+                                $PreviousAlnName = $SplitAlnPath[$#SplitAlnPath];
+                                @SplitPreviousAlnName = split("-",$PreviousAlnName);
+                                $PreviousAlnPrefix = $SplitPreviousAlnName[0];
+                                
+                                $CurrentAlnPrefix = $PreviousAlnPrefix+1;
+                                $LastORFAln = $ORFpath ."/". $PreviousAlnPrefix ."-". $TestingORF . $AlnExt;
+                                $NewORFAln = $ORFpath ."/". $CurrentAlnPrefix ."-". $TestingORF . $AlnExt;
+                                
+                                print "\tUpdating hmm profile...";
+                                system("hmmalign -o $NewORFAln --trim --mapali $LastORFAln $Hmm $QryORFSeq");
+                                system("hmmbuild $Hmm $NewORFAln");
+                                print "Done!\n";
+                                
+                                #Deleting the file obtained from nhmmer 
+                                print "\tCleaning...";
+                                system("rm $ORFTemp $LastORFAln");
+                                print "Done!\n";
+                                
+                                #Obataining new ORFs IDs
+                                for($x=0;$x<$TotalNewORFs;$x++){
+                                        $ID = $QryIDs[$x];
+                                        if($ID eq $Entry){
+                                                splice @QryIDs, $x, 1;
+                                                $TotalNewORFs--;
+                                        }
                                 }
-                        } 
+                        }
 		}else{
                         print "The ORF $TestingORF is not present in $QryGenomeName\n";
                         $NewReport -> [$b][$a+2] = "";
@@ -259,49 +258,6 @@ for ($a=1; $a<$TotalQry; $a++){
 	print FILE "$NewStrains,$QryGenomeName,$CoreGenes,$NewCounter,$TotalNewORFs\n";
         close FILE;
 }
-
-
-##Building a file with all genes present in each genome (...SharedORFs.csv)
-#open (FILE, ">$PresenceAbsence");
-#for($d=0; $d<$NewCounter+1; $d++){
-#    for ($e=0; $e<$TotalQry+2; $e++){
-#        print FILE $NewReport -> [$d][$e], ",";
-#    }
-#    print FILE "\n";
-#}
-#close FILE;
-#
-##Building a file with only those genes that are shared in all genomes (...CoreGenome.csv)
-#@SharedORFsArray = ReadFile($PresenceAbsence);
-#
-#open (FILE,">>$CoreGenomeFile");
-#        print FILE "$SharedORFsArray[0]\n";
-#foreach $Lap(@SharedORFsArray){
-#       @LapArray = split(",",$Lap);
-#       chomp@LapArray;
-#       $Count = 0;
-#       foreach $Element(@LapArray){
-#              #if (defined($Element)){
-#              if ($Element ne ""){
-#                     $Count++;
-#              }
-#       }
-#       if($Count == $TotalQry+2){
-#           print FILE "$Lap\n";   
-#       }
-#}
-#close FILE;
-#
-#@CoreGenome = ReadFile($CoreGenomeFile);
-#$q = scalar@CoreGenome;
-#$CoreGenes = $q-1;
-#
-#open (FILE, ">>$Stat");
-#        print FILE "Project Name: $ProjectName\n";
-#        print FILE "Included Genomes List File: $MainList\n";
-#        print FILE "Number of taxa: $TotalQry\n";
-#        print FILE "Number of CoreGenes: $CoreGenes";
-#close FILE;
 
 #Loading the core file report into an array of array
 @CoreFile = ReadFile($CoreGenomeFile);
