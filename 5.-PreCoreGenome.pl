@@ -175,7 +175,7 @@ for ($i=0; $i<$n; $i++){
                 Align($TrustedOut,$QryOut,$ToAlign,$fastaAln);
                 HMM($CPUs,$OutHmm,$fastaAln);
         
-                $OutReport -> [0][0] = "";		
+                $OutReport -> [0][0] = "ORF";		
                 $OutReport -> [$j+1][0] = $SharedORF;
                 
                 $OutReport -> [0][1] = $TrustedORFeomePrefix;
