@@ -220,17 +220,16 @@ for ($a=1; $a<$TotalQry; $a++){
         }
         close FILE;
         
-        #Building a file with only those genes that are shared in all genomes (...CoreGenome.csv)
+        #Building a file with only those genes that are shared in all genomes (Core-Genome table)
         @SharedORFsArray = ReadFile($PresenceAbsence);
 
         open (FILE,">$CoreGenomeFile");
                 print FILE "$SharedORFsArray[0]\n";
-                foreach $Lap(@SharedORFsArray){
+                foreach $Lap (@SharedORFsArray){
                        @LapArray = split(",",$Lap);
                        chomp@LapArray;
                        $Count = 0;
                        foreach $Element(@LapArray){
-                              #if (defined($Element)){
                               if ($Element ne ""){
                                      $Count++;
                               }
@@ -268,7 +267,7 @@ foreach $ORF(@CoreFile){
        push (@CoreData, [@OrfLine]);    
 }
 
-#Building a core fasta file for each genome. All core genes withing core genome
+#Building a fasta file wirh the core genes for each genome. All genes withing core genome
 #files are in the same order
 print "Building CoreGenomes fasta files:\n";
 for ($g=2; $g<$TotalQry+2; $g++){
@@ -285,6 +284,16 @@ for ($g=2; $g<$TotalQry+2; $g++){
        }
        print "Done!\n";
 }
+
+
+ggplot(df, aes(NumberOfNewStrain)) +
+geom_line(aes(y=CoreGenome,linetype="CoreGenome")) +
+geom_line(aes(y=PanGenome,linetype="PanGenome")) +
+geom_line(aes(y=NewGenes,linetype="NewGenes")) +
+scale_x_continuous(breaks = 0:$TotalQry+1) +
+labs(x="Number of Genomes", y="Number of Genes", title= "$ProjectName Gene Content") +
+scale_linetype_discrete(name=NULL) +
+theme(axis.text.x = element_text(angle = 90, size=4, hjust = 1))
 exit;
 
 #################################################################################
