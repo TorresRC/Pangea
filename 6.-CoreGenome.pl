@@ -1,12 +1,10 @@
 #!/usr/bin/perl -w
-
 #################################################################################
-#   Programa Pre-Core-Genome                                                    #
-#   Nota: Se debe ajustar la ruta de lib y de la variable $PathSeq a las que    #
-#   realmente se tengan donde se instalción el programa.                        #
+#Scipt ContigsLength.pl                                                         #
 #                                                                               #
-# Programador:   Roberto C. Torres                                              #
-# Fecha:         11 de abril de 2017                                            #
+#Programmer:    Roberto C. Torres                                               #
+#e-mail:        torres.roberto.c@gmail.com                                      #
+#Date:          11 de abril de 2017                                             #
 #################################################################################
 
 use strict;
@@ -27,16 +25,17 @@ $List = $ARGV[1];
 $CPUs = $ARGV[2];
 
 my($MainPath, $Project, $MainList, $ORFeomesPath, $BlastPath, $ORFsPath,
-   $InitialPresenceAbsence, $PresenceAbsence, $PanGenomeSeq, $Stats, $SeqExt, $AlnExt,
-   $HmmExt, $TotalPresenceAbsence, $TotalQry, $o, $j, $QryDb, $TotalQryIDs, $TotalNewORFs, $CoreGenomeSize,
-   $Count, $i, $Counter, $QryGenomeName, $TestingORF, $QryGenomeSeq, $Hmm,
-   $ORFTemp, $cmd, $ORFpath, $Line, $ORFStoAln, $Entry, $Strand,
-   $QryORFSeq, $BestHit, $Row, $Fh, $c, $d, $e, $Reference, $Closest, $GeneTemp,
-   $ReferenceORFID, $ClosestORFID, $CoreGenomeFile, $LogFile, $Lap, $Element, $p,
-   $CoreSeqsPath, $f, $ORF, $g, $Strain, $Db, $OutCore, $h, $Gene, $ORFStoAlnFragment,
-   $LastORFAln, $NewORFAln, $QryORFFastaAln, $PreviousAlnPrefix, $CurrentAlnPrefix,
-   $q, $CoreGenes, $Stat, $PreviousAlnName, $FindingPreviousAln, $x, $ID, $QryId, $NewORFId,
-   $NewCounter, $NewORF, $NewORFPath, $NewORFSeq, $NewORFHmm, $PreviousAln, $nPanGenome, $NewStrains);
+   $InitialPresenceAbsence, $PresenceAbsence, $PanGenomeSeq, $Stats, $SeqExt,
+   $AlnExt, $HmmExt, $TotalPresenceAbsence, $TotalQry, $QryDb, $TotalQryIDs,
+   $TotalNewORFs, $CoreGenomeSize, $Count, $Counter, $QryGenomeName, $TestingORF,
+   $QryGenomeSeq, $Hmm, $ORFTemp, $cmd, $ORFpath, $Line, $ORFStoAln, $Entry, $Strand,
+   $QryORFSeq, $BestHit, $Row, $Fh, $Reference, $Closest, $GeneTemp, $ReferenceORFID,
+   $ClosestORFID, $CoreGenomeFile, $LogFile, $Lap, $Element, $CoreSeqsPath, $ORF,
+   $Strain, $Db, $OutCore, $Gene, $ORFStoAlnFragment, $LastORFAln, $NewORFAln,
+   $QryORFFastaAln, $PreviousAlnPrefix, $CurrentAlnPrefix, $CoreGenes,
+   $PreviousAlnName, $FindingPreviousAln, $ID, $QryId, $NewORFId, $Summary, $NewCounter,
+   $NewORF, $NewORFPath, $NewORFSeq, $NewORFHmm, $PreviousAln, $nPanGenome, $NewStrains);
+my($o, $j, $i, $c, $d, $e, $p, $f, $g, $h, $q, $x);
 my(@List, @PresenceAbsence, @nHMMerReport, @BestHitArray, @DataInRow,
    @LastReportColumnData, @NewReport, @PresenceAbsenceArray, @PresenceAbsenceFields,
    @SharedORFsArray, @LapArray, @CoreFile, @OrfLine, @CoreData, @Temp, @StoAln,
@@ -53,7 +52,7 @@ $AlnExt = ".aln.fasta";
 $HmmExt = ".hmm";
 
 $MainList       = $Project ."/". $List;
-$ORFeomesPath   = $MainPath ."/". "ORFeomes";
+$ORFeomesPath   = $MainPath ."/". "ORFeomes" ."/". "Sorted" ."/". "Filtered";
 $BlastPath      = $MainPath ."/". "Blast";
 $ORFsPath       = $Project."/". "ORFs";
 $InitialPresenceAbsence= $Project ."/". $ProjectName . "_Initial_Presence_Absence.csv";
@@ -61,7 +60,7 @@ $PresenceAbsence= $Project ."/". $ProjectName . "_Presence_Absence.csv";
 $CoreGenomeFile = $Project ."/". $ProjectName . "_CoreGenome.csv";
 $LogFile        = $Project ."/". $ProjectName . ".log";
 $CoreSeqsPath   = $Project ."/". "CoreSequences";
-$Stat           = $Project ."/". $ProjectName . "_CoreStatistics.txt";
+$Summary        = $Project ."/". $ProjectName . "_Summary.txt";
 $PanGenomeSeq   = $Project ."/". $ProjectName . "_PanGenome" . $SeqExt;
 $Stats         	= $Project ."/". $ProjectName . "_Statistics.csv";
 
@@ -73,14 +72,13 @@ open (STDERR, "| tee -ai $LogFile") or die "$0: dup: $!";
 $TotalQry = scalar@List;
 @PresenceAbsence = ReadFile($InitialPresenceAbsence);
 $TotalPresenceAbsence = scalar@PresenceAbsence;
-
+system("rm $InitialPresenceAbsence");
 for ($a=0; $a<$TotalPresenceAbsence; $a++){
      $Row = $PresenceAbsence[$a];
      @PresenceAbsenceFields = split(",",$Row);
      $o = scalar@PresenceAbsenceFields;
      push (@PresenceAbsenceArray, [@PresenceAbsenceFields]);
 }
-
 for ($i=0; $i<$TotalPresenceAbsence; $i++){
         for ($j=0; $j<$o; $j++){
                 if (defined($PresenceAbsenceArray[$i]->[$j])){
@@ -90,7 +88,6 @@ for ($i=0; $i<$TotalPresenceAbsence; $i++){
                 }
         }
 }
-
 for ($a=1; $a<$TotalQry; $a++){
         $QryGenomeName = $List[$a];
         $QryGenomeSeq = $ORFeomesPath ."/". $QryGenomeName . ".ffn";
@@ -126,7 +123,7 @@ for ($a=1; $a<$TotalQry; $a++){
                         close FILE;
                         @nHMMerReport = ReadFile($ORFTemp);
                         
-                        $CoreGenomeSize++;
+                        #$CoreGenomeSize++;
 			$BestHit = $nHMMerReport[0];
 			$BestHit =~ s/\s^//g;
 			$BestHit =~ s/\s+/,/g;
@@ -180,8 +177,7 @@ for ($a=1; $a<$TotalQry; $a++){
                         
                         system("rm $ORFTemp");
                 }
-	}
-        
+	}    
         print "\nProcessing New ORFs\n"; # <- Non shared genes from query file
         $TotalNewORFs = scalar@QryIDs;
         for($c=0; $c<$TotalNewORFs; $c++){
@@ -210,7 +206,6 @@ for ($a=1; $a<$TotalQry; $a++){
                 }
                 $NewReport -> [$NewCounter][$a+2] = $NewORFId;
         }
-   #     
         open (FILE, ">$PresenceAbsence");
         for($d=0; $d<$NewCounter+1; $d++){
                 for ($e=0; $e<$a+3; $e++){
@@ -224,7 +219,7 @@ for ($a=1; $a<$TotalQry; $a++){
         @SharedORFsArray = ReadFile($PresenceAbsence);
 
         open (FILE,">$CoreGenomeFile");
-                print FILE "$SharedORFsArray[0]\n";
+                #print FILE "$SharedORFsArray[0]\n";
                 foreach $Lap (@SharedORFsArray){
                        @LapArray = split(",",$Lap);
                        chomp@LapArray;
@@ -243,13 +238,6 @@ for ($a=1; $a<$TotalQry; $a++){
         @CoreGenome = ReadFile($CoreGenomeFile);
         $q = scalar@CoreGenome;
         $CoreGenes = $q-1;
-
-        open (FILE, ">$Stat");
-                print FILE "Project Name: $ProjectName\n";
-                print FILE "Included Genomes List File: $MainList\n";
-                print FILE "Number of taxa: $TotalQry\n";
-                print FILE "Number of CoreGenes: $CoreGenes\n";
-        close FILE;
         
         $NewStrains = $a+1;
         open (FILE, ">>$Stats");
@@ -257,6 +245,11 @@ for ($a=1; $a<$TotalQry; $a++){
 	print FILE "$NewStrains,$QryGenomeName,$CoreGenes,$NewCounter,$TotalNewORFs\n";
         close FILE;
 }
+
+open (FILE, ">>$Summary");
+        print FILE "Core-Genome Size: $CoreGenes\nPan-Genome Size: $NewCounter";
+close FILE;
+
 
 #Loading the core file report into an array of array
 @CoreFile = ReadFile($CoreGenomeFile);
@@ -284,16 +277,6 @@ for ($g=2; $g<$TotalQry+2; $g++){
        }
        print "Done!\n";
 }
-
-
-ggplot(df, aes(NumberOfNewStrain)) +
-geom_line(aes(y=CoreGenome,linetype="CoreGenome")) +
-geom_line(aes(y=PanGenome,linetype="PanGenome")) +
-geom_line(aes(y=NewGenes,linetype="NewGenes")) +
-scale_x_continuous(breaks = 0:$TotalQry+1) +
-labs(x="Number of Genomes", y="Number of Genes", title= "$ProjectName Gene Content") +
-scale_linetype_discrete(name=NULL) +
-theme(axis.text.x = element_text(angle = 90, size=4, hjust = 1))
 exit;
 
 #################################################################################
