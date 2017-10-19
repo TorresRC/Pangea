@@ -1,12 +1,10 @@
-#!/usr/bin/perl -w                                                               
-
+#!/usr/bin/perl -w
 #################################################################################
-#   Programa Make Blast DB                                                      #
-#   Nota: Se debe ajustar la ruta de lib y de la variable $PathSeq a las que    #
-#   realmente se tengan donde se instalción el programa.                        #
+#Scipt ContigsLength.pl                                                         #
 #                                                                               #
-# Programador:   Roberto C. Torres                                              #
-# Fecha:         10 de abril de 2017                                            #
+#Programmer:    Roberto C. Torres                                               #
+#e-mail:        torres.roberto.c@gmail.com                                      #
+#Date:          10 de abril de 2017                                             #
 #################################################################################
 use strict;                                                                      
 use lib '/Users/rc/lib';                              
@@ -24,19 +22,20 @@ $ProjectName = $ARGV[0];
 $List = $ARGV[1];
 $TrustedORFeome = $ARGV[2];
 
-my ($MainPath, $Project, $ORFeomesPath, $MainList, $BlastPath, $TrustedORFeomeDB, $SeqExt,
-	$i, $n, $Qry, $InputFile, $Db, $cmd, $LogFile);
+my ($MainPath, $Project, $ORFeomesPath, $MainList, $BlastPath, $TrustedORFeomeDb, $SeqExt,
+	$i, $n, $Qry, $InputFile, $Db, $cmd, $LogFile, $TrustedORFeomePrefix);
 my (@List);                                                     
 
-$MainPath = "/Users/rc/CoreGenome";
-$Project = $MainPath ."/". $ProjectName;
-$MainList = $Project ."/". $List;                                               
-$ORFeomesPath = $MainPath ."/". "ORFeomes";
-$BlastPath = $MainPath ."/". "Blast";
-$TrustedORFeomeDB = $BlastPath ."/". "PanGenomeDb";
-$SeqExt = ".ffn";
-$LogFile = $Project ."/". $ProjectName . ".log";
-
+$MainPath             = "/Users/rc/CoreGenome";
+$Project              = $MainPath ."/". $ProjectName;
+$MainList             = $Project ."/". $List;
+$BlastPath            = $MainPath ."/". "Blast";
+$ORFeomesPath         = $MainPath ."/". "ORFeomes" ."/". "Sorted" ."/". "Filtered";
+$TrustedORFeomePrefix = Prefix($TrustedORFeome);
+$TrustedORFeome       = $ORFeomesPath ."/". $TrustedORFeome;
+$TrustedORFeomeDb     = $BlastPath ."/". $TrustedORFeomePrefix . "Db";
+$SeqExt               = ".ffn";
+$LogFile              = $Project ."/". $ProjectName . ".log";
 
 open (STDERR, "| tee -ai $LogFile") or die "$0: dup: $!";
 
@@ -47,7 +46,7 @@ MakeDir($BlastPath);
 @List = ReadFile($MainList);                                                     
 $n = scalar@List;
 
-$cmd = `makeblastdb -in $TrustedORFeome -dbtype nucl -parse_seqids -out $TrustedORFeomeDB`;
+$cmd = `makeblastdb -in $TrustedORFeome -dbtype nucl -parse_seqids -out $TrustedORFeomeDb`;
 
 for ($i=0; $i<$n; $i++){                                                         
 	$Qry = $List[$i];                                                        
@@ -59,5 +58,4 @@ for ($i=0; $i<$n; $i++){
 
 	Progress($n, $i);
 }
-print "Complete!\n";
 exit;
