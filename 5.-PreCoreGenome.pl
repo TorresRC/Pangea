@@ -1,12 +1,10 @@
 #!/usr/bin/perl -w
 #################################################################################
-#   Programa Filter Features                                                    #
-#   Nota: Se debe ajustar la ruta de lib y de la variable $PathSeq a las que    #
-#   realmente se tengan donde se instalción el programa.                        #
+#Scipt ContigsLength.pl                                                         #
 #                                                                               #
-# Programador:   Roberto C. Torres                                              #
-# Fecha:  11 de abril de 2017                                                   #
-#         6 de septiembre 2017 - Cambio de primer genoma por secuencia Trusted  #
+#Programmer:    Roberto C. Torres                                               #
+#e-mail:        torres.roberto.c@gmail.com                                      #
+#Date:          11 de abril de 2017                                             #
 #################################################################################
 
 use strict; 
@@ -39,7 +37,7 @@ my ($MainPath, $Project, $ORFeomesPath, $ProjectGenomeList, $Sub, $Qry, $QryFile
     $TempKnownFastaFile, $KnownAln, $KnownHmm, $Duplicate, $TotalNonSharedORFs, $NonSharedORFId, $NonSharedCounter,
     $NonSharedORF, $NonSharedORFPath, $NonSharedORFHmm, $NonSharedORFSeq, $NonSharedORFAln, $TotalNewORFs,
     $NewORFId, $NewCounter, $NewORF, $NewORFPath, $NewORFSeq, $NewORFHmm, $NewORFAln, $PanGenomeSize,
-    $SharedQryORFsCounter, $SharedTrustedORFsCounter);
+    $SharedQryORFsCounter, $SharedTrustedORFsCounter, $TotalQry, $TrustedORFeomeDb);
 my ($a, $d, $e, $i, $j, $n, $x, $z);
 my (@List, @BlastReport, @ReportFields, @NonSharedQryIDs, @NonSharedTrustedIDs, @Duplicates, @QryIDs,
     @TrustedIDs, @SplitORFPath);
@@ -50,6 +48,7 @@ $MainPath               = "/Users/rc/CoreGenome";
 $Project                = $MainPath ."/". $ProjectName;
 $ProjectGenomeList      = $Project ."/". $List;
 @List = ReadFile($ProjectGenomeList);
+$TotalQry = scalar@List;
 $Qry  = $List[0];
 $TrustedORFeomePrefix= Prefix($TrustedORFeome);
 
@@ -60,15 +59,16 @@ $stoExt = ".sto";
 $HmmExt = ".hmm";
 
 #Paths       
-$ORFeomesPath           = $MainPath ."/". "ORFeomes";
+$ORFeomesPath           = $MainPath ."/". "ORFeomes" ."/". "Sorted" ."/". "Filtered";
 $BlastPath              = $MainPath ."/". "Blast";
 $ORFsPath               = $Project ."/". "ORFs";
 
 #Inputs
 $QryFile                = $ORFeomesPath ."/". $Qry . ".ffn";
-$TrustedFile            = $MainPath ."/". $TrustedORFeome;
+$TrustedFile            = $ORFeomesPath ."/". $TrustedORFeome;
 $QryDb                  = $BlastPath ."/". $Qry;
 $PanGenomeDb            = $BlastPath ."/". "PanGenomeDb";
+$TrustedORFeomeDb       = $BlastPath ."/". $TrustedORFeomePrefix . "Db";
 
 #Output
 $BlastReport            = $Project ."/". $ProjectName . "_UniqueBlastComparison.txt";
@@ -96,7 +96,7 @@ $SharedQryORFsCounter = $TotalQryORFs;
 $SharedTrustedORFsCounter = $TotalTrustedORFs;
 
 print "\nLooking for the first shared ORFs between $TrustedORFeomePrefix and $Qry:\n";
-$cmd = `blastn -query $QryFile -db $PanGenomeDb -out $BlastReport -outfmt '6 qacc sacc length qlen slen qstart qend sstart send pident evalue bitscore' -evalue $eValue -max_hsps 1 -max_target_seqs 1 -qcov_hsp_perc 90 -perc_identity $PIdent -num_threads $CPUs`;
+$cmd = `blastn -query $QryFile -db $TrustedORFeomeDb -out $BlastReport -outfmt '6 qacc sacc length qlen slen qstart qend sstart send pident evalue bitscore' -evalue $eValue -max_hsps 1 -max_target_seqs 1 -qcov_hsp_perc 90 -perc_identity $PIdent -num_threads $CPUs`;
 	
 @BlastReport = ReadFile($BlastReport);
 $n = scalar@BlastReport;
@@ -110,7 +110,6 @@ for ($i=0; $i<$n; $i++){
 	$TrustedId = $ReportFields[1]; #Id of the trusted gene in the blast hit
         $QryOutFileName = $Qry ."-". $QryId . $SeqExt;
         $TrustedOutFileName = $TrustedORFeomePrefix ."-". $TrustedId . $SeqExt;
-        
         
         GenesInBlastReport($QryIDsFile,$QryId); #Obtaining the names of those query genes that are shared with the trusted orfeome
         GenesInBlastReport($TrustedIDsFile,$TrustedId); #Obtaining the names of those trusted genes that are shared with the query orfeome
@@ -170,7 +169,7 @@ for ($i=0; $i<$n; $i++){
         	print "\nAnalyzing ORF $Counter: \n";
         
         	MakeDir($SharedORFPath);
-                Extract($TrustedORFeomePrefix,$PanGenomeDb,$TrustedId,$TrustedOut);
+                Extract($TrustedORFeomePrefix,$TrustedORFeomeDb,$TrustedId,$TrustedOut);
                 Extract($Qry,$QryDb,$QryId,$QryOut);
                 Align($TrustedOut,$QryOut,$ToAlign,$fastaAln);
                 HMM($CPUs,$OutHmm,$fastaAln);
@@ -224,7 +223,7 @@ for($a=0; $a<$TotalNonSharedORFs; $a++){
         print "\nProcessing ORF $NonSharedCounter: \n";
         
         MakeDir($NonSharedORFPath);
-        Extract($TrustedORFeomePrefix,$PanGenomeDb,$NonSharedORFId,$NonSharedORFSeq);
+        Extract($TrustedORFeomePrefix,$TrustedORFeomeDb,$NonSharedORFId,$NonSharedORFSeq);
         $cmd = `cp $NonSharedORFSeq $NonSharedORFAln`;
         HMM($CPUs,$NonSharedORFHmm,$NonSharedORFAln);
         
@@ -273,7 +272,7 @@ for($d=0; $d<$NewCounter+1; $d++){
 close FILE;
 
 #Updating Trusted Orfeome Data Base
-print "\nUpdating Pan-Genome Data Base with $TotalNewORFs new genes...";
+print "\nBuilding a Pan-Genome Data Base...";
 $cmd = `makeblastdb -in $PanGenomeSeq -dbtype nucl -parse_seqids -out $PanGenomeDb`;
 print "Done!\n\n";
 
@@ -281,7 +280,13 @@ print "Done!\n\n";
 $PanGenomeSize=`grep ">" $PanGenomeSeq | wc -l`;
 chomp $PanGenomeSize;
 open (FILE, ">$Summary");
-        print FILE "Trusted ORFeome: $TotalTrustedORFs\nCore-Genome: $CoreGenomeSize\nPan-Genome: $PanGenomeSize\nNew Genes: $TotalNewORFs";
+        print FILE "Project Name: $ProjectName\n";
+        print FILE "Included Genomes List File: $ProjectGenomeList\n";
+        print FILE "Used CPU's: $CPUs\n";
+        print FILE "e-value Threshold: $eValue\n";
+        print FILE "Percentage of Identity: $PIdent\n";
+        print FILE "Number of taxa: $TotalQry\n";        
+        print FILE "Trusted ORFeome: $TotalTrustedORFs\n";
 close FILE;
 
 #Statistics File
