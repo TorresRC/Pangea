@@ -9,7 +9,7 @@
 
 use strict; 
 use List::MoreUtils qw{any};
-use lib '/Users/rc/CoreGenome/src/lib';
+use lib '/Users/roberto/CoreGenome/src/lib';
 use Routines;
 
 my ($Usage, $ProjectName, $Columns);
@@ -30,7 +30,7 @@ my($i, $j, $n);
 my(@CoreGenome, @CoreGenomeFields, @CoreGenomeArray, @File, @IndexedName);
 my(%Seq);
 
-$MainPath = "/Users/rc/CoreGenome";
+$MainPath = "/Users/roberto/CoreGenome";
 $Project = $MainPath ."/". $ProjectName;
 $ORFsPath = $Project ."/". "ORFs";
 $CoreGenome = $Project ."/". $ProjectName . "_CoreGenome.csv";
@@ -75,11 +75,13 @@ for ($i=1; $i<$n; $i++){
                 @IndexedName = split("_",$Key);
                 $Genome = $IndexedName[0];
                 $AlignedCore = $AlignedCoresPath ."/". $Genome . "-CoreGenome". $AlnExt;
+                #print "$Key\n";
                 open (FILE, ">>$AlignedCore");
+                        print FILE ">$ORF~$Key\n";
                         for ($j=0; $j<length$Seq{$Key}; $j+=$Columns){
                                 print FILE substr($Seq{$Key}, $j, $Columns), "\n";
                         }
-                print FILE "X\n";
+                        print FILE "X\n";
                 close FILE;
         }
         Progress($n, $i);
