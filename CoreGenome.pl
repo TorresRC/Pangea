@@ -8,48 +8,80 @@
 # Fecha:         2 de julio de 2017                                             #
 #################################################################################
 use strict;
+use Getopt::Long qw(GetOptions);
+Getopt::Long::Configure qw(gnu_getopt);
 
-my ($Usage, $ProjectName, $List, $TrustedORFeome, $eVal, $PIdent, $CPUs);
+my ($Usage, $ProjectName, $List, $TrustedORFeome, $eVal, $PIdent, $CPUs, $Help, $PanGenome,
+    $CoreGenome, $Bolean);
 
-$Usage = "\tUsage: CoreGenome.pl <Project Name> <List File Name> <TrustedFile.fasta> <e-value> <Percentage of Identity> <CPUs>\n";
-unless(@ARGV) {
-        print $Usage;
-        exit;
+GetOptions(
+           'help'        => \$Help,
+           'project|p=s' => \$ProjectName,
+           'list|l=s'    => \$List,
+           'trusted|c=s' => \$TrustedORFeome,
+           'evalue|e=f'  => \$eVal,
+           'ident|i=i'   => \$PIdent,
+           'cpus|t=i'    => \$CPUs,
+           'con-pan|P'   => \$PanGenome,
+           'alncore|C'   => \$CoreGenome,
+           'boleant|b'   => \$Bolean,
+           ) or die "USAGE:\n  $0 [--help] [--project -p prefix] [--list -l filename]
+      [--trusted -c filename] [--evalue -e evalue] [--ident -i integer]
+      [--cpus -t integer]
+\n  Use \'--help\' to print detailed descriptions of options.\n\n";
+
+if($Help){
+print "
+\t--project <Project_Name>
+\t--list <List_File_Name>
+\t--trusted <TrustedFile.fasta>
+\t--e-value <e-value>
+\t--ident <Percetage_of_Identity>
+\t--cpus <CPUs>\n\n";
+exit;
 }
-chomp @ARGV;
-$ProjectName    = $ARGV[0];
-$List           = $ARGV[1];
-$TrustedORFeome = $ARGV[2];
-$eVal           = $ARGV[3];
-$PIdent         = $ARGV[4];
-$CPUs           = $ARGV[5];
 
-my ($MainPath, $Project, $Src, $Script1, $Script2, $Script3, $Script4, $Script5,
-    $Script6, $Script7, $Start, $End, $RunTime);
+my ($MainPath, $Project, $Src, $SortGenes, $FilterORFeomes, $MakeBlastDb, $InitialComparison, $GeneContent, $GeneContentPlot,
+    $BoleanPresenceAbsence, $ConsensusPanGenome, $CoreAlign, $Start, $End, $RunTime);
 
 $Start = time();
 $MainPath = '/Users/rc/CoreGenome';
 $Src      = $MainPath ."/". "src";
+
 #$Script1  = $Src ."/". "1.-FormatFeatures.pl";
 #$Script2  = $Src ."/". "2.-FilterFeatures.pl";
 #$Script3  = $Src ."/". "3.-GetORFeomes.pl";
-$Script1  = $Src ."/". "1.-SortGenes.pl";
-$Script2  = $Src ."/". "2.-FilterORFeomes.pl";
-$Script4  = $Src ."/". "4.-MakeBlastDBs.pl";
-$Script5  = $Src ."/". "5.-PreCoreGenome.pl";
-$Script6  = $Src ."/". "6.-CoreGenome.pl";
-$Script7  = $Src ."/". "Plot.pl";
 
-system("perl $Script1 $ProjectName $List $TrustedORFeome");
-system("perl $Script2 $ProjectName $List $TrustedORFeome");
-#system("perl $Script3 $ProjectName $List");
-system("perl $Script4 $ProjectName $List $TrustedORFeome");
-system("perl $Script5 $ProjectName $List $TrustedORFeome $eVal $PIdent $CPUs");
-system("perl $Script6 $ProjectName $List $CPUs");
-system("perl $Script7 $ProjectName $List");
+$SortGenes  = $Src ."/". "1.-SortGenes.pl";
+$FilterORFeomes  = $Src ."/". "2.-FilterORFeomes.pl";
+$MakeBlastDb  = $Src ."/". "4.-MakeBlastDBs.pl";
+$InitialComparison  = $Src ."/". "5.-PreCoreGenome.pl";
+$GeneContent  = $Src ."/". "6.-CoreGenome.pl";
+$GeneContentPlot  = $Src ."/". "Plot.pl";
+$BoleanPresenceAbsence = $Src ."/". "FormatPresenceAbsenceReport.pl";
+$ConsensusPanGenome = $Src ."/". "ConsensusPanGenome.pl";
+$CoreAlign = $Src ."/". "CoreAlign.pl";
+
+#system("perl $SortGenes $ProjectName $List $TrustedORFeome $MainPath");
+#system("perl $FilterORFeomes $ProjectName $List $TrustedORFeome $MainPath");
+##system("perl $Script3 $ProjectName $List");
+#system("perl $MakeBlastDb $ProjectName $List $TrustedORFeome $MainPath");
+#system("perl $InitialComparison $ProjectName $List $TrustedORFeome $eVal $PIdent $CPUs $MainPath");
+#system("perl $GeneContent $ProjectName $List $CPUs $MainPath");
+system("perl $GeneContentPlot $ProjectName $List $MainPath");
+
+if($PanGenome){
+        system("perl $ConsensusPanGenome $ProjectName $List $MainPath");
+}elsif($CoreGenome){
+        system("perl $CoreAlign $ProjectName $List $MainPath");
+}elsif($Bolean){
+        system("perl $BoleanPresenceAbsence $ProjectName $List $MainPath");
+}
+
+
 
 $End = time();
 $RunTime = ((($End - $Start)/60)/60);
 
-print "\n\tFinished!, The $ProjectName gene content analysis took $RunTime hours\n\n";
+print "\n\tFinished! The $ProjectName gene content analysis took $RunTime hours\n\n";
 exit;
