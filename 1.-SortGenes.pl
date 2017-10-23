@@ -7,12 +7,12 @@
 #Date:          14 de octubre de 2017                                           #
 #################################################################################
 use strict; 
-use lib '/Users/rc/lib';
+use lib '/Users/rc/CoreGenome/src/lib';
 use Routines;
 
-my ($Usage, $ProjectName, $List, $TrustedORFeome);
+my ($Usage, $ProjectName, $List, $TrustedORFeome, $MainPath);
 
-$Usage = "\tUsage: SortGenes.pl <Project_Name> <List_File.ext> <Trusted_ORFeome.fasta>\n";
+$Usage = "\tUsage: SortGenes.pl <Project_Name> <List_File.ext> <Trusted_ORFeome.fasta> <Main_Path>\n";
 unless(@ARGV) {
         print $Usage;
         exit;
@@ -21,8 +21,9 @@ chomp @ARGV;
 $ProjectName = $ARGV[0];
 $List = $ARGV[1];
 $TrustedORFeome = $ARGV[2];
+$MainPath = $ARGV[3];
 
-my ($MainPath, $MainList, $Project, $ORFeomesPath, $SeqExt, $LogFile, $ORFeome, $HeaderCharacter,
+my ($MainList, $Project, $ORFeomesPath, $SeqExt, $LogFile, $ORFeome, $HeaderCharacter,
     $Gene, $GeneName, $GeneSeq, $GeneLength, $ContigsLengthReport, $Seq, $SortedORFeomePath,
     $SortedORFeome, $TrustedORFeomeFile, $SortedTrustedORFeome, $TrustedGene, $TrustedGeneName,
     $TrustedGeneSeq, $TrustedGeneLength);
@@ -30,7 +31,7 @@ my ($n, $i);
 my (@List, @ORFeomes, @Genes, @TrustedGenes);
 my (%GenesSeq, %GenesLength, %TrustedGenesLength, %TrustedGenesSeq);
 
-$MainPath = "/Users/rc/CoreGenome";
+#$MainPath = "/Users/rc/CoreGenome";
 $Project = $MainPath ."/". $ProjectName;
 $MainList = $Project ."/". $List;                                               
 $ORFeomesPath = $MainPath ."/". "ORFeomes";

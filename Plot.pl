@@ -8,12 +8,12 @@
 # Fecha:         18 de Octubre de 2017                                          #
 #################################################################################
 use strict;
-use lib '/Users/rc/lib';
+use lib '/Users/rc/CoreGenome/src/lib';
 use Routines;
 
-my ($Usage, $ProjectName, $List);
+my ($Usage, $ProjectName, $List, $MainPath);
 
-$Usage = "\tUsage: CoreGenome.pl <Project Name> <List File Name>\n";
+$Usage = "\tUsage: CoreGenome.pl <Project_Name> <List_File_Name> <Main_Path>\n";
 unless(@ARGV) {
         print $Usage;
         exit;
@@ -21,12 +21,13 @@ unless(@ARGV) {
 chomp @ARGV;
 $ProjectName = $ARGV[0];
 $List = $ARGV[1];
+$MainPath = $ARGV[2];
 
-my ($MainPath, $Project, $MainList, $PresenceAbsence, $Plot, $RScript);
+my ($Project, $MainList, $PresenceAbsence, $Plot, $RScript);
 my ($n);
 my (@List);
 
-$MainPath        = "/Users/rc/CoreGenome";
+#$MainPath        = "/Users/rc/CoreGenome";
 $Project         = $MainPath ."/". $ProjectName;
 $MainList        = $Project ."/". $List;
 $PresenceAbsence = $Project ."/". $ProjectName . '_Statistics.csv';
@@ -49,13 +50,13 @@ open (RSCRIPT, ">$RScript");
         print RSCRIPT "+ labs(x=\"Number of Genomes\", y=\"Number of Genes\", title= \"$ProjectName Gene Content\")";
         print RSCRIPT '+ scale_linetype_discrete(name=NULL)';
         print RSCRIPT '+ theme(axis.text.x = element_text(angle = 90, size=4, hjust = 1))' . "\n";
-#        print RSCRIPT "ggsave(\"$Plot\")";
+        print RSCRIPT "ggsave(\"$Plot\")";
 close RSCRIPT;
 
 print "\n Building a Gene Content Plot...";
 system ("R CMD BATCH $RScript");
 print "Done!\n\n";
 
-system ("rm $RScript $Project/*.Rout");
+system ("rm $RScript $Project/*.Rout $Project/Rplots.pdf");
 
 exit;

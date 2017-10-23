@@ -9,12 +9,12 @@
 
 use strict; 
 use List::MoreUtils qw{any};
-use lib '/Users/rc/lib';
+use lib '/Users/rc/CoreGenome/src/lib';
 use Routines;
 
-my ($Usage, $ProjectName, $List, $TrustedORFeome, $eValue, $PIdent, $CPUs);
+my ($Usage, $ProjectName, $List, $TrustedORFeome, $eValue, $PIdent, $CPUs, $MainPath);
 
-$Usage = "\tUsage: PreCoreGenome.pl <Project Name> <Genomes_List_File.ext> <TrustedORFeome.fasta> <e-value> <Perc Ident> <CPUs>\n";
+$Usage = "\tUsage: PreCoreGenome.pl <Project Name> <Genomes_List_File.ext> <TrustedORFeome.fasta> <e-value> <Perc Ident> <CPUs> <Main_Path>\n";
 unless(@ARGV) {
         print $Usage;
         exit;
@@ -26,8 +26,9 @@ $TrustedORFeome = $ARGV[2];
 $eValue = $ARGV[3];
 $PIdent = $ARGV[4];
 $CPUs = $ARGV[5];
+$MainPath = $ARGV[6];
 
-my ($MainPath, $Project, $ORFeomesPath, $ProjectGenomeList, $Sub, $Qry, $QryFile,
+my ($Project, $ORFeomesPath, $ProjectGenomeList, $Sub, $Qry, $QryFile,
     $TrustedFile, $SubDb, $QryDb, $BlastReport, $cmd, $ORFsPath, $BlastPath, $TrustedORFeomePrefix, $SeqExt,
     $AlnExt, $stoExt, $HmmExt, $PanGenomeDb, $PresenceAbsence, $PanGenomeSeq, $Stats, $QryIDsFile,
     $TrustedIDsFile, $DuplicatedTrustedIDs, $DuplicatedQryIDs, $DuplicatedBlastHits, $Summary, $LogFile,
@@ -44,7 +45,7 @@ my (@List, @BlastReport, @ReportFields, @NonSharedQryIDs, @NonSharedTrustedIDs, 
 my (%IDs);
 my $OutReport = [ ];
 
-$MainPath               = "/Users/rc/CoreGenome";
+#$MainPath               = "/Users/rc/CoreGenome";
 $Project                = $MainPath ."/". $ProjectName;
 $ProjectGenomeList      = $Project ."/". $List;
 @List = ReadFile($ProjectGenomeList);
@@ -149,22 +150,22 @@ for ($i=0; $i<$n; $i++){
         $FindingTrusted = `find $ORFsPath -type f -name $TrustedOutFileName`;
         if ($FindingTrusted ne ""){
                 
-                @SplitORFPath = split("/",$FindingTrusted);
-                $KnownORFIndex = $#SplitORFPath-1;
-                $KnownORFName = $SplitORFPath[$KnownORFIndex];
-                $KnownORFPath = $ORFsPath ."/". $KnownORFName;
-                $FileToKnownORF = $KnownORFPath ."/". $QryOutFileName;
-                $KnownFastaFile = $KnownORFPath ."/". $KnownORFName . $SeqExt;
-                $TempKnownFastaFile = $KnownFastaFile . ".temp";
-                $cmd = `cp $KnownFastaFile $TempKnownFastaFile`;
-                $KnownAln  = $KnownORFPath ."/". "1-" . $KnownORFName . $AlnExt;
-                $KnownHmm = $KnownORFPath ."/". $KnownORFName . $HmmExt;
+                #@SplitORFPath = split("/",$FindingTrusted);
+                #$KnownORFIndex = $#SplitORFPath-1;
+                #$KnownORFName = $SplitORFPath[$KnownORFIndex];
+                #$KnownORFPath = $ORFsPath ."/". $KnownORFName;
+                #$FileToKnownORF = $KnownORFPath ."/". $QryOutFileName;
+                #$KnownFastaFile = $KnownORFPath ."/". $KnownORFName . $SeqExt;
+                #$TempKnownFastaFile = $KnownFastaFile . ".temp";
+                #$cmd = `cp $KnownFastaFile $TempKnownFastaFile`;
+                #$KnownAln  = $KnownORFPath ."/". "1-" . $KnownORFName . $AlnExt;
+                #$KnownHmm = $KnownORFPath ."/". $KnownORFName . $HmmExt;
                 
-                Extract($Qry,$QryDb,$QryId,$FileToKnownORF);
-                Align($TempKnownFastaFile,$FileToKnownORF,$KnownFastaFile,$KnownAln);
-                HMM($CPUs,$KnownHmm,$KnownAln);
+                #Extract($Qry,$QryDb,$QryId,$FileToKnownORF);
+                #Align($TempKnownFastaFile,$FileToKnownORF,$KnownFastaFile,$KnownAln);
+                #HMM($CPUs,$KnownHmm,$KnownAln);
 
-                $cmd = `rm $TempKnownFastaFile`;
+                #$cmd = `rm $TempKnownFastaFile`;
         }else{
         	print "\nAnalyzing ORF $Counter: \n";
         
@@ -297,54 +298,3 @@ open (FILE, ">$Stats");
 close FILE;
 
 exit;
-
-###############################################################################
-sub AnnotatedGenes{
-        my ($File) = @_;
-        my $cmd = `grep ">" $File`;
-           $cmd =~ s/>//g;
-           $cmd =~ s/\h//g;
-        my @Data = split('\n',$cmd);
-        return @Data;
-}
-
-sub GenesInBlastReport{
-        my ($File, $GeneId, $null) = @_;
-        open (FILE, ">>$File");
-                print FILE "$GeneId\n";
-        close FILE;
-}
-
-sub DismissORFs{
-        my ($Id, @IDs, $null) = @_;
-        my $n = scalar@IDs;
-        for($i=0;$i<$n;$i++){
-                if($IDs[$i] eq $Id){
-                        splice @IDs, $i, 1;
-                        $n--;
-                }
-        }
-        return @IDs;
-}
-
-sub Extract{
-        my ($Qry, $DataBase,$Entry,$OutSeq, $null) = @_;
-        print "\tExtracting ORF from $Qry...";	
-        $cmd = `blastdbcmd -db $DataBase -dbtype nucl -entry "$Entry" -out $OutSeq`;
-        print "Done!\n";
-}
-
-sub Align{
-        my ($Seq1, $Seq2, $ToAlign, $AlnFile, $null) = @_;
-	print "\tAligning sequences...";
-	$cmd = `cat $Seq1 $Seq2 > $ToAlign`;
-	$cmd = `muscle -in $ToAlign -out $AlnFile -quiet`;
-	print "Done!\n";
-}
-
-sub HMM{
-        my ($CPUs, $HmmFile, $AlnFile, $null) = @_;
-	print "\tBuilding a HMM...";
-	$cmd = `hmmbuild --dna --cpu $CPUs $HmmFile $AlnFile`;
-	print "Done!\n";
-}

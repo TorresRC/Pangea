@@ -8,13 +8,13 @@
 #################################################################################
 
 use strict;
-use lib '/Users/rc/lib';
+use lib '/Users/rc/CoreGenome/src/lib';
 use Routines;
 use List::MoreUtils qw{any};
 
-my ($Usage, $ProjectName, $List, $CPUs);
+my ($Usage, $ProjectName, $List, $CPUs, $MainPath);
 
-$Usage = "\tUsage: CoreGenome.pl <Project Name> <List File Name> <CPUs>\n";
+$Usage = "\tUsage: CoreGenome.pl <Project Name> <List File Name> <CPUs> <Main_Path>\n";
 unless(@ARGV) {
         print $Usage;
         exit;
@@ -23,8 +23,9 @@ chomp @ARGV;
 $ProjectName = $ARGV[0];
 $List = $ARGV[1];
 $CPUs = $ARGV[2];
+$MainPath = $ARGV[3];
 
-my($MainPath, $Project, $MainList, $ORFeomesPath, $BlastPath, $ORFsPath,
+my($Project, $MainList, $ORFeomesPath, $BlastPath, $ORFsPath,
    $InitialPresenceAbsence, $PresenceAbsence, $PanGenomeSeq, $Stats, $SeqExt,
    $AlnExt, $HmmExt, $TotalPresenceAbsence, $TotalQry, $QryDb, $TotalQryIDs,
    $TotalNewORFs, $CoreGenomeSize, $Count, $Counter, $QryGenomeName, $TestingORF,
@@ -44,7 +45,7 @@ my $NewReport = [ ];
 my $PermutationsFile = [ ];
 my $Statistics = [ ];
 
-$MainPath = "/Users/rc/CoreGenome";
+#$MainPath = "/Users/rc/CoreGenome";
 $Project = $MainPath ."/". $ProjectName;
 
 $SeqExt = ".fasta";
@@ -278,27 +279,3 @@ for ($g=2; $g<$TotalQry+2; $g++){
        print "Done!\n";
 }
 exit;
-
-#################################################################################
-sub AnnotatedGenes{
-        my ($File) = @_;
-        my $cmd = `grep ">" $File`;
-           $cmd =~ s/>//g;
-           $cmd =~ s/\h//g;
-        my @Data = split('\n',$cmd);
-        return @Data;
-}
-
-sub Extract{
-        my ($Qry, $DataBase,$Entry,$OutSeq, $null) = @_;
-        print "\tExtracting ORF from $Qry...";	
-        $cmd = `blastdbcmd -db $DataBase -dbtype nucl -entry "$Entry" -out $OutSeq`;
-        print "Done!\n";
-}
-
-sub HMM{
-        my ($CPUs, $HmmFile, $AlnFile, $null) = @_;
-	print "\tBuilding a HMM...";
-	$cmd = `hmmbuild --dna --cpu $CPUs $HmmFile $AlnFile`;
-	print "Done!\n";
-}

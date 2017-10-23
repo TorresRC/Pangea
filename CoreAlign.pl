@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #################################################################################
-#Scipt ConsensusPanGenome.pl                                                    #
+#Scipt CoreAlign.pl                                                             #
 #                                                                               #
 #Programmer:    Roberto C. Torres                                               #
 #e-mail:        torres.roberto.c@gmail.com                                      #
@@ -9,12 +9,12 @@
 
 use strict; 
 use List::MoreUtils qw{any};
-use lib '/Users/roberto/CoreGenome/src/lib';
+use lib '/Users/rc/CoreGenome/src/lib';
 use Routines;
 
-my ($Usage, $ProjectName, $Columns);
+my ($Usage, $ProjectName, $Columns, $MainPath);
 
-$Usage = "\tUsage: ConsensusPanGenome.pl <Project Name> <Columns>\n";
+$Usage = "\tUsage: ConsensusPanGenome.pl <Project Name> <Columns> <Main_Path>\n";
 unless(@ARGV) {
         print $Usage;
         exit;
@@ -22,15 +22,15 @@ unless(@ARGV) {
 chomp @ARGV;
 $ProjectName = $ARGV[0];
 $Columns = $ARGV[1];
+$MainPath = $ARGV[2];
 
-
-my($MainPath, $Project, $ORFsPath, $CoreGenome, $Row, $ORF, $ORFAln, $Name, $Seq, $Key,
+my($Project, $ORFsPath, $CoreGenome, $Row, $ORF, $ORFAln, $Name, $Seq, $Key,
    $AlnExt, $ORFPath, $Genome, $AlignedCoresPath, $SeqExt, $AlignedCore);
 my($i, $j, $n);
 my(@CoreGenome, @CoreGenomeFields, @CoreGenomeArray, @File, @IndexedName);
 my(%Seq);
 
-$MainPath = "/Users/roberto/CoreGenome";
+#$MainPath = "/Users/rc/CoreGenome";
 $Project = $MainPath ."/". $ProjectName;
 $ORFsPath = $Project ."/". "ORFs";
 $CoreGenome = $Project ."/". $ProjectName . "_CoreGenome.csv";
@@ -55,6 +55,7 @@ for ($i=1; $i<$n; $i++){
         $ORFPath = $ORFsPath ."/". $ORF;
         $ORFAln = `find $ORFPath -type f -name \*$AlnExt`;
         chomp $ORFAln;
+        %Seq = ();
         
         #print "\nAligning $ORF:\n";
         
@@ -66,6 +67,7 @@ for ($i=1; $i<$n; $i++){
                 }else{
                         chomp;
                         ($Name, $Seq) = split;
+                        $Seq =~ s/\./-/g;
                         $Seq{$Name} .= $Seq;
                 }
         }
@@ -75,9 +77,8 @@ for ($i=1; $i<$n; $i++){
                 @IndexedName = split("_",$Key);
                 $Genome = $IndexedName[0];
                 $AlignedCore = $AlignedCoresPath ."/". $Genome . "-CoreGenome". $AlnExt;
-                #print "$Key\n";
                 open (FILE, ">>$AlignedCore");
-                        print FILE ">$ORF~$Key\n";
+                        #print FILE ">$ORF~$Key\n";
                         for ($j=0; $j<length$Seq{$Key}; $j+=$Columns){
                                 print FILE substr($Seq{$Key}, $j, $Columns), "\n";
                         }

@@ -9,29 +9,30 @@
 
 use strict; 
 use List::MoreUtils qw{any};
-use lib '/home/rtorres/CoreGenome/src/lib';
+use lib '/Users/rc/CoreGenome/src/lib';
 use Routines;
 
-my ($Usage, $ProjectName, $List, $CPUs);
+my ($Usage, $ProjectName, $List, $CPUs, $MainPath);
 
-$Usage = "\tUsage: ConsensusPanGenome.pl <Project Name>\n";
+$Usage = "\tUsage: ConsensusPanGenome.pl <Project Name> <Main_Path>\n";
 unless(@ARGV) {
         print $Usage;
         exit;
 }
 chomp @ARGV;
 $ProjectName = $ARGV[0];
+$MainPath = $ARGV[1];
 
-my($MainPath, $Project, $ORFsPath, $PresenceAbsence, $TotalPresenceAbsence, $Row, $ORF,
+my($Project, $ORFsPath, $PresenceAbsence, $TotalPresenceAbsence, $Row, $ORF,
    $ConsensusPanGenome, $ORFHmm);
 my($i, $j);
 my(@PresenceAbsence, @PresenceAbsenceFields, @PresenceAbsenceArray);
 
-$MainPath = "/home/rtorres/CoreGenome";
+#$MainPath = "/home/rtorres/CoreGenome";
 $Project = $MainPath ."/". $ProjectName;
 $ORFsPath = $Project ."/". "ORFs";
 $PresenceAbsence = $Project ."/". $ProjectName . "_Presence_Absence.csv";
-$ConsensusPanGenome = $Project ."/". $ProjectName . "_Consensus_PanGenome";
+$ConsensusPanGenome = $Project ."/". $ProjectName . "_Consensus_PanGenome.fasta";
 
 @PresenceAbsence = ReadFile($PresenceAbsence);
 $TotalPresenceAbsence = scalar@PresenceAbsence;

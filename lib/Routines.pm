@@ -42,67 +42,6 @@ sub MakeDir{
 }
 
 ################################################################################
-#Split file by comma separated values 
-sub SplitCSV{
-    my ($Row) = @_;
-    my @SplitedRow = split(',',$Row);
-    chomp @SplitedRow;
-    
-    return @SplitedRow;
-}
-
-################################################################################
-#Split file by tab separated values 
-sub SplitTab{
-    my ($Row) = @_;
-    my @SplitedRow = split('\t',$Row);
-    chomp @SplitedRow;
-    
-    return @SplitedRow;
-}
-
-################################################################################
-#Split file by space separated values 
-sub SplitSpaced{
-    my ($Row) = @_;
-    my @SplitedRow = split('\s',$Row);
-    chomp @SplitedRow;
-    
-    return @SplitedRow;
-}
-
-################################################################################
-#Split file by chart separated values 
-sub SplitCharted{
-    my ($Row) = @_;
-    my @SplitedRow = split('\[',$Row);
-    chomp @SplitedRow;
-    
-    return @SplitedRow;
-}
-
-################################################################################
-#Esta rutina verifica si un archivo existe o no
-#$name contiene la ruta completa al archivo que analizamos
-sub SearchFile{
-    my ($name) = @_;
-    if (-e $name) {
-        return 1;   #Si el archivo existe da 1   
-    } else {
-        return 0;   #Si no existe da 0
-    }
-}
-
-################################################################################
-sub SearchDir{
-    my ($Dir) = @_;
-    if (-d "$Dir"){
-    }else{
-    	my $cmd = `mkdir $Dir`;
-    }
-}
-
-################################################################################
 #Prefix subrutine set a prefix from the name of each file
 sub Prefix{
         my ($FileName) = @_;
@@ -133,154 +72,60 @@ sub ReadFile{
         }
         return @File;
 }
-
 ################################################################################
-#ReadFile subrutine reads a whole file and puts it in an array
-sub DataFromFile{
-        my ($InputFile) = @_;
-        unless (open(FILE, $InputFile)){
-               print "The Routine ReadFile Can not open $InputFile file\n";
-               exit;
-        }
-        my @Temp = <FILE>;
-        chomp @Temp;
+sub AnnotatedGenes{
+        my ($File) = @_;
+        my $cmd = `grep ">" $File`;
+           $cmd =~ s/>//g;
+           $cmd =~ s/\h//g;
+        my @Data = split('\n',$cmd);
+        return @Data;
+}
+################################################################################
+
+sub GenesInBlastReport{
+        my ($File, $GeneId, $null) = @_;
+        open (FILE, ">>$File");
+                print FILE "$GeneId\n";
         close FILE;
-        my @File;
-        foreach my $Row (@Temp){
-			if ($Row =~/^\w/) {
-				push @File, $Row;
-			}	
-        }
-        return @File;
 }
-
-#################################################################################
-sub ReadMultiFastaFile{
-    my ($InputFile) = @_;
-    
-    $/=">";       
-
-    open (FILE, $InputFile);      
-        my $HeaderChar = <FILE>;
-        my @Seq = <FILE>;
-        chomp @Seq;
-    close FILE;
-    
-    $/="\n";
-    
-    return @Seq;
-}
-
-#################################################################################
-
-sub ReadSeq{
-    my ($InputSeq) = @_;
-    my ($Seq, @SingleFasta);
-    my ($Header, @Seq) = split('\n', $InputSeq);
-    chomp ($Header, @Seq);
-    $Header =~ s/\n//g;
-    $Header =~ s/\s//g;
-    $Seq = join('',@Seq);
-    $Seq =~ s/\n//g;
-    $Seq =~ s/\s//g;
-    $Seq =~ tr/acgt/ACGT/;
-    #my @OutSeq = split('',$Seq);
-
-    return ($Header, $Seq);
-}
-
-################################################################################
-#ReadSeq subroutine reads a sequence from a fasta file and returns it in the $Seq
-#variable
-sub ReadSeqFile{
-        my ($SeqFileName) = @_;
-        my ($SeqTitle, $Seq);
-        my (@Seq, @DataSeq);
-        unless (open (FILE, $SeqFileName)){
-                print "The Routine ReadSeq can not open $SeqFileName file\n\tExit!\n";
-                exit;
-        }
-       $SeqTitle = <FILE>;
-       chomp $SeqTitle;
-       @Seq = <FILE>;
-       chomp @Seq;
-       close FILE;
-       
-       $Seq = join('',@Seq);
-       $Seq =~ s/\n//g;
-       $Seq =~ s/\s//g;
-       $Seq =~ tr/acgt/ACGT/;
-       
-        return $Seq;
-}
-
-################################################################################
-#ReadSeq subroutine reads a sequence from a fasta file and returns it in the $Seq
-#variable
-sub ReadcSeqFile{
-        my ($SeqFileName) = @_;
-        my ($Title, $Seq);
-        my @Seq;
-        unless (open (FILE, $SeqFileName)){
-                print "The Routine ReadSeq can not open $SeqFileName file\n\tExit!\n";
-                exit;
-        }
-       $Title = <FILE>;
-       chomp $Title;
-       @Seq = <FILE>;
-       chomp @Seq;
-       close FILE;
-       
-       $Seq = join('',@Seq);
-       $Seq = reverse$Seq;
-       $Seq =~ s/\n//g;
-       $Seq =~ s/\s//g;
-       $Seq =~ tr/acgt/ACGT/;
-       $Seq =~ tr/ACGT/TGCA/;
-       
-        return $Seq;
-}
-
 ################################################################################
 
-sub ReadPredictFile{
-    my ($InputFile) = @_;
-    unless(open(FILE, $InputFile)){
-        print "ReadPredict subrutine cant read $InputFile\n\tExit!";
-        exit;
-    }
-    my @File = <FILE>;
-    foreach my $Row (@File){
-                if ($Row =~/^>/) {
-                   shift @File;     
-                }        
-        }
-        close FILE;       
-        return @File;    
-}
-
-################################################################################
-
-sub ReadHmmTbl{
-    my ($InputFile) = @_;
-    unless(open(FILE, $InputFile)){
-        print "ReadHmmTbl subrutine cant read $InputFile\n\tExit!";
-        exit;
-    }
-    my @File = <FILE>;
-    my @Data;
-    foreach my $Row (@File){
-                if ($Row =~/^#.*/){
-                    #next;
-                }else{
-#                    shift @File;
-                    push @Data, $Row;
+sub DismissORFs{
+        my ($Id, @IDs, $null) = @_;
+        my $n = scalar@IDs;
+        for(my $i=0;$i<$n;$i++){
+                if($IDs[$i] eq $Id){
+                        splice @IDs, $i, 1;
+                        $n--;
                 }
-    
-    }
-    close FILE;       
-    return @Data;    
+        }
+        return @IDs;
 }
+################################################################################
 
+sub Extract{
+        my ($Qry, $DataBase,$Entry,$OutSeq, $null) = @_;
+        print "\tExtracting ORF from $Qry...";	
+        my $cmd = `blastdbcmd -db $DataBase -dbtype nucl -entry "$Entry" -out $OutSeq`;
+        print "Done!\n";
+}
+################################################################################
+
+sub Align{
+        my ($Seq1, $Seq2, $ToAlign, $AlnFile, $null) = @_;
+        print "\tAligning sequences...";
+        my $cmd = `cat $Seq1 $Seq2 > $ToAlign`;
+        $cmd = `muscle -in $ToAlign -out $AlnFile -quiet`;
+        print "Done!\n";
+}
+################################################################################
+
+sub HMM{
+        my ($CPUs, $HmmFile, $AlnFile, $null) = @_;
+        print "\tBuilding a HMM...";
+        my $cmd = `hmmbuild --dna --cpu $CPUs $HmmFile $AlnFile`;
+        print "Done!\n";
+}
 
 1;
