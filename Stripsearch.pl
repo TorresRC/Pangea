@@ -45,29 +45,29 @@ my ($MainPath, $Project, $Src, $SortGenes, $FilterORFeomes, $MakeBlastDb, $Initi
     $BoleanPresenceAbsence, $ConsensusPanGenome, $CoreAlign, $Start, $End, $RunTime);
 
 $Start = time();
-$MainPath = '/Users/rc/CoreGenome';
+$MainPath = '/Users/bioinformatica/Documents/CoreGenome';
 $Src      = $MainPath ."/". "src";
 
 #$Script1  = $Src ."/". "1.-FormatFeatures.pl";
 #$Script2  = $Src ."/". "2.-FilterFeatures.pl";
 #$Script3  = $Src ."/". "3.-GetORFeomes.pl";
 
-$SortGenes  = $Src ."/". "1.-SortGenes.pl";
-$FilterORFeomes  = $Src ."/". "2.-FilterORFeomes.pl";
-$MakeBlastDb  = $Src ."/". "4.-MakeBlastDBs.pl";
-$InitialComparison  = $Src ."/". "5.-PreCoreGenome.pl";
-$GeneContent  = $Src ."/". "6.-CoreGenome.pl";
-$GeneContentPlot  = $Src ."/". "Plot.pl";
-$BoleanPresenceAbsence = $Src ."/". "FormatPresenceAbsenceReport.pl";
+$SortGenes  = $Src ."/". "SortGenes.pl";
+$FilterORFeomes  = $Src ."/". "FilterORFeomes.pl";
+$MakeBlastDb  = $Src ."/". "MakeBlastDBs.pl";
+$InitialComparison  = $Src ."/". "InitialComparison.pl";
+$GeneContent  = $Src ."/". "GeneContent.pl";
+$GeneContentPlot  = $Src ."/". "GeneContentPlot.pl";
+$BoleanPresenceAbsence = $Src ."/". "BoleanPresenceAbsence.pl";
 $ConsensusPanGenome = $Src ."/". "ConsensusPanGenome.pl";
 $CoreAlign = $Src ."/". "CoreAlign.pl";
 
-#system("perl $SortGenes $ProjectName $List $TrustedORFeome $MainPath");
-#system("perl $FilterORFeomes $ProjectName $List $TrustedORFeome $MainPath");
-##system("perl $Script3 $ProjectName $List");
-#system("perl $MakeBlastDb $ProjectName $List $TrustedORFeome $MainPath");
-#system("perl $InitialComparison $ProjectName $List $TrustedORFeome $eVal $PIdent $CPUs $MainPath");
-#system("perl $GeneContent $ProjectName $List $CPUs $MainPath");
+system("perl $SortGenes $ProjectName $List $TrustedORFeome $MainPath");
+system("perl $FilterORFeomes $ProjectName $List $TrustedORFeome $MainPath");
+#system("perl $Script3 $ProjectName $List");
+system("perl $MakeBlastDb $ProjectName $List $TrustedORFeome $MainPath");
+system("perl $InitialComparison $ProjectName $List $TrustedORFeome $eVal $PIdent $CPUs $MainPath");
+system("perl $GeneContent $ProjectName $List $CPUs $MainPath");
 system("perl $GeneContentPlot $ProjectName $List $MainPath");
 
 if($PanGenome){

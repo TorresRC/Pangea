@@ -52,12 +52,20 @@ sub Prefix{
         return $Prefix;    
 }
 
+################################################################################ 
+sub SplitTab{
+    my ($Row) = @_;
+    my @SplitedRow = split('\t',$Row);
+    chomp @SplitedRow;
+    
+    return @SplitedRow;
+}
+
 ################################################################################
-#ReadFile subrutine reads a whole file and puts it in an array
 sub ReadFile{
         my ($InputFile) = @_;
         unless (open(FILE, $InputFile)){
-               print "The Routine ReadFile Can not open $InputFile file\n";
+               print "The Routine ReadFile Can not open $InputFile file on $0 script.\n";
                exit;
         }
         my @Temp = <FILE>;
@@ -72,6 +80,67 @@ sub ReadFile{
         }
         return @File;
 }
+
+#################################################################################
+sub ReadMultiFastaFile{
+    my ($InputFile) = @_;
+    
+    $/=">";       
+
+    unless (open(FILE, $InputFile)){
+        print "The Routine ReadMultiFastaFile Can not open $InputFile file on $0 script.\n";
+        exit;
+    }
+        my $HeaderChar = <FILE>;
+        my @Seq = <FILE>;
+        chomp @Seq;
+    close FILE;
+    
+    $/="\n";
+    
+    return @Seq;
+}
+
+#################################################################################
+sub ReadSeq{
+    my ($InputSeq) = @_;
+    my ($Seq, @SingleFasta);
+    my ($Header, @Seq) = split('\n', $InputSeq);
+    chomp ($Header, @Seq);
+    $Header =~ s/\n//g;
+    $Header =~ s/\s//g;
+    $Seq = join('',@Seq);
+    $Seq =~ s/\n//g;
+    $Seq =~ s/\s//g;
+    $Seq =~ tr/acgt/ACGT/;
+    #my @OutSeq = split('',$Seq);
+
+    return ($Header, $Seq);
+}
+
+################################################################################
+sub ReadSeqFile{
+       my ($SeqFileName) = @_;
+       my ($SeqTitle, $Seq);
+       my (@Seq, @DataSeq);
+       unless (open (FILE, $SeqFileName)){
+               print "The Routine ReadSeqFile can not open $SeqFileName file on $0 script\n\tExit!\n";
+               exit;
+       }
+       $SeqTitle = <FILE>;
+       chomp $SeqTitle;
+       @Seq = <FILE>;
+       chomp @Seq;
+       close FILE;
+       
+       $Seq = join('',@Seq);
+       $Seq =~ s/\n//g;
+       $Seq =~ s/\s//g;
+       $Seq =~ tr/acgt/ACGT/;
+       
+       return $Seq;
+}
+
 ################################################################################
 sub AnnotatedGenes{
         my ($File) = @_;
@@ -81,16 +150,21 @@ sub AnnotatedGenes{
         my @Data = split('\n',$cmd);
         return @Data;
 }
-################################################################################
 
+################################################################################
 sub GenesInBlastReport{
         my ($File, $GeneId, $null) = @_;
         open (FILE, ">>$File");
-                print FILE "$GeneId\n";
+
+        unless (open(FILE, ">>$File")){
+               print "The Routine GenesInBlastReport Can not open $File file on $0 script.\n";
+               exit;
+        }
+               print FILE "$GeneId\n";
         close FILE;
 }
-################################################################################
 
+################################################################################
 sub DismissORFs{
         my ($Id, @IDs, $null) = @_;
         my $n = scalar@IDs;
@@ -102,16 +176,16 @@ sub DismissORFs{
         }
         return @IDs;
 }
-################################################################################
 
+################################################################################
 sub Extract{
         my ($Qry, $DataBase,$Entry,$OutSeq, $null) = @_;
         print "\tExtracting ORF from $Qry...";	
         my $cmd = `blastdbcmd -db $DataBase -dbtype nucl -entry "$Entry" -out $OutSeq`;
         print "Done!\n";
 }
-################################################################################
 
+################################################################################
 sub Align{
         my ($Seq1, $Seq2, $ToAlign, $AlnFile, $null) = @_;
         print "\tAligning sequences...";
@@ -119,8 +193,8 @@ sub Align{
         $cmd = `muscle -in $ToAlign -out $AlnFile -quiet`;
         print "Done!\n";
 }
-################################################################################
 
+################################################################################
 sub HMM{
         my ($CPUs, $HmmFile, $AlnFile, $null) = @_;
         print "\tBuilding a HMM...";
