@@ -8,7 +8,7 @@
 #################################################################################
 
 use strict;
-use lib '/Users/rc/CoreGenome/src/lib';
+use lib '/Users/bioinformatica/Documents/CoreGenome/src/lib';
 use Routines;
 use List::MoreUtils qw{any};
 

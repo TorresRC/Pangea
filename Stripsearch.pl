@@ -48,7 +48,7 @@ my ($MainPath, $Project, $Src, $SortGenes, $FilterORFeomes, $MakeBlastDb, $Initi
     $BoleanPresenceAbsence, $ConsensusPanGenome, $CoreAlign, $Start, $End, $RunTime);
 
 $Start = time();
-$MainPath = '/Users/rc/CoreGenome';
+$MainPath = '/Users/bioinformatica/Documents/CoreGenome';
 $Src      = $MainPath ."/". "src";
 
 #$Script1  = $Src ."/". "1.-FormatFeatures.pl";
@@ -67,7 +67,7 @@ $CoreAlign = $Src ."/". "CoreAlign.pl";
 
 system("perl $SortGenes $ProjectName $List $TrustedORFeome $MainPath");
 system("perl $FilterORFeomes $ProjectName $List $TrustedORFeome $MainPath");
-##system("perl $Script3 $ProjectName $List");
+#system("perl $Script3 $ProjectName $List");
 system("perl $MakeBlastDb $ProjectName $List $TrustedORFeome $MainPath");
 system("perl $InitialComparison $ProjectName $List $TrustedORFeome $eVal $PIdent $CPUs $MainPath");
 system("perl $GeneContent $ProjectName $List $CPUs $MainPath");
@@ -80,8 +80,6 @@ if($PanGenome){
 }elsif($Bolean){
         system("perl $BoleanPresenceAbsence $ProjectName $List $MainPath");
 }
-
-
 
 $End = time();
 $RunTime = ((($End - $Start)/60)/60);

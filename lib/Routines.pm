@@ -51,7 +51,7 @@ sub Prefix{
         return $Prefix;    
 }
 
-################################################################################
+################################################################################ 
 sub SplitTab{
     my ($Row) = @_;
     my @SplitedRow = split('\t',$Row);
@@ -118,6 +118,29 @@ sub ReadMultiFastaFile{
 }
 
 ################################################################################
+sub ReadSeqFile{
+       my ($SeqFileName) = @_;
+       my ($SeqTitle, $Seq);
+       my (@Seq, @DataSeq);
+       unless (open (FILE, $SeqFileName)){
+               print "The Routine ReadSeqFile can not open $SeqFileName file on $0 script\n\tExit!\n";
+               exit;
+       }
+       $SeqTitle = <FILE>;
+       chomp $SeqTitle;
+       @Seq = <FILE>;
+       chomp @Seq;
+       close FILE;
+       
+       $Seq = join('',@Seq);
+       $Seq =~ s/\n//g;
+       $Seq =~ s/\s//g;
+       $Seq =~ tr/acgt/ACGT/;
+       
+       return $Seq;
+}
+
+################################################################################
 sub AnnotatedGenes{
         my ($File) = @_;
         my $cmd = `grep ">" $File`;
@@ -131,7 +154,12 @@ sub AnnotatedGenes{
 sub GenesInBlastReport{
         my ($File, $GeneId, $null) = @_;
         open (FILE, ">>$File");
-                print FILE "$GeneId\n";
+
+        unless (open(FILE, ">>$File")){
+               print "The Routine GenesInBlastReport Can not open $File file on $0 script.\n";
+               exit;
+        }
+               print FILE "$GeneId\n";
         close FILE;
 }
 
