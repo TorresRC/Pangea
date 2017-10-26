@@ -41,6 +41,9 @@ print "
 exit;
 }
 
+print "\nProject: $ProjectName\nList: $List\nTrusted: $TrustedORFeome\ne: $eVal\nPI: $PIdent\nCPUs $CPUs\n\n";
+#exit;
+
 my ($MainPath, $Project, $Src, $SortGenes, $FilterORFeomes, $MakeBlastDb, $InitialComparison, $GeneContent, $GeneContentPlot,
     $BoleanPresenceAbsence, $ConsensusPanGenome, $CoreAlign, $Start, $End, $RunTime);
 
@@ -52,28 +55,28 @@ $Src      = $MainPath ."/". "src";
 #$Script2  = $Src ."/". "2.-FilterFeatures.pl";
 #$Script3  = $Src ."/". "3.-GetORFeomes.pl";
 
-$SortGenes  = $Src ."/". "1.-SortGenes.pl";
-$FilterORFeomes  = $Src ."/". "2.-FilterORFeomes.pl";
-$MakeBlastDb  = $Src ."/". "4.-MakeBlastDBs.pl";
-$InitialComparison  = $Src ."/". "5.-PreCoreGenome.pl";
-$GeneContent  = $Src ."/". "6.-CoreGenome.pl";
-$GeneContentPlot  = $Src ."/". "Plot.pl";
-$BoleanPresenceAbsence = $Src ."/". "FormatPresenceAbsenceReport.pl";
+$SortGenes  = $Src ."/". "SortGenes.pl";
+$FilterORFeomes  = $Src ."/". "FilterORFeomes.pl";
+$MakeBlastDb  = $Src ."/". "MakeBlastDBs.pl";
+$InitialComparison  = $Src ."/". "InitialComparison.pl";
+$GeneContent  = $Src ."/". "GeneContent.pl";
+$GeneContentPlot  = $Src ."/". "GeneContentPlot.pl";
+$BoleanPresenceAbsence = $Src ."/". "BoleanPresenceAbsence.pl";
 $ConsensusPanGenome = $Src ."/". "ConsensusPanGenome.pl";
 $CoreAlign = $Src ."/". "CoreAlign.pl";
 
-#system("perl $SortGenes $ProjectName $List $TrustedORFeome $MainPath");
-#system("perl $FilterORFeomes $ProjectName $List $TrustedORFeome $MainPath");
+system("perl $SortGenes $ProjectName $List $TrustedORFeome $MainPath");
+system("perl $FilterORFeomes $ProjectName $List $TrustedORFeome $MainPath");
 ##system("perl $Script3 $ProjectName $List");
-#system("perl $MakeBlastDb $ProjectName $List $TrustedORFeome $MainPath");
-#system("perl $InitialComparison $ProjectName $List $TrustedORFeome $eVal $PIdent $CPUs $MainPath");
-#system("perl $GeneContent $ProjectName $List $CPUs $MainPath");
+system("perl $MakeBlastDb $ProjectName $List $TrustedORFeome $MainPath");
+system("perl $InitialComparison $ProjectName $List $TrustedORFeome $eVal $PIdent $CPUs $MainPath");
+system("perl $GeneContent $ProjectName $List $CPUs $MainPath");
 system("perl $GeneContentPlot $ProjectName $List $MainPath");
 
 if($PanGenome){
-        system("perl $ConsensusPanGenome $ProjectName $List $MainPath");
+        system("perl $ConsensusPanGenome $ProjectName $MainPath");
 }elsif($CoreGenome){
-        system("perl $CoreAlign $ProjectName $List $MainPath");
+        system("perl $CoreAlign $ProjectName 125 $MainPath");
 }elsif($Bolean){
         system("perl $BoleanPresenceAbsence $ProjectName $List $MainPath");
 }
