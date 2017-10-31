@@ -33,6 +33,9 @@ $Project = $MainPath ."/". $ProjectName;
 $ORFsPath = $Project ."/". "ORFs";
 $PresenceAbsence = $Project ."/". $ProjectName . "_Presence_Absence.csv";
 $ConsensusPanGenome = $Project ."/". $ProjectName . "_Consensus_PanGenome.fasta";
+$LogFile        = $Project ."/". $ProjectName . ".log";
+
+open (STDERR, "| tee -ai $LogFile") or die "$0: dup: $!";
 
 @PresenceAbsence = ReadFile($PresenceAbsence);
 $TotalPresenceAbsence = scalar@PresenceAbsence;
