@@ -19,7 +19,7 @@ $ProjectName = $ARGV[0];
 my($Project, $BoleanFileName, $MetaDataFileName, $ProbabilitiesFile, $nBoleanFile, $Line,
    $nBoleanFileFields, $N, $MetaData, $nMetaDataFile, $nMetaDataFileFields,
    $Region, $Strain, $Class, $nClasses, $Counter, $Hit, $Count, $Probe, $StrainHit,
-   $StrainHits, $ProbeHit, $ProbeHits);
+   $StrainHits, $ProbeHit, $ProbeHits, $nHits);
 my($i, $j);
 my(@BoleanFile, @BoleanFileFields, @BoleanTable, @MetaDataField, @MetaDataFile,
    @MetaDataFileFields, @MetaData, @Classes, @Strains);
@@ -29,7 +29,7 @@ my $Probabilities = [ ];
 
 $MainPath = "/home/rtorres/CoreGenome";
 $Project = $MainPath ."/". $ProjectName;
-$BoleanFileName = $Project ."/". $ProjectName . "_Bolean_Presence_Absence2.csv";
+$BoleanFileName = $Project ."/". $ProjectName . "_Bolean_Presence_Absence3.csv";
 $MetaDataFileName = $Project ."/". 'Metadata.csv';
 $ProbabilitiesFile = $Project ."/". $ProjectName . "_Probabilities.csv";
 $LogFile        = $Project ."/". $ProjectName . ".log";
@@ -69,6 +69,7 @@ for ($i=0;$i<$nClasses;$i++){
 		$Strain = $MetaData[$j]->[0];
 		$Class = $MetaData[$j]->[1];
 		$StrainClass{$Strain} = $Class;
+		$Count++;
 		if($Class eq $Classes[$i]){
 			$Counter++;
 		}
@@ -81,20 +82,17 @@ foreach my $Class(@Classes){
 print "\nThe Class $Class has $Classes{$Class} elements, and its probability is $pClasses{$Class} while the complemented probability is $cpClasses{$Class}";
 }
 
-$Count = 0;
 for ($i=1; $i<$nBoleanFile; $i++){
 	for ($j=1; $j<$nBoleanFileFields; $j++){
 		$Hit = $BoleanTable[$i][$j];
-		if ($Hit != 0){
-			$Count++;
-		}
+		$nHits += $Hit;
 	}
 }
-print "\nThe total of Hits into the bolean table are $Count\n";
+print "\nThe total of Hits into the bolean table are $nHits\n";
 
 foreach $Class(@Classes){
-	$StrainHits = 0; 
-	for ($i=1;$i<$nBoleanFileFields; $i++){
+	$StrainHits = 0;
+	for ($i=1;$i<$nBoleanFileFields;$i++){
 		$Strain = $BoleanTable[0][$i];
 		if ($StrainClass{$Strain} eq $Class){
 			for ($j=1;$j<$nBoleanFile;$j++){
