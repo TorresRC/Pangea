@@ -11,8 +11,14 @@ use strict;
 use Getopt::Long qw(GetOptions);
 Getopt::Long::Configure qw(gnu_getopt);
 
+#-------------------------------------------------------------------------------
+my $MainPath = '/Users/bioinformatica/Documents/CoreGenome';
+my $Src      = $MainPath ."/". "src";
+#-------------------------------------------------------------------------------
+
+
 my ($Usage, $ProjectName, $List, $TrustedORFeome, $eVal, $PIdent, $CPUs, $Help, $PanGenome,
-    $CoreGenome, $Bolean);
+    $CoreGenome, $Bolean, $Recover);
 
 GetOptions(
            'help'        => \$Help,
@@ -25,6 +31,7 @@ GetOptions(
            'con-pan|P'   => \$PanGenome,
            'alncore|C'   => \$CoreGenome,
            'boleant|b'   => \$Bolean,
+           'recover|r'   => \$Recover,
            ) or die "USAGE:\n  $0 [--help] [--project -p prefix] [--list -l filename]
       [--trusted -c filename] [--evalue -e evalue] [--ident -i integer]
       [--cpus -t integer]
@@ -44,12 +51,10 @@ exit;
 print "\nProject: $ProjectName\nList: $List\nTrusted: $TrustedORFeome\ne: $eVal\nPI: $PIdent\nCPUs $CPUs\n\n";
 #exit;
 
-my ($MainPath, $Project, $Src, $SortGenes, $FilterORFeomes, $MakeBlastDb, $InitialComparison, $GeneContent, $GeneContentPlot,
+my ($Project, $SortGenes, $FilterORFeomes, $MakeBlastDb, $InitialComparison, $GeneContent, $GeneContentPlot,
     $BoleanPresenceAbsence, $ConsensusPanGenome, $CoreAlign, $Start, $End, $RunTime);
 
 $Start = time();
-$MainPath = '/Users/bioinformatica/Documents/CoreGenome';
-$Src      = $MainPath ."/". "src";
 
 #$Script1  = $Src ."/". "1.-FormatFeatures.pl";
 #$Script2  = $Src ."/". "2.-FilterFeatures.pl";
@@ -65,12 +70,17 @@ $BoleanPresenceAbsence = $Src ."/". "BoleanPresenceAbsence.pl";
 $ConsensusPanGenome = $Src ."/". "ConsensusPanGenome.pl";
 $CoreAlign = $Src ."/". "CoreAlign.pl";
 
-system("perl $SortGenes $ProjectName $List $TrustedORFeome $MainPath");
-system("perl $FilterORFeomes $ProjectName $List $TrustedORFeome $MainPath");
-#system("perl $Script3 $ProjectName $List");
-system("perl $MakeBlastDb $ProjectName $List $TrustedORFeome $MainPath");
-system("perl $InitialComparison $ProjectName $List $TrustedORFeome $eVal $PIdent $CPUs $MainPath");
-system("perl $GeneContent $ProjectName $List $CPUs $MainPath");
+if($Recover == "0"){
+        system("perl $SortGenes $ProjectName $List $TrustedORFeome $MainPath");
+        system("perl $FilterORFeomes $ProjectName $List $TrustedORFeome $MainPath");
+        #system("perl $Script3 $ProjectName $List");
+        system("perl $MakeBlastDb $ProjectName $List $TrustedORFeome $MainPath");
+        system("perl $InitialComparison $ProjectName $List $TrustedORFeome $eVal $PIdent $CPUs $MainPath");
+        system("perl $GeneContent $ProjectName $List $CPUs $MainPath $Recover");
+}elsif($Recover == "1"){
+        system("perl $GeneContent $ProjectName $List $CPUs $MainPath $Recover");
+}
+
 system("perl $GeneContentPlot $ProjectName $List $MainPath");
 
 if($PanGenome){
@@ -82,7 +92,7 @@ if($PanGenome){
 }
 
 $End = time();
-$RunTime = ((($End - $Start)/60)/60);
+$RunTime = ((($End - $Start)/60)/60/24);
 
-print "\n\tFinished! The $ProjectName gene content analysis took $RunTime hours\n\n";
+print "\n\tFinished! The $ProjectName gene content analysis took $RunTime days\n\n";
 exit;
