@@ -11,48 +11,50 @@ use strict;
 use Getopt::Long qw(GetOptions);
 Getopt::Long::Configure qw(gnu_getopt);
 
-#-------------------------------------------------------------------------------
-my $MainPath = '/Users/bioinformatica/Documents/CoreGenome';
+#--------------------------------------------------------------------------------
+my $MainPath = '/Users/rc/CoreGenome';
 my $Src      = $MainPath ."/". "src";
-#-------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------
 
 
-my ($Usage, $ProjectName, $List, $TrustedORFeome, $eVal, $PIdent, $CPUs, $Help, $PanGenome,
-    $CoreGenome, $Bolean, $Recover);
+my ($Usage, $ProjectName, $List, $TrustedORFeome, $eVal, $PIdent, $CPUs, $Help,
+    $PanGenome, $CoreGenome, $Bolean, $Recover);
 
+$Recover = 0;
 GetOptions(
-           'help'        => \$Help,
-           'project|p=s' => \$ProjectName,
-           'list|l=s'    => \$List,
-           'trusted|c=s' => \$TrustedORFeome,
-           'evalue|e=f'  => \$eVal,
-           'ident|i=i'   => \$PIdent,
-           'cpus|t=i'    => \$CPUs,
-           'con-pan|P'   => \$PanGenome,
-           'alncore|C'   => \$CoreGenome,
-           'boleant|b'   => \$Bolean,
-           'recover|r'   => \$Recover,
-           ) or die "USAGE:\n  $0 [--help] [--project -p prefix] [--list -l filename]
+        'help'        => \$Help,
+        'project|p=s' => \$ProjectName,
+        'list|l=s'    => \$List,
+        'trusted|c=s' => \$TrustedORFeome,
+        'evalue|e=f'  => \$eVal,
+        'ident|i=i'   => \$PIdent,
+        'cpus|t=i'    => \$CPUs,
+        'con-pan|P'   => \$PanGenome,
+        'alncore|C'   => \$CoreGenome,
+        'boleant|b'   => \$Bolean,
+        'recover|r'   => \$Recover,
+        ) or die "USAGE:\n  $0 [--help] [--project -p prefix] [--list -l filename]
       [--trusted -c filename] [--evalue -e evalue] [--ident -i integer]
       [--cpus -t integer]
 \n  Use \'--help\' to print detailed descriptions of options.\n\n";
 
 if($Help){
-print "
-\t--project <Project_Name>
-\t--list <List_File_Name>
-\t--trusted <TrustedFile.fasta>
-\t--e-value <e-value>
-\t--ident <Percetage_of_Identity>
-\t--cpus <CPUs>\n\n";
-exit;
+        print "
+        \t--project <Project_Name>
+        \t--list <List_File_Name>
+        \t--trusted <TrustedFile.fasta>
+        \t--e-value <e-value>
+        \t--ident <Percetage_of_Identity>
+        \t--cpus <CPUs>\n\n";
+        exit;
 }
 
 print "\nProject: $ProjectName\nList: $List\nTrusted: $TrustedORFeome\ne: $eVal\nPI: $PIdent\nCPUs $CPUs\n\n";
 #exit;
 
-my ($Project, $SortGenes, $FilterORFeomes, $MakeBlastDb, $InitialComparison, $GeneContent, $GeneContentPlot,
-    $BoleanPresenceAbsence, $ConsensusPanGenome, $CoreAlign, $Start, $End, $RunTime);
+my ($Project, $SortGenes, $FilterORFeomes, $MakeBlastDb, $InitialComparison,
+    $GeneContent, $GeneContentPlot, $BoleanPresenceAbsence, $ConsensusPanGenome,
+    $CoreAlign, $Start, $End, $Time, $RunTime, $Period);
 
 $Start = time();
 
@@ -85,14 +87,28 @@ system("perl $GeneContentPlot $ProjectName $List $MainPath");
 
 if($PanGenome){
         system("perl $ConsensusPanGenome $ProjectName $MainPath");
-}elsif($CoreGenome){
+}
+
+if($CoreGenome){
         system("perl $CoreAlign $ProjectName 125 $MainPath");
-}elsif($Bolean){
+}
+
+if($Bolean){
         system("perl $BoleanPresenceAbsence $ProjectName $List $MainPath");
 }
 
 $End = time();
-$RunTime = ((($End - $Start)/60)/60/24);
+$Time = ($End-$Start);
+if ($Time < 3600){
+        $RunTime = ($Time)/60;
+        $Period = "minutes";
+}elsif ($Time >= 3600 && $Time < 86400){
+        $RunTime = (($Time)/60)/60;
+        $Period = "hours";
+}elsif ($Time >= 86400){
+        $RunTime = ((($Time)/60)/60)/24;
+        $Period = "days";
+}
 
-print "\n\tFinished! The $ProjectName gene content analysis took $RunTime days\n\n";
+print "\n\tFinished! The $ProjectName gene content analysis took $RunTime $Period\n\n";
 exit;
