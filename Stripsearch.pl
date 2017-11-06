@@ -18,9 +18,9 @@ my $Src      = $MainPath ."/". "src";
 
 
 my ($Usage, $ProjectName, $List, $TrustedORFeome, $eVal, $PIdent, $CPUs, $Help,
-    $PanGenome, $CoreGenome, $Bolean, $Recover);
+    $PanGenome, $CoreGenome, $Bolean, $Recovery);
 
-$Recover = 0;
+$Recovery = 0;
 GetOptions(
         'help'        => \$Help,
         'project|p=s' => \$ProjectName,
@@ -32,7 +32,7 @@ GetOptions(
         'con-pan|P'   => \$PanGenome,
         'alncore|C'   => \$CoreGenome,
         'boleant|b'   => \$Bolean,
-        'recover|r'   => \$Recover,
+        'recovery|r'   => \$Recovery,
         ) or die "USAGE:\n  $0 [--help] [--project -p prefix] [--list -l filename]
       [--trusted -c filename] [--evalue -e evalue] [--ident -i integer]
       [--cpus -t integer]
@@ -72,15 +72,15 @@ $BoleanPresenceAbsence = $Src ."/". "BoleanPresenceAbsence.pl";
 $ConsensusPanGenome = $Src ."/". "ConsensusPanGenome.pl";
 $CoreAlign = $Src ."/". "CoreAlign.pl";
 
-if($Recover == "0"){
+if($Recovery == "0"){
         system("perl $SortGenes $ProjectName $List $TrustedORFeome $MainPath");
         system("perl $FilterORFeomes $ProjectName $List $TrustedORFeome $MainPath");
         #system("perl $Script3 $ProjectName $List");
         system("perl $MakeBlastDb $ProjectName $List $TrustedORFeome $MainPath");
         system("perl $InitialComparison $ProjectName $List $TrustedORFeome $eVal $PIdent $CPUs $MainPath");
-        system("perl $GeneContent $ProjectName $List $CPUs $MainPath $Recover");
-}elsif($Recover == "1"){
-        system("perl $GeneContent $ProjectName $List $CPUs $MainPath $Recover");
+        system("perl $GeneContent $ProjectName $List $CPUs $MainPath $Recovery");
+}elsif($Recovery == "1"){
+        system("perl $GeneContent $ProjectName $List $CPUs $MainPath $Recovery");
 }
 
 system("perl $GeneContentPlot $ProjectName $List $MainPath");

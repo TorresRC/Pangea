@@ -13,7 +13,7 @@ use lib '/Users/rc/CoreGenome/src/lib';
 use Routines;
 use List::MoreUtils qw{any};
 
-my ($Usage, $ProjectName, $List, $CPUs, $MainPath, $Recover, $Add, $AddList);
+my ($Usage, $ProjectName, $List, $CPUs, $MainPath, $Recovery, $Add, $AddList);
 
 $Usage = "\tUsage: CoreGenome.pl <Project Name> <List File Name> <CPUs> <Main_Path>\n";
 unless(@ARGV) {
@@ -25,7 +25,7 @@ $ProjectName = $ARGV[0];
 $List = $ARGV[1];
 $CPUs = $ARGV[2];
 $MainPath = $ARGV[3];
-$Recover = $ARGV[4];
+$Recovery = $ARGV[4];
 $Add = $ARGV[5];
 $AddList = $ARGV[6];
 
@@ -75,11 +75,11 @@ $Stats          = $Project ."/". $ProjectName . "_Statistics.csv";
 open (STDERR, "| tee -ai $LogFile") or die "$0: dup: $!";
 
 #Starting from scratch or recovering evaluation 
-if($Recover == "0"){
+if($Recovery == "0"){
         $Progress = 1;
         @PresenceAbsence = ReadFile($InitialPresenceAbsence);
         #system("rm $InitialPresenceAbsence");
-}elsif($Recover == "1"){
+}elsif($Recovery == "1"){
         @Progress = ReadFile($Stats);
         $Progress = scalar@Progress-2;
         @PresenceAbsence = ReadFile($PresenceAbsence);
