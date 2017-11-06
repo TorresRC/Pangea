@@ -9,7 +9,7 @@
 
 use strict; 
 use List::MoreUtils qw{any};
-use lib '/Users/bioinformatica/Documents/CoreGenome/src/lib';
+use lib '/Users/rc/CoreGenome/src/lib';
 use Routines;
 
 my ($Usage, $ProjectName, $List, $CPUs, $MainPath);
@@ -24,7 +24,7 @@ $ProjectName = $ARGV[0];
 $MainPath = $ARGV[1];
 
 my($Project, $ORFsPath, $PresenceAbsence, $TotalPresenceAbsence, $Row, $ORF,
-   $ConsensusPanGenome, $ORFHmm);
+   $ConsensusPanGenome, $ORFHmm, $LogFile);
 my($i, $j);
 my(@PresenceAbsence, @PresenceAbsenceFields, @PresenceAbsenceArray);
 

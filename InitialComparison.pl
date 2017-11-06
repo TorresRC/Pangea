@@ -9,7 +9,7 @@
 
 use strict; 
 use List::MoreUtils qw{any};
-use lib '/Users/bioinformatica/Documents/CoreGenome/src/lib';
+use lib '/Users/rc/CoreGenome/src/lib';
 use Routines;
 
 my ($Usage, $ProjectName, $List, $TrustedORFeome, $eValue, $PIdent, $CPUs, $MainPath);

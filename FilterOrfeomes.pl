@@ -7,7 +7,7 @@
 #Date:          11 de octubre de 2017                                           #
 #################################################################################
 use strict; 
-use lib '/Users/bioinformatica/Documents/CoreGenome/src/lib';
+use lib '/Users/rc/CoreGenome/src/lib';
 use Routines;
 
 my ($Usage, $ProjectName, $List, $TrustedORFeome, $MainPath);

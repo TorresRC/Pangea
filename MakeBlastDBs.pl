@@ -6,9 +6,9 @@
 #e-mail:        torres.roberto.c@gmail.com                                      #
 #Date:          10 de abril de 2017                                             #
 #################################################################################
-use strict;                                                                      
-use lib '/Users/bioinformatica/Documents/CoreGenome/src/lib';                              
-use Routines;                                                                    
+use strict;
+use lib '/Users/rc/CoreGenome/src/lib';                              
+use Routines;
 
 my ($Usage, $ProjectName, $List, $TrustedORFeome, $MainPath);
 
