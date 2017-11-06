@@ -9,7 +9,7 @@
 
 use strict; 
 use List::MoreUtils qw{any};
-use lib '/Users/bioinformatica/Documents/CoreGenome/src/lib';
+use lib '/Users/rc/CoreGenome/src/lib';
 use Routines;
 
 my ($Usage, $ProjectName, $Columns, $MainPath);
@@ -24,9 +24,9 @@ $ProjectName = $ARGV[0];
 $Columns = $ARGV[1];
 $MainPath = $ARGV[2];
 
-my($Project, $ORFsPath, $CoreGenome, $Row, $ORF, $ORFAln, $Name, $Seq, $Key,
+my($Project, $ORFsPath, $CoreGenome, $Line, $ORF, $ORFAln, $Name, $Seq, $Key,
    $AlnExt, $ORFPath, $Genome, $AlignedCoresPath, $SeqExt, $AlignedCore);
-my($i, $j, $n);
+my($i, $j, $LinesOnCoreGenome, $ColumnsOnCoreGenome);
 my(@CoreGenome, @CoreGenomeFields, @CoreGenomeArray, @File, @IndexedName);
 my(%Seq);
 
@@ -39,18 +39,19 @@ $SeqExt = ".fasta";
 $AlnExt = ".aln" . $SeqExt;
 
 @CoreGenome = ReadFile($CoreGenome);
-$n = scalar@CoreGenome;
+$LinesOnCoreGenome = scalar@CoreGenome;
  
 print "Loading the Core-Genome table:\n";
-for ($i=0; $i<$n; $i++){
-     $Row = $CoreGenome[$i];
-     @CoreGenomeFields = split(",",$Row);
-     $j = scalar@CoreGenomeFields;
+for ($i=0; $i<$LinesOnCoreGenome; $i++){
+     $Line = $CoreGenome[$i];
+     @CoreGenomeFields = split(",",$Line);
+     $ColumnsOnCoreGenome = scalar@CoreGenomeFields;
      push (@CoreGenomeArray, [@CoreGenomeFields]);
-     Progress($n, $i);
+     Progress($LinesOnCoreGenome, $i);
 }
+
 print "Buiding aligned Core-Genomes fasta sequences:\n";
-for ($i=1; $i<$n; $i++){
+for ($i=1; $i<$LinesOnCoreGenome; $i++){
         $ORF = $CoreGenomeArray[$i]->[0];
         $ORFPath = $ORFsPath ."/". $ORF;
         $ORFAln = `find $ORFPath -type f -name \*$AlnExt`;
@@ -59,7 +60,7 @@ for ($i=1; $i<$n; $i++){
         
         #print "\nAligning $ORF:\n";
         
-        open (FILE, $ORFAln) or die ("Could not open $ORFAln file,");
+        open (FILE, $ORFAln) or die ("Could not open $ORFAln file. On $0 line 63.");
         while (<FILE>){
                 next unless /\S/;
                 next if /^\s*\#/;
@@ -85,6 +86,6 @@ for ($i=1; $i<$n; $i++){
                         print FILE "X\n";
                 close FILE;
         }
-        Progress($n, $i);
+        Progress($LinesOnCoreGenome, $i);
 }
 exit;
