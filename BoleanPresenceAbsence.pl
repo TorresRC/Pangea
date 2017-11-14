@@ -24,9 +24,10 @@ $List = $ARGV[1];
 $MainPath = $ARGV[2];
 
 my ($Project, $MainList, $PresenceAbsenceFile, $BoleanReport, $TotalQry,
-    $TotalPresenceAbsence, $Row, $Field);
+    $TotalPresenceAbsence, $Row, $Field, $BoleanInformativeReport, $Line,
+    $nColumns, $Count);
 my ($o, $i, $j);
-my (@List, @PresenceAbsence, @PresenceAbsenceFields, @PresenceAbsenceArray);
+my (@List, @PresenceAbsence, @PresenceAbsenceFields, @PresenceAbsenceArray, @Columns);
 my $BoleanTable = [ ];
 my $GenesAnnotationReport = [ ];
 
@@ -34,7 +35,8 @@ my $GenesAnnotationReport = [ ];
 $Project = $MainPath ."/". $ProjectName;
 $MainList = $Project ."/". $List;
 $PresenceAbsenceFile = $Project ."/". $ProjectName . "_Presence_Absence.csv";
-$BoleanReport = $Project ."/". $ProjectName . "_Bolean_Presence_Absence.csv"; 
+$BoleanReport = $Project ."/". $ProjectName . "_Bolean_Presence_Absence.csv";
+$BoleanInformativeReport = $Project ."/". $ProjectName . "_Bolean_Informative_Presence_Absence.csv";
 
 #Loading the Presence/Absence genes file
 @List = ReadFile($MainList);
@@ -77,7 +79,7 @@ for ($i=1; $i<$TotalPresenceAbsence; $i++){
      }
 }
 
-#Writing the bolean file
+Writing the bolean file
 open (FILE, ">$BoleanReport");
 for ($i=0; $i<$TotalPresenceAbsence; $i++){
      for ($j=0; $j<$o; $j++){
@@ -86,6 +88,30 @@ for ($i=0; $i<$TotalPresenceAbsence; $i++){
      print FILE "\n";
 }
 close FILE;
+
+my @BoleanReport = ReadFile($BoleanReport);  
+open (FILE,">$BoleanInformativeReport");
+        print FILE "$BoleanReport[0]\n";
+        for ($i=0; $i<scalar@BoleanReport;$i++){
+                $Line = $BoleanReport[$i];
+                @Columns = split(",",$Line);
+                chomp@Columns;
+                $nColumns = scalar@Columns;
+
+                $Count = 0;
+                foreach my $Element(@Columns){
+                        if ($Element ne "0"){
+                                $Count++;
+                        }
+                }
+                if($Count < $nColumns){
+                        print FILE "$Line\n";   
+                }
+        }
+close FILE;
+
+
+
 
 print "Done!\n";
 exit;
