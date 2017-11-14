@@ -7,7 +7,8 @@
 #Date:          14 de octubre de 2017                                           #
 #################################################################################
 use strict; 
-use lib '/Users/rc/CoreGenome/src/lib';
+use FindBin;
+use lib "$FindBin::Bin/lib";
 use Routines;
 
 my ($Usage, $ProjectName, $List, $TrustedORFeome, $MainPath);
@@ -31,7 +32,6 @@ my ($n, $i);
 my (@List, @ORFeomes, @Genes, @TrustedGenes);
 my (%GenesSeq, %GenesLength, %TrustedGenesLength, %TrustedGenesSeq);
 
-#$MainPath = "/Users/rc/CoreGenome";
 $Project = $MainPath ."/". $ProjectName;
 $MainList = $Project ."/". $List;                                               
 $ORFeomesPath = $MainPath ."/". "ORFeomes";
