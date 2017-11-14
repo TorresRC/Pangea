@@ -6,9 +6,9 @@
 #e-mail:        torres.roberto.c@gmail.com                                      #
 #Date:          11 de octubre de 2017                                           #
 #################################################################################
-
 use strict; 
-use lib '/Users/rc/CoreGenome/src/lib';
+use FindBin;
+use lib "$FindBin::Bin/lib";
 use Routines;
 
 my ($Usage, $ProjectName, $List, $MainPath);
@@ -31,7 +31,6 @@ my (@List, @PresenceAbsence, @PresenceAbsenceFields, @PresenceAbsenceArray, @Col
 my $BoleanTable = [ ];
 my $GenesAnnotationReport = [ ];
 
-#$MainPath = "/Users/rc/CoreGenome/DiseaseMx";
 $Project = $MainPath ."/". $ProjectName;
 $MainList = $Project ."/". $List;
 $PresenceAbsenceFile = $Project ."/". $ProjectName . "_Presence_Absence.csv";

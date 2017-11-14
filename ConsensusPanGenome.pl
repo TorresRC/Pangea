@@ -9,7 +9,8 @@
 
 use strict; 
 use List::MoreUtils qw{any};
-use lib '/Users/rc/CoreGenome/src/lib';
+use FindBin;
+use lib "$FindBin::Bin/lib";
 use Routines;
 
 my ($Usage, $ProjectName, $List, $CPUs, $MainPath);
@@ -28,7 +29,6 @@ my($Project, $ORFsPath, $PresenceAbsence, $TotalPresenceAbsence, $Row, $ORF,
 my($i, $j);
 my(@PresenceAbsence, @PresenceAbsenceFields, @PresenceAbsenceArray);
 
-#$MainPath = "/home/rtorres/CoreGenome";
 $Project = $MainPath ."/". $ProjectName;
 $ORFsPath = $Project ."/". "ORFs";
 $PresenceAbsence = $Project ."/". $ProjectName . "_Presence_Absence.csv";

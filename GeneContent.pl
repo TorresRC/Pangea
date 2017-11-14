@@ -8,8 +8,8 @@
 #################################################################################
 
 use strict;
-#use lib '/Users/bioinformatica/Documents/CoreGenome/src/lib';
-use lib '/Users/rc/CoreGenome/src/lib';
+use FindBin;
+use lib "$FindBin::Bin/lib";
 use Routines;
 use List::MoreUtils qw{any};
 
@@ -52,7 +52,6 @@ my $NewReport = [ ];
 my $PermutationsFile = [ ];
 my $Statistics = [ ];
 
-#$MainPath = "/Users/rc/CoreGenome";
 $Project = $MainPath ."/". $ProjectName;
 
 $SeqExt = ".fasta";

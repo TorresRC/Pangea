@@ -9,7 +9,8 @@
 
 use strict; 
 use List::MoreUtils qw{any};
-use lib '/Users/rc/CoreGenome/src/lib';
+use FindBin;
+use lib "$FindBin::Bin/lib";
 use Routines;
 
 my ($Usage, $ProjectName, $List, $TrustedORFeome, $eValue, $PIdent, $CPUs, $MainPath);
@@ -45,7 +46,6 @@ my (@List, @BlastReport, @ReportFields, @NonSharedQryIDs, @NonSharedTrustedIDs, 
 my (%IDs);
 my $OutReport = [ ];
 
-#$MainPath               = "/Users/rc/CoreGenome";
 $Project                = $MainPath ."/". $ProjectName;
 $ProjectGenomeList      = $Project ."/". $List;
 @List = ReadFile($ProjectGenomeList);

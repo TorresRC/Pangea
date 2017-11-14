@@ -6,10 +6,10 @@
 #e-mail:        torres.roberto.c@gmail.com                                      #
 #Date:          19 de octubre de 2017                                           #
 #################################################################################
-
 use strict; 
 use List::MoreUtils qw{any};
-use lib '/Users/rc/CoreGenome/src/lib';
+use FindBin;
+use lib "$FindBin::Bin/lib";
 use Routines;
 
 my ($Usage, $ProjectName, $Columns, $MainPath);
@@ -30,7 +30,6 @@ my($i, $j, $LinesOnCoreGenome, $ColumnsOnCoreGenome);
 my(@CoreGenome, @CoreGenomeFields, @CoreGenomeArray, @File, @IndexedName);
 my(%Seq);
 
-#$MainPath = "/Users/rc/CoreGenome";
 $Project = $MainPath ."/". $ProjectName;
 $ORFsPath = $Project ."/". "ORFs";
 $CoreGenome = $Project ."/". $ProjectName . "_CoreGenome.csv";

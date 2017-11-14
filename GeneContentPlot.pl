@@ -8,7 +8,8 @@
 # Fecha:         18 de Octubre de 2017                                          #
 #################################################################################
 use strict;
-use lib '/Users/rc/CoreGenome/src/lib';
+use FindBin;
+use lib "$FindBin::Bin/lib";
 use Routines;
 
 my ($Usage, $ProjectName, $List, $MainPath);
@@ -27,7 +28,6 @@ my ($Project, $MainList, $PresenceAbsence, $Plot, $RScript);
 my ($n);
 my (@List);
 
-#$MainPath        = "/Users/rc/CoreGenome";
 $Project         = $MainPath ."/". $ProjectName;
 $MainList        = $Project ."/". $List;
 $PresenceAbsence = $Project ."/". $ProjectName . '_Statistics.csv';

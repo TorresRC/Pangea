@@ -7,7 +7,8 @@
 #Date:          10 de abril de 2017                                             #
 #################################################################################
 use strict;
-use lib '/Users/rc/CoreGenome/src/lib';                              
+use FindBin;
+use lib "$FindBin::Bin/lib";
 use Routines;
 
 my ($Usage, $ProjectName, $List, $TrustedORFeome, $MainPath);
@@ -27,7 +28,6 @@ my ($Project, $ORFeomesPath, $MainList, $BlastPath, $TrustedORFeomeDb, $SeqExt,
 	$i, $n, $Qry, $InputFile, $Db, $cmd, $LogFile, $TrustedORFeomePrefix);
 my (@List);                                                     
 
-#$MainPath             = "/Users/rc/CoreGenome";
 $Project              = $MainPath ."/". $ProjectName;
 $MainList             = $Project ."/". $List;
 $BlastPath            = $MainPath ."/". "Blast";

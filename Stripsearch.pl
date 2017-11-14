@@ -1,20 +1,18 @@
 #!/usr/bin/perl -w
 #################################################################################
-#   Programa CoreGenome                                                         #
-#   Nota: Se debe ajustar la ruta de lib y de la variable $PathSeq a las que    #
-#   realmente se tengan donde se instalción el programa.                        #
 #                                                                               #
-# Programador:   Alfonso Méndez Tenorio, Roberto C. Torres                      #
+# Programador:   Roberto C. Torres, Alfonso Méndez Tenorio                      #
 # Fecha:         2 de julio de 2017                                             #
 #################################################################################
 use strict;
 use Getopt::Long qw(GetOptions);
 Getopt::Long::Configure qw(gnu_getopt);
+use FindBin;
+use lib "$FindBin::Bin/lib";
+use Routines;
 
-#--------------------------------------------------------------------------------
-my $MainPath = '/Users/rc/CoreGenome';
-my $Src      = $MainPath ."/". "src";
-#--------------------------------------------------------------------------------
+my $Src      = "$FindBin::Bin";
+my $MainPath = "$Src/../";
 
 
 my ($Usage, $ProjectName, $List, $TrustedORFeome, $eVal, $PIdent, $CPUs, $Help,
@@ -32,7 +30,7 @@ GetOptions(
         'con-pan|P'   => \$PanGenome,
         'alncore|C'   => \$CoreGenome,
         'boleant|b'   => \$Bolean,
-        'recovery|r'   => \$Recovery,
+        'recovery|r'  => \$Recovery,
         ) or die "USAGE:\n  $0 [--help] [--project -p prefix] [--list -l filename]
       [--trusted -c filename] [--evalue -e evalue] [--ident -i integer]
       [--cpus -t integer]
