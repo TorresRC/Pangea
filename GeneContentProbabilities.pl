@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 #use strict;
 use List::MoreUtils qw(uniq);
-use lib "/home/rtorres/CoreGenome/src/lib";
+use lib "/Users/rc/CoreGenome/src/lib";
 use Routines;
 
 
@@ -27,9 +27,9 @@ my(%StrainClass, %Classes, %pClasses, %cpClasses, %ClassHits, %ProbeClass);
 my $BoleanTable = [ ];
 my $Probabilities = [ ];
 
-$MainPath = "/home/rtorres/CoreGenome";
+$MainPath = "/Users/rc/CoreGenome";
 $Project = $MainPath ."/". $ProjectName;
-$BoleanFileName = $Project ."/". $ProjectName . "_Bolean_Presence_Absence3.csv";
+$BoleanFileName = $Project ."/". $ProjectName . "_Bolean_Presence_Absence.csv";
 $MetaDataFileName = $Project ."/". 'Metadata.csv';
 $ProbabilitiesFile = $Project ."/". $ProjectName . "_Probabilities.csv";
 $LogFile        = $Project ."/". $ProjectName . ".log";
