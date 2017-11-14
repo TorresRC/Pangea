@@ -12,7 +12,7 @@ use lib "$FindBin::Bin/lib";
 use Routines;
 
 my $Src      = "$FindBin::Bin";
-my $MainPath = "$FindBin::Bin/../..";
+my $MainPath = "$FindBin::Bin/../";
 
 my ($Usage, $ProjectName, $List, $TrustedORFeome, $eVal, $PIdent, $CPUs, $Help,
     $PanGenome, $CoreGenome, $Bolean, $Recovery);
