@@ -91,7 +91,7 @@ $LinesOnPresenceAbsence = scalar@PresenceAbsence;
 #}elsif($Add == "1"){
 #        @List = ReadFile($AddList);
 #}
-#$TotalQry = scalar@List;
+$TotalQry = scalar@List;
 
 #Loading intitial comparison or previous job into an array of arrays
 for ($i=0; $i<$LinesOnPresenceAbsence; $i++){
