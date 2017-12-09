@@ -194,6 +194,9 @@ for ($i=2; $i<$TotalQry; $i++){
         close FILE;
 }
 
+@PresenceAbsenceArray = ReadFile($PresenceAbsence);
+($LinesOnPresenceAbsence, $ColumnsOnPresenceAbsence, @PresenceAbsenceMatrix) = Matrix($PresenceAbsence);
+
 open (FILE,">$PresenceAbsence");
         foreach $Line(@PresenceAbsenceArray){
                 @Fields = split(",",$Line);
