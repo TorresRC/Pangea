@@ -210,8 +210,8 @@ open (FILE,">$PresenceAbsence");
         }
 close FILE;
 
-($LinesOnCoreGenome, $ColumnsOnCoreGenome, @CoreGenomeMatrix) = Matrix($PresenceAbsence);
-
+system("mv $PresenceAbsence $CoreGenomeFile");
+($LinesOnCoreGenome, $ColumnsOnCoreGenome, @CoreGenomeMatrix) = Matrix($CoreGenomeFile);
 MakeDir($CoreSeqsPath);
 
 for ($i=1; $i<$ColumnsOnCoreGenome; $i++){
