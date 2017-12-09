@@ -201,4 +201,23 @@ sub HMM{
         print "Done!\n";
 }
 
+#################################################################################
+sub Matrix{
+        my ($File) = @_;
+        my ($Lines, $Line, $Columns);
+        my ($i);
+        my (@File, @Fields, @Matrix);
+        
+        @File = ReadFile($File);
+        $Lines = scalar@File;
+        for ($i=0;$i<$Lines;$i++){
+                $Line = $File[$i];
+                @Fields = split(",",$Line);
+                push (@Matrix, [@Fields]);
+        }
+        $Columns = scalar@Fields;
+        
+        return ($Lines, $Columns, @Matrix);
+}
+
 1;
