@@ -9,7 +9,7 @@
 #################################################################################
 use strict;
 use FindBin;
-use lib "$FindBin::Bin/lib";
+use lib "$FindBin::Bin/../lib";
 use Routines;
 
 my ($Usage, $ProjectName, $List, $MainPath);
@@ -21,8 +21,8 @@ unless(@ARGV) {
 }
 chomp @ARGV;
 $ProjectName = $ARGV[0];
-$List = $ARGV[1];
-$MainPath = $ARGV[2];
+$List        = $ARGV[1];
+$MainPath    = $ARGV[2];
 
 my ($Project, $MainList, $PresenceAbsence, $Plot, $RScript);
 my ($n);

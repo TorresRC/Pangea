@@ -10,7 +10,7 @@
 use strict; 
 use List::MoreUtils qw{any};
 use FindBin;
-use lib "$FindBin::Bin/lib";
+use lib "$FindBin::Bin/../lib";
 use Routines;
 
 my ($Usage, $ProjectName, $List, $TrustedORFeome, $eValue, $PIdent, $CPUs, $MainPath);
@@ -21,28 +21,33 @@ unless(@ARGV) {
         exit;
 }
 chomp @ARGV;
-$ProjectName = $ARGV[0];
-$List = $ARGV[1];
+$ProjectName    = $ARGV[0];
+$List           = $ARGV[1];
 $TrustedORFeome = $ARGV[2];
-$eValue = $ARGV[3];
-$PIdent = $ARGV[4];
-$CPUs = $ARGV[5];
-$MainPath = $ARGV[6];
+$eValue         = $ARGV[3];
+$PIdent         = $ARGV[4];
+$CPUs           = $ARGV[5];
+$MainPath       = $ARGV[6];
 
 my ($Project, $ORFeomesPath, $ProjectGenomeList, $Sub, $Qry, $QryFile,
-    $TrustedFile, $SubDb, $QryDb, $BlastReport, $cmd, $ORFsPath, $BlastPath, $TrustedORFeomePrefix, $SeqExt,
-    $AlnExt, $stoExt, $HmmExt, $PanGenomeDb, $PresenceAbsence, $PanGenomeSeq, $Stats, $QryIDsFile,
-    $TrustedIDsFile, $DuplicatedTrustedIDs, $DuplicatedQryIDs, $DuplicatedBlastHits, $Summary, $LogFile,
-    $TotalQryORFs, $TotalTrustedORFs, $CoreGenomeSize, $Count, $Counter, $QryId, $TrustedId, $ID,
-    $SharedORF, $SharedORFPath, $TrustedOutFileName, $TrustedOut, $QryOutFileName, $QryOut, $ToAlign, $fastaAln, $stoAln,
-    $OutHmm, $FindingTrusted, $KnownORFIndex, $KnownORFName, $KnownORFPath, $FileToKnownORF, $KnownFastaFile,
-    $TempKnownFastaFile, $KnownAln, $KnownHmm, $Duplicate, $TotalNonSharedORFs, $NonSharedORFId, $NonSharedCounter,
-    $NonSharedORF, $NonSharedORFPath, $NonSharedORFHmm, $NonSharedORFSeq, $NonSharedORFAln, $TotalNewORFs,
-    $NewORFId, $NewCounter, $NewORF, $NewORFPath, $NewORFSeq, $NewORFHmm, $NewORFAln, $PanGenomeSize,
-    $SharedQryORFsCounter, $SharedTrustedORFsCounter, $TotalQry, $TrustedORFeomeDb);
+    $TrustedFile, $SubDb, $QryDb, $BlastReport, $cmd, $ORFsPath, $BlastPath,
+    $TrustedORFeomePrefix, $SeqExt, $AlnExt, $stoExt, $HmmExt, $PanGenomeDb,
+    $PresenceAbsence, $PanGenomeSeq, $Stats, $QryIDsFile, $TrustedIDsFile,
+    $DuplicatedTrustedIDs, $DuplicatedQryIDs, $DuplicatedBlastHits, $Summary,
+    $LogFile, $TotalQryORFs, $TotalTrustedORFs, $CoreGenomeSize, $Count,
+    $Counter, $QryId, $TrustedId, $ID, $SharedORF, $SharedORFPath,
+    $TrustedOutFileName, $TrustedOut, $QryOutFileName, $QryOut, $ToAlign,
+    $fastaAln, $stoAln, $OutHmm, $FindingTrusted, $KnownORFIndex, $KnownORFName,
+    $KnownORFPath, $FileToKnownORF, $KnownFastaFile, $TempKnownFastaFile,
+    $KnownAln, $KnownHmm, $Duplicate, $TotalNonSharedORFs, $NonSharedORFId,
+    $NonSharedCounter, $NonSharedORF, $NonSharedORFPath, $NonSharedORFHmm,
+    $NonSharedORFSeq, $NonSharedORFAln, $TotalNewORFs, $NewORFId, $NewCounter,
+    $NewORF, $NewORFPath, $NewORFSeq, $NewORFHmm, $NewORFAln, $PanGenomeSize,
+    $SharedQryORFsCounter, $SharedTrustedORFsCounter, $TotalQry,
+    $TrustedORFeomeDb);
 my ($a, $d, $e, $i, $j, $n, $x, $z);
-my (@List, @BlastReport, @ReportFields, @NonSharedQryIDs, @NonSharedTrustedIDs, @Duplicates, @QryIDs,
-    @TrustedIDs, @SplitORFPath);
+my (@List, @BlastReport, @ReportFields, @NonSharedQryIDs, @NonSharedTrustedIDs,
+    @Duplicates, @QryIDs, @TrustedIDs, @SplitORFPath);
 my (%IDs);
 my $OutReport = [ ];
 

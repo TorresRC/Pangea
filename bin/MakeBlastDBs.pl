@@ -8,7 +8,7 @@
 #################################################################################
 use strict;
 use FindBin;
-use lib "$FindBin::Bin/lib";
+use lib "$FindBin::Bin/../lib";
 use Routines;
 
 my ($Usage, $ProjectName, $List, $TrustedORFeome, $MainPath);
@@ -19,14 +19,14 @@ unless(@ARGV) {
         exit;
 }
 chomp @ARGV;
-$ProjectName = $ARGV[0];
-$List = $ARGV[1];
+$ProjectName    = $ARGV[0];
+$List           = $ARGV[1];
 $TrustedORFeome = $ARGV[2];
-$MainPath = $ARGV[3];
+$MainPath       = $ARGV[3];
 
 my ($Project, $ORFeomesPath, $MainList, $BlastPath, $TrustedORFeomeDb, $SeqExt,
 	$i, $n, $Qry, $InputFile, $Db, $cmd, $LogFile, $TrustedORFeomePrefix);
-my (@List);                                                     
+my (@List);
 
 $Project              = $MainPath ."/". $ProjectName;
 $MainList             = $Project ."/". $List;
@@ -43,18 +43,18 @@ open (STDERR, "| tee -ai $LogFile") or die "$0: dup: $!";
 
 print "\nBuilding data bases:\n";
 
-MakeDir($BlastPath);                                                             
+MakeDir($BlastPath); 
 
-@List = ReadFile($MainList);                                                     
+@List = ReadFile($MainList); 
 $n = scalar@List;
 
 $cmd = `makeblastdb -in $TrustedORFeome -dbtype nucl -parse_seqids -out $TrustedORFeomeDb`;
 
-for ($i=0; $i<$n; $i++){                                                         
-	$Qry = $List[$i];                                                        
+for ($i=0; $i<$n; $i++){
+	$Qry = $List[$i];
 
-	$InputFile = $ORFeomesPath ."/". $Qry . $SeqExt;                             
-	$Db = $BlastPath ."/". $Qry;                                          
+	$InputFile = $ORFeomesPath ."/". $Qry . $SeqExt;     
+	$Db = $BlastPath ."/". $Qry;
 
 	$cmd = `makeblastdb -in $InputFile -dbtype nucl -parse_seqids -out $Db`;  
 

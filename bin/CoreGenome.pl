@@ -10,7 +10,7 @@
 #################################################################################
 use strict;
 use FindBin;
-use lib "$FindBin::Bin/lib";
+use lib "$FindBin::Bin/../lib";
 use Routines;
 use List::MoreUtils qw{any};
 
@@ -48,8 +48,6 @@ $AlnExt = ".aln" . $SeqExt;
 $stoExt = ".sto";
 $HmmExt = ".hmm";
 
-#################################################################################
-
 $MainList        = $Project ."/". $List;
 $ORFeomesPath    = $Project ."/". "ORFeomes" ."/". "Sorted" ."/". "Filtered";
 $BlastPath       = $Project ."/". "Blast";
@@ -60,8 +58,6 @@ $CoreGenomeFile  = $Project ."/". $ProjectName . "_CoreGenome.csv";
 $TempFile        = $Project ."/". "temp";
 
 $LogFile         = $Project ."/". $ProjectName . ".log";
-
-#################################################################################
 
 open (STDERR, "| tee -ai $LogFile") or die "$0: dup: $!";
 

@@ -10,7 +10,7 @@
 use strict; 
 use List::MoreUtils qw{any};
 use FindBin;
-use lib "$FindBin::Bin/lib";
+use lib "$FindBin::Bin/../lib";
 use Routines;
 
 my ($Usage, $ProjectName, $List, $CPUs, $MainPath);
@@ -22,7 +22,7 @@ unless(@ARGV) {
 }
 chomp @ARGV;
 $ProjectName = $ARGV[0];
-$MainPath = $ARGV[1];
+$MainPath    = $ARGV[1];
 
 my($Project, $ORFsPath, $PresenceAbsence, $TotalPresenceAbsence, $Row, $ORF,
    $ConsensusPanGenome, $ORFHmm, $LogFile);

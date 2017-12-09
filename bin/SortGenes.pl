@@ -8,7 +8,7 @@
 #################################################################################
 use strict; 
 use FindBin;
-use lib "$FindBin::Bin/lib";
+use lib "$FindBin::Bin/../lib";
 use Routines;
 
 my ($Usage, $ProjectName, $List, $TrustedORFeome, $MainPath);
@@ -19,10 +19,10 @@ unless(@ARGV) {
         exit;
 }
 chomp @ARGV;
-$ProjectName = $ARGV[0];
-$List = $ARGV[1];
+$ProjectName    = $ARGV[0];
+$List           = $ARGV[1];
 $TrustedORFeome = $ARGV[2];
-$MainPath = $ARGV[3];
+$MainPath       = $ARGV[3];
 
 my ($MainList, $Project, $ORFeomesPath, $SeqExt, $LogFile, $ORFeome, $HeaderCharacter,
     $Gene, $GeneName, $GeneSeq, $GeneLength, $ContigsLengthReport, $Seq, $SortedORFeomePath,
@@ -33,7 +33,7 @@ my (@List, @ORFeomes, @Genes, @TrustedGenes);
 my (%GenesSeq, %GenesLength, %TrustedGenesLength, %TrustedGenesSeq);
 
 $Project              = $MainPath ."/". $ProjectName;
-$MainList             = $Project ."/". $List;                                               
+$MainList             = $Project ."/". $List;   
 $ORFeomesPath         = $Project ."/". "ORFeomes";
 $TrustedORFeomeFile   = $ORFeomesPath ."/". $TrustedORFeome;
 $SortedORFeomePath    = $ORFeomesPath ."/". "Sorted";
@@ -45,7 +45,7 @@ $LogFile              = $Project ."/". $ProjectName . ".log";
 open (STDERR, "| tee -ai $LogFile") or die "$0: dup: $!";
 
 MakeDir($SortedORFeomePath);
-@ORFeomes = ReadFile($MainList);                                                     
+@ORFeomes = ReadFile($MainList);  
 $n = scalar@ORFeomes;
 
 

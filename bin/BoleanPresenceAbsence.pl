@@ -8,7 +8,7 @@
 #################################################################################
 use strict; 
 use FindBin;
-use lib "$FindBin::Bin/lib";
+use lib "$FindBin::Bin/../lib";
 use Routines;
 
 my ($Usage, $ProjectName, $List, $MainPath);
@@ -20,14 +20,15 @@ unless(@ARGV) {
 }
 chomp @ARGV;
 $ProjectName = $ARGV[0];
-$List = $ARGV[1];
-$MainPath = $ARGV[2];
+$List        = $ARGV[1];
+$MainPath    = $ARGV[2];
 
 my ($Project, $MainList, $PresenceAbsenceFile, $BoleanReport, $TotalQry,
     $TotalPresenceAbsence, $Row, $Field, $BoleanInformativeReport, $Line,
     $nColumns, $Count);
 my ($o, $i, $j);
-my (@List, @PresenceAbsence, @PresenceAbsenceFields, @PresenceAbsenceArray, @Columns);
+my (@List, @PresenceAbsence, @PresenceAbsenceFields, @PresenceAbsenceArray,
+    @Columns);
 my $BoleanTable = [ ];
 my $GenesAnnotationReport = [ ];
 
@@ -108,9 +109,6 @@ open (FILE,">$BoleanInformativeReport");
                 }
         }
 close FILE;
-
-
-
 
 print "Done!\n";
 exit;

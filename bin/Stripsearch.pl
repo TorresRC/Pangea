@@ -8,11 +8,11 @@ use strict;
 use Getopt::Long qw(GetOptions);
 Getopt::Long::Configure qw(gnu_getopt);
 use FindBin;
-use lib "$FindBin::Bin/lib";
+use lib "$FindBin::Bin/../lib";
 use Routines;
 
 my $Src      = "$FindBin::Bin";
-my $MainPath = "$FindBin::Bin/..";
+my $MainPath = "$FindBin::Bin/../..";
 
 my ($Usage, $ProjectName, $List, $TrustedORFeome, $eVal, $PIdent, $CPUs, $Help,
     $PanGenome, $CoreGenome, $Bolean, $Recovery);

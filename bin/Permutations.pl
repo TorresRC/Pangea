@@ -7,37 +7,40 @@
 #Date:          11 de abril de 2017                                             #
 #################################################################################
 
-use strict;
-use lib '/home/bioinformatica/CoreGenome/src/lib';
+use strict; 
+use FindBin;
+use lib "$FindBin::Bin/../lib";
 use Routines;
 
-my ($Usage, $ProjectName, $CPUs);
+my ($Usage, $ProjectName, $CPUs, $MainPath);
 
-$Usage = "\tUsage: Permutations.pl <Project Name> <CPUs>\n";
+$Usage = "\tUsage: Permutations.pl <Project Name> <CPUs> <Main Path>\n";
 unless(@ARGV) {
         print $Usage;
         exit;
 }
 chomp @ARGV;
 $ProjectName = $ARGV[0];
-$CPUs = $ARGV[1];
+$CPUs        = $ARGV[1];
+$MainPath    = $ARGV[2];
 
-my($MainPath, $Project, $ORFeomesPath, $GenomesPath, $ORFsPath, $PreCoreGenomeFile,
-   $PermutationsFile, $LogFile, $SeqExt, $HmmExt, $n, $Row, $o, $Count, $c, $ORF,
-   $Qry, $QryOrfID, $ORFpath, $Hmm, $TempFile, $QryOrfeome, $Line, $BestHit,
-   $Entry, $Strand, $Start, $End, $Issue, $d, $Coord1, $Coord2, $QryGenome, $e);
+my($Project, $ORFeomesPath, $GenomesPath, $ORFsPath,
+   $PreCoreGenomeFile, $PermutationsFile, $LogFile, $SeqExt, $HmmExt, $n, $Row,
+   $o, $Count, $c, $ORF, $Qry, $QryOrfID, $ORFpath, $Hmm, $TempFile, $QryOrfeome,
+   $Line, $BestHit, $Entry, $Strand, $Start, $End, $Issue, $d, $Coord1, $Coord2,
+   $QryGenome, $e);
 my(@PreCoreGenome, @Data, @FileIntoArray, @HmmReport, @BestHitData,);
 my $Permutations = [ ];
 
-$MainPath = "/home/bioinformatica/CoreGenome";
 $Project = $MainPath ."/". $ProjectName;
 
-$ORFeomesPath = $Project ."/". "ORFeomes";
-$GenomesPath = $Project ."/". "Genomes";
-$ORFsPath = $Project."/". "ORFs"; #Shared ORFs
+$ORFeomesPath      = $Project ."/". "ORFeomes";
+$GenomesPath       = $Project ."/". "Genomes";
+$ORFsPath          = $Project."/". "ORFs"; #Shared ORFs
 $PreCoreGenomeFile = $Project ."/". "Pre-Core-Genome.csv";
-$PermutationsFile = $Project ."/". "Permutations.csv";
-$LogFile = $Project ."/". $ProjectName . ".log";
+$PermutationsFile  = $Project ."/". "Permutations.csv";
+
+$LogFile           = $Project ."/". $ProjectName . ".log";
 
 $SeqExt = ".fasta";
 $HmmExt = ".hmm";

@@ -9,9 +9,9 @@
 
 use strict;
 use FindBin;
-use lib "$FindBin::Bin/lib";
-use Routines;
 use List::MoreUtils qw{any};
+use lib "$FindBin::Bin/../lib";
+use Routines;
 
 my ($Usage, $ProjectName, $List, $CPUs, $MainPath, $Recovery, $Add, $AddList);
 
@@ -22,32 +22,33 @@ unless(@ARGV) {
 }
 chomp @ARGV;
 $ProjectName = $ARGV[0];
-$List = $ARGV[1];
-$CPUs = $ARGV[2];
-$MainPath = $ARGV[3];
-$Recovery = $ARGV[4];
-$Add = $ARGV[5];
-$AddList = $ARGV[6];
+$List        = $ARGV[1];
+$CPUs        = $ARGV[2];
+$MainPath    = $ARGV[3];
+$Recovery    = $ARGV[4];
+$Add         = $ARGV[5];
+$AddList     = $ARGV[6];
 
 my($Project, $MainList, $ORFeomesPath, $BlastPath, $ORFsPath,
    $InitialPresenceAbsence, $PresenceAbsence, $PanGenomeSeq, $Stats, $SeqExt,
-   $AlnExt, $HmmExt, $TotalQry, $QryDb, $TotalQryIDs,
-   $TotalNewORFs, $CoreGenomeSize, $Count, $Counter, $QryGenomeName, $TestingORF,
-   $QryGenomeSeq, $Hmm, $ORFTemp, $cmd, $ORFpath, $Line, $ORFStoAln, $Entry, $Strand,
-   $QryORFSeq, $BestHit, $Row, $Fh, $Reference, $Closest, $GeneTemp, $ReferenceORFID,
-   $ClosestORFID, $CoreGenomeFile, $LogFile, $Lap, $Element, $CoreSeqsPath, $ORF,
-   $Strain, $Db, $OutCore, $Gene, $ORFStoAlnFragment, $LastORFAln, $NewORFAln,
-   $QryORFFastaAln, $PreviousAlnPrefix, $CurrentAlnPrefix, $CoreGenes,
-   $PreviousAlnName, $FindingPreviousAln, $ID, $QryId, $NewORFId, $Summary, $NewCounter,
-   $NewORF, $NewORFPath, $NewORFSeq, $NewORFHmm, $PreviousAln, $nPanGenome, $NewStrains,
-   $Progress, $CheckAln, $DbHeaders);
-my($LinesOnPresenceAbsence, $ColumnsOnPresenceAbsence, $LinesOnCoreGenome, $nCore,
-   $i, $j, $k);
+   $AlnExt, $HmmExt, $TotalQry, $QryDb, $TotalQryIDs, $TotalNewORFs,
+   $CoreGenomeSize, $Count, $Counter, $QryGenomeName, $TestingORF, $QryGenomeSeq,
+   $Hmm, $ORFTemp, $cmd, $ORFpath, $Line, $ORFStoAln, $Entry, $Strand,
+   $QryORFSeq, $BestHit, $Row, $Fh, $Reference, $Closest, $GeneTemp,
+   $ReferenceORFID, $ClosestORFID, $CoreGenomeFile, $LogFile, $Lap, $Element,
+   $CoreSeqsPath, $ORF, $Strain, $Db, $OutCore, $Gene, $ORFStoAlnFragment,
+   $LastORFAln, $NewORFAln, $QryORFFastaAln, $PreviousAlnPrefix,
+   $CurrentAlnPrefix, $CoreGenes, $PreviousAlnName, $FindingPreviousAln, $ID,
+   $QryId, $NewORFId, $Summary, $NewCounter, $NewORF, $NewORFPath, $NewORFSeq,
+   $NewORFHmm, $PreviousAln, $nPanGenome, $NewStrains, $Progress, $CheckAln,
+   $DbHeaders);
+my($LinesOnPresenceAbsence, $ColumnsOnPresenceAbsence, $LinesOnCoreGenome,
+   $nCore, $i, $j, $k);
 my(@List, @PresenceAbsence, @nHMMerReport, @BestHitArray, @DataInRow,
-   @LastReportColumnData, @NewReport, @PresenceAbsenceArray, @PresenceAbsenceFields,
-   @SharedORFsArray, @LapArray, @CoreFile, @OrfLine, @CoreData, @Temp, @StoAln,
-   @AlnData, @CoreGenome, @QryIDs, @NewORFs, @SplitPreviousAlnName, @SplitAlnPath, @AnalyzedORFs,
-   @Progress);
+   @LastReportColumnData, @NewReport, @PresenceAbsenceArray,
+   @PresenceAbsenceFields, @SharedORFsArray, @LapArray, @CoreFile, @OrfLine,
+   @CoreData, @Temp, @StoAln, @AlnData, @CoreGenome, @QryIDs, @NewORFs,
+   @SplitPreviousAlnName, @SplitAlnPath, @AnalyzedORFs, @Progress);
 my $NewReport = [ ];
 my $PermutationsFile = [ ];
 my $Statistics = [ ];

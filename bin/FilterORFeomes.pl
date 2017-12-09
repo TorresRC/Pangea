@@ -8,7 +8,7 @@
 #################################################################################
 use strict; 
 use FindBin;
-use lib "$FindBin::Bin/lib";
+use lib "$FindBin::Bin/../lib";
 use Routines;
 
 my ($Usage, $ProjectName, $List, $TrustedORFeome, $MainPath);
@@ -19,15 +19,15 @@ unless(@ARGV) {
         exit;
 }
 chomp @ARGV;
-$ProjectName = $ARGV[0];
-$List = $ARGV[1];
+$ProjectName    = $ARGV[0];
+$List           = $ARGV[1];
 $TrustedORFeome = $ARGV[2];
-$MainPath = $ARGV[3];
+$MainPath       = $ARGV[3];
 
 my ($Project, $ORFeomesPath, $MainList, $SeqExt, $Qry, $InputFile, $cmd, $LogFile, $FilteredORFsPath,
     $FilteredTrustedORFeome, $OutputFile, $ClstrsPath, $Clstr, $TrustedFile);
 my ($i, $n);
-my (@List);                                                     
+my (@List);      
 
 $SeqExt                 = ".ffn";
 $Project                = $MainPath ."/". $ProjectName;
@@ -45,13 +45,13 @@ open (STDERR, "| tee -ai $LogFile") or die "$0: dup: $!";
 MakeDir($FilteredORFsPath);
 MakeDir($ClstrsPath);
 
-@List = ReadFile($MainList);                                                     
+@List = ReadFile($MainList);
 $n = scalar@List;
 
 print "\nFiltering Duplicates:\n";
 $cmd = `cd-hit-dup -i $TrustedFile -o $FilteredTrustedORFeome -m false -e 0.20`;
 
-for ($i=0; $i<$n; $i++){                                                         
+for ($i=0; $i<$n; $i++){
 	$Qry = $List[$i];
 
 	$InputFile = $ORFeomesPath ."/". $Qry . $SeqExt;
@@ -62,6 +62,5 @@ for ($i=0; $i<$n; $i++){
         $cmd = `mv $Clstr $ClstrsPath`;
         
         Progress($n,$i);
-
 } 
 exit;
