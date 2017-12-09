@@ -30,12 +30,13 @@ my (@List);
 
 $Project              = $MainPath ."/". $ProjectName;
 $MainList             = $Project ."/". $List;
-$BlastPath            = $MainPath ."/". "Blast";
-$ORFeomesPath         = $MainPath ."/". "ORFeomes" ."/". "Sorted" ."/". "Filtered";
+$BlastPath            = $Project ."/". "Blast";
+$ORFeomesPath         = $Project ."/". "ORFeomes" ."/". "Sorted" ."/". "Filtered";
 $TrustedORFeomePrefix = Prefix($TrustedORFeome);
 $TrustedORFeome       = $ORFeomesPath ."/". $TrustedORFeome;
 $TrustedORFeomeDb     = $BlastPath ."/". $TrustedORFeomePrefix . "Db";
 $SeqExt               = ".ffn";
+
 $LogFile              = $Project ."/". $ProjectName . ".log";
 
 open (STDERR, "| tee -ai $LogFile") or die "$0: dup: $!";

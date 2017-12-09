@@ -58,18 +58,19 @@ $SeqExt = ".fasta";
 $AlnExt = ".aln.fasta";
 $HmmExt = ".hmm";
 
-$MainList       = $Project ."/". $List;
-$ORFeomesPath   = $MainPath ."/". "ORFeomes" ."/". "Sorted" ."/". "Filtered";
-$BlastPath      = $MainPath ."/". "Blast";
-$ORFsPath       = $Project."/". "ORFs";
-$InitialPresenceAbsence= $Project ."/". $ProjectName . "_Initial_Presence_Absence.csv";
-$PresenceAbsence= $Project ."/". $ProjectName . "_Presence_Absence.csv";
-$CoreGenomeFile = $Project ."/". $ProjectName . "_CoreGenome.csv";
-$LogFile        = $Project ."/". $ProjectName . ".log";
-$CoreSeqsPath   = $Project ."/". "CoreSequences";
-$Summary        = $Project ."/". $ProjectName . "_Summary.txt";
-$PanGenomeSeq   = $Project ."/". $ProjectName . "_PanGenome" . $SeqExt;
-$Stats          = $Project ."/". $ProjectName . "_Statistics.csv";
+$MainList               = $Project ."/". $List;
+$ORFeomesPath           = $MainPath ."/". "ORFeomes" ."/". "Sorted" ."/". "Filtered";
+$BlastPath              = $MainPath ."/". "Blast";
+$ORFsPath               = $Project."/". "ORFs";
+$InitialPresenceAbsence = $Project ."/". $ProjectName . "_Initial_Presence_Absence.csv";
+$PresenceAbsence        = $Project ."/". $ProjectName . "_Presence_Absence.csv";
+$CoreGenomeFile         = $Project ."/". $ProjectName . "_CoreGenome.csv";
+$CoreSeqsPath           = $Project ."/". "CoreSequences";
+$Summary                = $Project ."/". $ProjectName . "_Summary.txt";
+$PanGenomeSeq           = $Project ."/". $ProjectName . "_PanGenome" . $SeqExt;
+$Stats                  = $Project ."/". $ProjectName . "_Statistics.csv";
+
+$LogFile                = $Project ."/". $ProjectName . ".log";
 
 open (STDERR, "| tee -ai $LogFile") or die "$0: dup: $!";
 

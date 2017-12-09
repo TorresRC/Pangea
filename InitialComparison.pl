@@ -60,8 +60,8 @@ $stoExt = ".sto";
 $HmmExt = ".hmm";
 
 #Paths       
-$ORFeomesPath           = $MainPath ."/". "ORFeomes" ."/". "Sorted" ."/". "Filtered";
-$BlastPath              = $MainPath ."/". "Blast";
+$ORFeomesPath           = $Project ."/". "ORFeomes" ."/". "Sorted" ."/". "Filtered";
+$BlastPath              = $Project ."/". "Blast";
 $ORFsPath               = $Project ."/". "ORFs";
 
 #Inputs

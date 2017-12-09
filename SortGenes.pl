@@ -32,14 +32,15 @@ my ($n, $i);
 my (@List, @ORFeomes, @Genes, @TrustedGenes);
 my (%GenesSeq, %GenesLength, %TrustedGenesLength, %TrustedGenesSeq);
 
-$Project = $MainPath ."/". $ProjectName;
-$MainList = $Project ."/". $List;                                               
-$ORFeomesPath = $MainPath ."/". "ORFeomes";
-$TrustedORFeomeFile = $ORFeomesPath ."/". $TrustedORFeome;
-$SortedORFeomePath = $ORFeomesPath ."/". "Sorted";
+$Project              = $MainPath ."/". $ProjectName;
+$MainList             = $Project ."/". $List;                                               
+$ORFeomesPath         = $Project ."/". "ORFeomes";
+$TrustedORFeomeFile   = $ORFeomesPath ."/". $TrustedORFeome;
+$SortedORFeomePath    = $ORFeomesPath ."/". "Sorted";
 $SortedTrustedORFeome = $SortedORFeomePath ."/". $TrustedORFeome;
-$SeqExt = ".ffn";
-$LogFile = $Project ."/". $ProjectName . ".log";
+$SeqExt               = ".ffn";
+
+$LogFile              = $Project ."/". $ProjectName . ".log";
 
 open (STDERR, "| tee -ai $LogFile") or die "$0: dup: $!";
 

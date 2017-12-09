@@ -29,16 +29,16 @@ my ($Project, $ORFeomesPath, $MainList, $SeqExt, $Qry, $InputFile, $cmd, $LogFil
 my ($i, $n);
 my (@List);                                                     
 
-$SeqExt = ".ffn";
-$Project = $MainPath ."/". $ProjectName;
-$MainList = $Project ."/". $List;
-$ORFeomesPath = $MainPath ."/". "ORFeomes/Sorted";
-$FilteredORFsPath = $ORFeomesPath ."/". "Filtered";
-$ClstrsPath = $MainPath ."/". "GenesClusters";
-$TrustedFile = $ORFeomesPath ."/". $TrustedORFeome;
+$SeqExt                 = ".ffn";
+$Project                = $MainPath ."/". $ProjectName;
+$MainList               = $Project ."/". $List;
+$ORFeomesPath           = $Project ."/". "ORFeomes/Sorted";
+$FilteredORFsPath       = $ORFeomesPath ."/". "Filtered";
+$ClstrsPath             = $Project ."/". "GeneClusters";
+$TrustedFile            = $ORFeomesPath ."/". $TrustedORFeome;
 $FilteredTrustedORFeome = $FilteredORFsPath ."/". $TrustedORFeome;
 
-$LogFile = $Project ."/". $ProjectName . ".log";
+$LogFile                = $Project ."/". $ProjectName . ".log";
 
 open (STDERR, "| tee -ai $LogFile") or die "$0: dup: $!";
 
