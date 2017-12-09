@@ -195,7 +195,6 @@ for ($i=2; $i<$TotalQry; $i++){
 }
 
 open (FILE,">$PresenceAbsence");
-        print FILE "$PresenceAbsenceArray[0]\n";
         foreach $Line(@PresenceAbsenceArray){
                 @Fields = split(",",$Line);
                 chomp@Fields;
