@@ -60,8 +60,8 @@ $AlnExt = ".aln.fasta";
 $HmmExt = ".hmm";
 
 $MainList               = $Project ."/". $List;
-$ORFeomesPath           = $MainPath ."/". "ORFeomes" ."/". "Sorted" ."/". "Filtered";
-$BlastPath              = $MainPath ."/". "Blast";
+$ORFeomesPath           = $Project ."/". "ORFeomes" ."/". "Sorted" ."/". "Filtered";
+$BlastPath              = $Project ."/". "Blast";
 $ORFsPath               = $Project."/". "ORFs";
 $InitialPresenceAbsence = $Project ."/". $ProjectName . "_Initial_Presence_Absence.csv";
 $PresenceAbsence        = $Project ."/". $ProjectName . "_Presence_Absence.csv";
