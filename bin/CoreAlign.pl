@@ -25,9 +25,10 @@ $Columns     = $ARGV[1];
 $MainPath    = $ARGV[2];
 
 my($Project, $ORFsPath, $CoreGenome, $Line, $ORF, $ORFAln, $Name, $Seq, $Key,
-   $AlnExt, $ORFPath, $Genome, $AlignedCoresPath, $SeqExt, $AlignedCore);
+   $AlnExt, $ORFPath, $Genome, $AlignedCoresPath, $SeqExt, $AlignedCore,
+   $CoreFile, $Header);
 my($i, $j, $LinesOnCoreGenome, $ColumnsOnCoreGenome);
-my(@CoreGenome, @CoreGenomeFields, @CoreGenomeArray, @File, @IndexedName);
+my(@CoreGenome, @CoreGenomeFields, @CoreGenomeArray, @File, @IndexedName, @Seq);
 my(%Seq);
 
 $Project = $MainPath ."/". $ProjectName;
@@ -78,7 +79,7 @@ for ($i=1; $i<$LinesOnCoreGenome; $i++){
                 $Genome = $IndexedName[0];
                 $AlignedCore = $AlignedCoresPath ."/". $Genome . "-CoreGenome". $AlnExt;
                 open (FILE, ">>$AlignedCore");
-                        #print FILE ">$ORF~$Key\n";
+                        print FILE ">$ORF~$Key\n";
                         for ($j=0; $j<length$Seq{$Key}; $j+=$Columns){
                                 print FILE substr($Seq{$Key}, $j, $Columns), "\n";
                         }
@@ -87,4 +88,18 @@ for ($i=1; $i<$LinesOnCoreGenome; $i++){
         }
         Progress($LinesOnCoreGenome, $i);
 }
+
+#print "Refining Core-Genome files:\n";
+#for ($i=2; $i<$ColumnsOnCoreGenome; $i++){
+#        $Header = $CoreGenomeArray[0]->[$i];
+#        $CoreFile = $AlignedCoresPath ."/". $Header . "-CoreGenome". $AlnExt;
+#        @Seq = ReadFile($CoreFile);
+#        open (FILE, ">$CoreFile");
+#                print FILE ">$Header\n";
+#                foreach $Line (@Seq){
+#                        print FILE "$Line\n";
+#                }
+#        close FILE;
+#        Progress($ColumnsOnCoreGenome, $i);
+#}
 exit;
