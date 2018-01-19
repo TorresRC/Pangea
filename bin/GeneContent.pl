@@ -13,7 +13,7 @@ use List::MoreUtils qw{any};
 use lib "$FindBin::Bin/../lib";
 use Routines;
 
-my ($Usage, $ProjectName, $List, $CPUs, $MainPath, $Recovery, $Add, $AddList);
+my ($Usage, $ProjectName, $List, $CPUs, $MainPath, $Recovery, $Add, $AddList, $eValue);
 
 $Usage = "\tUsage: CoreGenome.pl <Project Name> <List File Name> <CPUs> <Main_Path>\n";
 unless(@ARGV) {
@@ -28,6 +28,7 @@ $MainPath    = $ARGV[3];
 $Recovery    = $ARGV[4];
 $Add         = $ARGV[5];
 $AddList     = $ARGV[6];
+$eValue      = $ARGV[7];
 
 my($Project, $MainList, $ORFeomesPath, $BlastPath, $ORFsPath,
    $InitialPresenceAbsence, $PresenceAbsence, $PanGenomeSeq, $Stats, $SeqExt,
@@ -148,7 +149,7 @@ for ($i=$Progress; $i<$TotalQry; $i++){
                 
                 print "\n----------------Looking for $TestingORF in $QryGenomeName----------------\n";
                 
-                system("nhmmer -E 1e-10 --cpu $CPUs --noali --dfamtblout $ORFTemp $Hmm $QryGenomeSeq");
+                system("nhmmer -E $eValue --cpu $CPUs --noali --dfamtblout $ORFTemp $Hmm $QryGenomeSeq");
                 
                 #Analyzing the hmm results
                 @nHMMerReport = ReadFile($ORFTemp);

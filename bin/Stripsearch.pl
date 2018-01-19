@@ -75,9 +75,9 @@ if($Recovery == "0"){
         #system("perl $Script3 $ProjectName $List");
         system("perl $MakeBlastDb $ProjectName $List $TrustedORFeome $MainPath");
         system("perl $InitialComparison $ProjectName $List $TrustedORFeome $eVal $PIdent $CPUs $MainPath");
-        system("perl $GeneContent $ProjectName $List $CPUs $MainPath $Recovery");
+        system("perl $GeneContent $ProjectName $List $CPUs $MainPath $Recovery $eVal");
 }elsif($Recovery == "1"){
-        system("perl $GeneContent $ProjectName $List $CPUs $MainPath $Recovery");
+        system("perl $GeneContent $ProjectName $List $CPUs $MainPath $Recovery $eVal");
 }
 
 system("perl $GeneContentPlot $ProjectName $List $MainPath");
