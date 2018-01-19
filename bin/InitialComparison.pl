@@ -80,13 +80,13 @@ $TrustedORFeomeDb       = $BlastPath ."/". $TrustedORFeomePrefix . "Db";
 $BlastReport            = $Project ."/". $ProjectName . "_UniqueBlastComparison.txt";
 $PresenceAbsence        = $Project ."/". $ProjectName . "_Initial_Presence_Absence.csv";
 $PanGenomeSeq           = $Project ."/". $ProjectName . "_PanGenome" . $SeqExt;
-$Stats         		= $Project ."/". $ProjectName . "_Statistics.csv";
+$Stats         		    = $Project ."/". $ProjectName . "_Statistics.csv";
 $QryIDsFile             = $Project ."/". $ProjectName . "_Shared_" . $Qry . "GenesIDs.txt";
 $TrustedIDsFile         = $Project ."/". $ProjectName . "_Shared_" . $TrustedORFeomePrefix . "GenesIDs.txt";
 $DuplicatedTrustedIDs   = $Project ."/". $ProjectName . "_BlastTrustedDuplicatedGenes.txt";
 $DuplicatedQryIDs       = $Project ."/". $ProjectName . "_BlastQueryDuplicatedGenes.txt";
 $DuplicatedBlastHits    = $Project ."/". $ProjectName . "_DuplicateBlastReport.txt";
-$Summary		= $Project ."/". $ProjectName . "_Summary.txt";
+$Summary	        	= $Project ."/". $ProjectName . "_Summary.txt";
 $LogFile                = $Project ."/". $ProjectName . ".log";
 
 MakeDir ($ORFsPath);
