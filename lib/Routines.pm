@@ -197,7 +197,7 @@ sub Align{
 sub HMM{
         my ($CPUs, $HmmFile, $AlnFile, $null) = @_;
         print "\tBuilding a HMM...";
-        my $cmd = `hmmbuild --dna --cpu $CPUs $HmmFile $AlnFile`;
+        my $cmd = `hmmbuild --amino --cpu $CPUs $HmmFile $AlnFile`;
         print "Done!\n";
 }
 
