@@ -31,7 +31,7 @@ my (@List);
 $Project              = $MainPath ."/". $ProjectName;
 $MainList             = $Project ."/". $List;
 $BlastPath            = $Project ."/". "Blast";
-$ORFeomesPath         = $Project ."/". "ORFeomes" ."/". "Sorted" ."/". "Filtered";
+$ORFeomesPath         = $Project ."/". "ORFeomes" ."/". "Sorted";
 $TrustedORFeomePrefix = Prefix($TrustedORFeome);
 $TrustedORFeome       = $ORFeomesPath ."/". $TrustedORFeome;
 $TrustedORFeomeDb     = $BlastPath ."/". $TrustedORFeomePrefix . "Db";
