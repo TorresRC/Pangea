@@ -65,7 +65,7 @@ $stoExt = ".sto";
 $HmmExt = ".hmm";
 
 #Paths       
-$ORFeomesPath           = $Project ."/". "ORFeomes" ."/". "Sorted" ."/". "Filtered";
+$ORFeomesPath           = $Project ."/". "ORFeomes";
 $BlastPath              = $Project ."/". "Blast";
 $ORFsPath               = $Project ."/". "ORFs";
 
@@ -279,7 +279,7 @@ close FILE;
 
 #Updating Trusted Orfeome Data Base
 print "\nBuilding a Pan-Genome Data Base...";
-$cmd = `makeblastdb -in $PanGenomeSeq -dbtype nucl -parse_seqids -out $PanGenomeDb`;
+$cmd = `makeblastdb -in $PanGenomeSeq -dbtype prot -parse_seqids -out $PanGenomeDb`;
 print "Done!\n\n";
 
 #Summary Report

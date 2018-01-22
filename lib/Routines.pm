@@ -27,7 +27,7 @@ sub Progress{
 sub Counter{
     my ($Count) = @_;
     $Count++;
-    my $Counter = sprintf "%.4d", $Count;
+    my $Counter = sprintf "%.5d", $Count;
     return $Counter;  
 }
 
@@ -179,8 +179,9 @@ sub DismissORFs{
 ################################################################################
 sub Extract{
         my ($Qry, $DataBase,$Entry,$OutSeq, $null) = @_;
-        print "\tExtracting ORF from $Qry...";	
-        my $cmd = `blastdbcmd -db $DataBase -dbtype nucl -entry "$Entry" -out $OutSeq`;
+        print "\tExtracting ORF from $Qry...";
+        #my $cmd = `blastdbcmd -db $DataBase -dbtype nucl -entry "$Entry" -out $OutSeq`;
+        my $cmd = `blastdbcmd -db $DataBase -dbtype prot -entry "$Entry" -out $OutSeq`;
         print "Done!\n";
 }
 

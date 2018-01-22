@@ -32,7 +32,7 @@ my (@PresenceAbsenceMatrix, @Annotation);
 my $Annotated = [ ];
 
 $Project                  = $MainPath ."/". $ProjectName;
-$PresenceAbsence          = $Project ."/". $ProjectName . "_Presence_Absence_B.csv";
+$PresenceAbsence          = $Project ."/". $ProjectName . "_Presence_Absence.csv";
 $AnnotatedPresenceAnsence = $Project ."/". $ProjectName . "_Annotated_Presence_Absence.csv";
 
 ($LinesOnPresenceAbsence, $ColumnsOnPresenceAbsence, @PresenceAbsenceMatrix) = Matrix($PresenceAbsence);
@@ -50,9 +50,16 @@ for ($i=1; $i<$LinesOnPresenceAbsence; $i++){
          $cmd = `grep -r --include \"*.tsv\" \"$ORF\tCDS\" $AnnotationPath`;
          
          @Annotation = split("\t",$cmd);
-         $Annotated -> [$i][$j] = $Annotation[3];
+         my $ORFfunction = $Annotation[$#Annotation];
+         chomp $ORFfunction;
          
-         print "\nThe function of the $PresenceAbsenceMatrix[$i]->[0] of $PresenceAbsenceMatrix[0][$j] is $cmd";
+         $ORFfunction =~ s/ /_/g;
+	 $ORFfunction =~ s/\//-/g;
+	 $ORFfunction =~ s/,/_/g;
+         
+         $Annotated -> [$i][$j] = $ORFfunction;
+         
+         print "\nThe function of the $PresenceAbsenceMatrix[$i]->[0] of $PresenceAbsenceMatrix[0][$j] is $ORFfunction";
       }else{
          $Annotated -> [$i][$j] = "";
       }
