@@ -65,12 +65,12 @@ $stoExt = ".sto";
 $HmmExt = ".hmm";
 
 #Paths       
-$ORFeomesPath           = $Project ."/". "ORFeomes" ."/". "Sorted" ."/". "Filtered";
+$ORFeomesPath           = $Project ."/". "ORFeomes";
 $BlastPath              = $Project ."/". "Blast";
 $ORFsPath               = $Project ."/". "ORFs";
 
 #Inputs
-$QryFile                = $ORFeomesPath ."/". $Qry . ".ffn";
+$QryFile                = $ORFeomesPath ."/". $Qry . ".faa";
 $TrustedFile            = $ORFeomesPath ."/". $TrustedORFeome;
 $QryDb                  = $BlastPath ."/". $Qry;
 $PanGenomeDb            = $BlastPath ."/". "PanGenomeDb";
@@ -80,13 +80,13 @@ $TrustedORFeomeDb       = $BlastPath ."/". $TrustedORFeomePrefix . "Db";
 $BlastReport            = $Project ."/". $ProjectName . "_UniqueBlastComparison.txt";
 $PresenceAbsence        = $Project ."/". $ProjectName . "_Initial_Presence_Absence.csv";
 $PanGenomeSeq           = $Project ."/". $ProjectName . "_PanGenome" . $SeqExt;
-$Stats         		    = $Project ."/". $ProjectName . "_Statistics.csv";
+$Stats         		= $Project ."/". $ProjectName . "_Statistics.csv";
 $QryIDsFile             = $Project ."/". $ProjectName . "_Shared_" . $Qry . "GenesIDs.txt";
 $TrustedIDsFile         = $Project ."/". $ProjectName . "_Shared_" . $TrustedORFeomePrefix . "GenesIDs.txt";
 $DuplicatedTrustedIDs   = $Project ."/". $ProjectName . "_BlastTrustedDuplicatedGenes.txt";
 $DuplicatedQryIDs       = $Project ."/". $ProjectName . "_BlastQueryDuplicatedGenes.txt";
 $DuplicatedBlastHits    = $Project ."/". $ProjectName . "_DuplicateBlastReport.txt";
-$Summary	        	= $Project ."/". $ProjectName . "_Summary.txt";
+$Summary		= $Project ."/". $ProjectName . "_Summary.txt";
 $LogFile                = $Project ."/". $ProjectName . ".log";
 
 MakeDir ($ORFsPath);
@@ -102,7 +102,7 @@ $SharedQryORFsCounter = $TotalQryORFs;
 $SharedTrustedORFsCounter = $TotalTrustedORFs;
 
 print "\nLooking for the first shared ORFs between $TrustedORFeomePrefix and $Qry:\n";
-$cmd = `blastn -query $QryFile -db $TrustedORFeomeDb -out $BlastReport -outfmt '6 qacc sacc length qlen slen qstart qend sstart send pident evalue bitscore' -evalue $eValue -max_hsps 1 -max_target_seqs 1 -qcov_hsp_perc 90 -perc_identity $PIdent -num_threads $CPUs`;
+$cmd = `blastp -query $QryFile -db $TrustedORFeomeDb -out $BlastReport -outfmt '6 qacc sacc length qlen slen qstart qend sstart send pident evalue bitscore' -evalue $eValue -max_hsps 1 -max_target_seqs 1 -qcov_hsp_perc 90 -num_threads $CPUs`;
 	
 @BlastReport = ReadFile($BlastReport);
 $n = scalar@BlastReport;
@@ -259,7 +259,7 @@ for($b=0; $b<$TotalNewORFs; $b++){
         HMM($CPUs,$NewORFHmm,$NewORFAln);
         
 	print "\tAdding ORF $NewCounter to PanGenome...";
-        $cmd = `blastdbcmd -db $QryDb -dbtype nucl -entry "$NewORFId" >> $PanGenomeSeq`;
+        $cmd = `blastdbcmd -db $QryDb -dbtype prot -entry "$NewORFId" >> $PanGenomeSeq`;
 	print "Done!\n";
         
         $OutReport -> [$NewCounter][0] = $NewORF; 
@@ -279,7 +279,7 @@ close FILE;
 
 #Updating Trusted Orfeome Data Base
 print "\nBuilding a Pan-Genome Data Base...";
-$cmd = `makeblastdb -in $PanGenomeSeq -dbtype nucl -parse_seqids -out $PanGenomeDb`;
+$cmd = `makeblastdb -in $PanGenomeSeq -dbtype prot -parse_seqids -out $PanGenomeDb`;
 print "Done!\n\n";
 
 #Summary Report
