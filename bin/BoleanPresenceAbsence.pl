@@ -79,7 +79,7 @@ for ($i=1; $i<$TotalPresenceAbsence; $i++){
      }
 }
 
-Writing the bolean file
+print "\nWriting the bolean file...";
 open (FILE, ">$BoleanReport");
 for ($i=0; $i<$TotalPresenceAbsence; $i++){
      for ($j=0; $j<$o; $j++){
