@@ -25,10 +25,10 @@ $ProjectName = $ARGV[0];
 $List        = $ARGV[1];
 $CPUs        = $ARGV[2];
 $MainPath    = $ARGV[3];
-$Recovery    = $ARGV[4];
-$Add         = $ARGV[5];
-$AddList     = $ARGV[6];
-$eValue      = $ARGV[7];
+$eValue      = $ARGV[4];
+$Recovery    = $ARGV[5];
+$Add         = $ARGV[6];
+$AddList     = $ARGV[7];
 
 my($Project, $MainList, $ORFeomesPath, $BlastPath, $ORFsPath,
    $InitialPresenceAbsence, $PresenceAbsence, $PanGenomeSeq, $Stats, $SeqExt,
