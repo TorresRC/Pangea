@@ -83,7 +83,7 @@ if($Recovery == "0"){
 system("perl $GeneContentPlot $ProjectName $List $MainPath");
 
 if($PanGenome){
-        system("perl $ConsensusPanGenome $ProjectName $MainPath");
+        system("perl $ConsensusPanGenome $ProjectName $MainPath ConsensusPanGenome");
 }
 
 if($CoreGenome){
