@@ -50,7 +50,7 @@ print "\nProject: $ProjectName\nList: $List\nTrusted: $TrustedORFeome\ne: $eVal\
 #exit;
 
 my ($Project, $SortGenes, $FilterORFeomes, $MakeBlastDb, $InitialComparison,
-    $GeneContent, $GeneContentPlot, $BoleanPresenceAbsence, $ConsensusPanGenome,
+    $GeneContent, $GeneContentPlot, $BoleanPresenceAbsence, $ConsensusSeq,
     $CoreAlign, $Start, $End, $Time, $RunTime, $Period);
 
 $Start = time();
@@ -66,7 +66,7 @@ $InitialComparison  = $Src ."/". "InitialComparison.pl";
 $GeneContent  = $Src ."/". "GeneContent.pl";
 $GeneContentPlot  = $Src ."/". "GeneContentPlot.pl";
 $BoleanPresenceAbsence = $Src ."/". "BoleanPresenceAbsence.pl";
-$ConsensusPanGenome = $Src ."/". "ConsensusPanGenome.pl";
+$ConsensusSeq = $Src ."/". "ConsensusSeq.pl";
 $CoreAlign = $Src ."/". "CoreAlign.pl";
 
 if($Recovery == "0"){
@@ -83,7 +83,7 @@ if($Recovery == "0"){
 system("perl $GeneContentPlot $ProjectName $List $MainPath");
 
 if($PanGenome){
-        system("perl $ConsensusPanGenome $ProjectName $MainPath ConsensusPanGenome");
+        system("perl $ConsensusSeq $MainPath $ProjectName ConsensusPanGenome");
 }
 
 if($CoreGenome){
@@ -94,6 +94,7 @@ if($Bolean){
         system("perl $BoleanPresenceAbsence $ProjectName $List $MainPath");
 }
 
+#Timestamp
 $End = time();
 $Time = ($End-$Start);
 if ($Time < 3600){
