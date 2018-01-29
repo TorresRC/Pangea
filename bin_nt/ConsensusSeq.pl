@@ -15,7 +15,7 @@ use Routines;
 
 my ($Usage, $ProjectName, $List, $CPUs, $MainPath, $ConsensusFile);
 
-$Usage = "\tUsage: ConsensusPanGenome.pl <Main_Path> <Project Name> <Consensus File Name>\n";
+$Usage = "\tUsage: ConsensusSeq.pl <Main_Path> <Project Name> <Consensus File Name>\n";
 unless(@ARGV) {
         print $Usage;
         exit;
@@ -34,7 +34,8 @@ my(@PresenceAbsence, @PresenceAbsenceFields, @PresenceAbsenceArray,
 
 $Project            = $MainPath ."/". $ProjectName;
 $ORFsPath           = $Project ."/". "ORFs";
-$PresenceAbsence    = $Project ."/". $ProjectName . "_Presence_Absence.csv";
+#$PresenceAbsence    = $Project ."/". $ProjectName . "_Presence_Absence.csv";
+$PresenceAbsence    = $Project ."/". "Chi_Square_InformativeSummary1.csv";
 $ConsensusSeq       = $Project ."/". $ProjectName ."_". $ConsensusFile . ".fasta";
 $LogFile            = $Project ."/". $ProjectName . ".log";
 
@@ -64,14 +65,14 @@ print "Loading the Presence/Absence file:\n";
 
 ($LinesOnPresenceabsenceFile, $ColumnsOnPresenceabsenceFile, @PresenceAbsenceMatrix) = Matrix($PresenceAbsence);
 
-print "Buiding a consensus Pan-Genome:\n";
+print "Buiding a consensus multifasta file:\n";
 for ($i=1; $i<$LinesOnPresenceabsenceFile; $i++){
         $ORF = $PresenceAbsenceMatrix[$i]->[0];
         $ORFHmm = $ORFsPath ."/". $ORF ."/". $ORF . ".hmm";
         
         system("hmmemit -c $ORFHmm >> $ConsensusSeq");
         
-        Progress($TotalPresenceAbsence, $i);
+        Progress($LinesOnPresenceabsenceFile, $i);
 }
 
 
