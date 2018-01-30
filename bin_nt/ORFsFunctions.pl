@@ -47,7 +47,7 @@ $LinesOnPresenceAbsence = scalar@PresenceAbsence;
 
 @Header = split(",",$PresenceAbsence[0]);
 $ColumnsOnPresenceAbsence = scalar@Header;
-print "Done!";
+print "Done!\n";
 
 open (FILE, ">$ORFsFunctionsFile");
         print FILE "ORF,Gene,EC_Number,Function";
@@ -76,8 +76,11 @@ for ($i=1; $i<$LinesOnPresenceAbsence; $i++){
         #chomp$Function;
         
         $Gene     = $Annotation[2];
+        chomp$Gene;
         $ECNumber = $Annotation[3];
+        chomp$ECNumber;
         $Function = $Annotation[4];
+        chomp$Function;
         $Function =~ s/,/-/g;
         
         open (FILE, ">>$ORFsFunctionsFile");
