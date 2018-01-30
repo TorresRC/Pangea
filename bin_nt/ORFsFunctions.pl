@@ -28,7 +28,7 @@ $PresenceAbsence = $ARGV[3];
 
 my ($Project, $AnnotatedPresenceAnsence, $LinesOnPresenceAbsence,
     $ColumnsOnPresenceAbsence, $ORF, $cmd, $OTU, $AnnotationFile, $Function,
-    $OTUORF, $Index
+    $OTUORF, $Index, $ColumnsOnAnnotation, $Gene, $ECNumber, $ORFsFunctionsFile
     );
 my ($i,$j);
 my (@PresenceAbsenceMatrix, @Annotation, @PresenceAbsence, @Header, @ORFData);
@@ -36,6 +36,56 @@ my $Annotated = [ ];
 
 $Project                  = $MainPath ."/". $ProjectName;
 $AnnotatedPresenceAnsence = $Project ."/". $ProjectName . "_Annotated_Presence_Absence.csv";
+$ORFsFunctionsFile        = $Project ."/". $ProjectName . "_ORFsAnnotation.csv";
+
+
+print "\nGetting the function of ORFs:";
+
+print "\nLoading the $PresenceAbsence file...";
+@PresenceAbsence = ReadFile($PresenceAbsence);
+$LinesOnPresenceAbsence = scalar@PresenceAbsence;
+
+@Header = split(",",$PresenceAbsence[0]);
+$ColumnsOnPresenceAbsence = scalar@Header;
+print "Done!";
+
+open (FILE, ">$ORFsFunctionsFile");
+        print FILE "ORF,Gene,EC_Number,Function";
+close FILE;
+
+for ($i=1; $i<$LinesOnPresenceAbsence; $i++){
+        @ORFData = split (",",$PresenceAbsence[$i]);
+        $ORF = $ORFData[0];
+        chomp$ORF;
+        shift@ORFData; 
+
+        $Index = first_index { $_ ne "" } @ORFData;
+
+        $OTUORF = $ORFData[$Index];
+        $OTU = $Header[$Index+1];   
+        
+        $AnnotationFile = $AnnotationPath ."/". $OTU ."/". $OTU . ".tsv";
+
+        $cmd = `grep \"$OTUORF\t\" $AnnotationFile`;
+         
+        @Annotation = split("\t",$cmd);
+        chomp@Annotation;
+        $ColumnsOnAnnotation = $#Annotation;
+        #$Function = $Annotation[$#Annotation];
+        #$Function =~ s/,/-/g;
+        #chomp$Function;
+        
+        $Gene     = $Annotation[2];
+        $ECNumber = $Annotation[3];
+        $Function = $Annotation[4];
+        $Function =~ s/,/-/g;
+        
+        open (FILE, ">>$ORFsFunctionsFile");
+                print FILE "\n$ORF,$Gene,$ECNumber,$Function";
+        close FILE;
+        
+        Progress($LinesOnPresenceAbsence, $i);
+}
 
 #($LinesOnPresenceAbsence, $ColumnsOnPresenceAbsence, @PresenceAbsenceMatrix) = Matrix($PresenceAbsence);
 #
@@ -69,47 +119,17 @@ $AnnotatedPresenceAnsence = $Project ."/". $ProjectName . "_Annotated_Presence_A
 #   Progress($LinesOnPresenceAbsence, $i);
 #}
 
-@PresenceAbsence = ReadFile($PresenceAbsence);
-$LinesOnPresenceAbsence = scalar@PresenceAbsence;
+#print "\nBuilding Annotated file:\n";
+#open (FILE, ">$AnnotatedPresenceAnsence");
+#for ($i=0; $i<$LinesOnPresenceAbsence; $i++){
+#   for ($j=0; $j<$ColumnsOnPresenceAbsence; $j++){
+#      print FILE $Annotated -> [$i][$j], ",";
+#   }
+#   print FILE "\n";
+#   Progress($LinesOnPresenceAbsence, $i);
+#}
+#close FILE;
 
-@Header = split(",",$PresenceAbsence[0]);
-$ColumnsOnPresenceAbsence = scalar@Header;
-
-for ($i=1; $i<$LinesOnPresenceAbsence; $i++){
-        @ORFData = split (",",$PresenceAbsence[$i]);
-        $ORF = $ORFData[0];
-        shift@ORFData; 
-
-        $Index = first_index { $_ ne "" } @ORFData;
-
-        $OTUORF = $ORFData[$Index];
-        $OTU = $Header[$Index+1];
-        
-        
-        $AnnotationFile = $AnnotationPath ."/". $OTU ."/". $OTU . ".tsv";
-
-        $cmd = `grep \"$OTUORF\tCDS\" $AnnotationFile`;
-         
-        @Annotation = split("\t",$cmd);
-        $Function = $Annotation[$#Annotation];
-        $Function =~ s/,/-/g;
-        chomp$Function;
-       
-        print "\nThe function of the $ORF is $Function";
-        exit;
-      
-}
-
-print "\nBuilding Annotated file:\n";
-open (FILE, ">$AnnotatedPresenceAnsence");
-for ($i=0; $i<$LinesOnPresenceAbsence; $i++){
-   for ($j=0; $j<$ColumnsOnPresenceAbsence; $j++){
-      print FILE $Annotated -> [$i][$j], ",";
-   }
-   print FILE "\n";
-   Progress($LinesOnPresenceAbsence, $i);
-}
-close FILE;
 exit;
 
 
