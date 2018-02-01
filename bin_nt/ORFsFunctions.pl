@@ -50,7 +50,7 @@ $ColumnsOnPresenceAbsence = scalar@Header;
 print "Done!\n";
 
 open (FILE, ">$ORFsFunctionsFile");
-        print FILE "ORF,Gene,EC_Number,Function";
+        print FILE "ORF,Gene,EC_Number,Product";
 close FILE;
 
 for ($i=1; $i<$LinesOnPresenceAbsence; $i++){
@@ -69,11 +69,7 @@ for ($i=1; $i<$LinesOnPresenceAbsence; $i++){
         $cmd = `grep \"$OTUORF\t\" $AnnotationFile`;
          
         @Annotation = split("\t",$cmd);
-        chomp@Annotation;
         $ColumnsOnAnnotation = $#Annotation;
-        #$Function = $Annotation[$#Annotation];
-        #$Function =~ s/,/-/g;
-        #chomp$Function;
         
         if(scalar@Annotation == 3){
             $Gene = "";

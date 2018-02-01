@@ -55,7 +55,9 @@ print "\nLoading the Presence/Absence file:";
 
 ($LinesOnPresenceAbsence, $ColumnsOnPresenceAbsence, @PresenceAbsenceMatrix) = Matrix($PresenceAbsenceFile);
 
-print "\nTransforming the Presence/Absence into a bolean file:";
+print "Done!";
+
+print "\nTraslating";
 
 $BoleanTable -> [0][0] = $PresenceAbsenceMatrix[0][0];
 
@@ -83,7 +85,7 @@ for ($i=1; $i<$LinesOnPresenceAbsence; $i++){
      Progress($LinesOnPresenceAbsence,$i);
 }
 
-print "\nWriting file...";
+print "Writing file...";
 open (FILE, ">$BoleanReport");
 for ($i=0; $i<$LinesOnPresenceAbsence; $i++){
      for ($j=0; $j<$ColumnsOnPresenceAbsence; $j++){
@@ -94,7 +96,7 @@ for ($i=0; $i<$LinesOnPresenceAbsence; $i++){
 }
 close FILE;
 
-print "\nWriting a bolean file only with the informative ORFs...";
+print "\nWriting a bolean file with only the informative ORFs...";
 my @BoleanReport = ReadFile($BoleanReport);  
 open (FILE,">$BoleanInformativeReport");
         print FILE "$BoleanReport[0]\n";
