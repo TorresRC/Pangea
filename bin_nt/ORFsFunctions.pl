@@ -75,11 +75,25 @@ for ($i=1; $i<$LinesOnPresenceAbsence; $i++){
         #$Function =~ s/,/-/g;
         #chomp$Function;
         
-        $Gene     = $Annotation[2];
-        chomp$Gene;
-        $ECNumber = $Annotation[3];
-        chomp$ECNumber;
-        $Function = $Annotation[4];
+        if(scalar@Annotation == 3){
+            $Gene = "";
+            $ECNumber = "";
+        }elsif(scalar@Annotation == 4){
+            if ($Annotation[2] =~ /^\d/){
+                $ECNumber = $Annotation[2];
+                chomp$ECNumber;
+                $Gene = "";
+            }else{
+                $Gene     = $Annotation[2];
+                chomp$Gene;
+                $ECNumber = "";
+            }
+        }elsif(scalar@Annotation == 5){
+            $Gene = $Annotation[2];
+            $ECNumber = $Annotation[3];
+        }
+        
+        $Function = $Annotation[$#Annotation];
         chomp$Function;
         $Function =~ s/,/-/g;
         
