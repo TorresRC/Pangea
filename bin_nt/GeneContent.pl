@@ -9,7 +9,7 @@
 
 use strict;
 use FindBin;
-use List::MoreUtils qw{any};
+use List::MoreUtils qw{any first_index};
 use lib "$FindBin::Bin/../lib_nt";
 use Routines;
 
@@ -42,9 +42,9 @@ my($Project, $MainList, $ORFeomesPath, $BlastPath, $ORFsPath,
    $CurrentAlnPrefix, $CoreGenes, $PreviousAlnName, $FindingPreviousAln, $ID,
    $QryId, $NewORFId, $Summary, $NewCounter, $NewORF, $NewORFPath, $NewORFSeq,
    $NewORFHmm, $PreviousAln, $nPanGenome, $NewStrains, $Progress, $CheckAln,
-   $DbHeaders);
+   $DbHeaders, $Index, $QryGenomeRemainingORFs, $ORFSufix);
 my($LinesOnPresenceAbsence, $ColumnsOnPresenceAbsence, $LinesOnCoreGenome,
-   $nCore, $i, $j, $k);
+   $nCore, $i, $j, $k, $LastCount, $NewCount);
 my(@List, @PresenceAbsence, @nHMMerReport, @BestHitArray, @DataInRow,
    @LastReportColumnData, @NewReport, @PresenceAbsenceArray,
    @PresenceAbsenceFields, @SharedORFsArray, @LapArray, @CoreFile, @OrfLine,
@@ -88,12 +88,7 @@ if($Recovery == "0"){
 }
 $LinesOnPresenceAbsence = scalar@PresenceAbsence;
 
-#Loading query names
-#if($Add == "0"){
-        @List = ReadFile($MainList); 
-#}elsif($Add == "1"){
-#        @List = ReadFile($AddList);
-#}
+@List = ReadFile($MainList); 
 $TotalQry = scalar@List;
 
 #Loading intitial comparison or previous job into an array of arrays
@@ -115,13 +110,13 @@ for ($i=0; $i<$LinesOnPresenceAbsence; $i++){
         }
 }
         
-
 #Job for each query
 for ($i=$Progress; $i<$TotalQry; $i++){
-        $QryGenomeName = $List[$i]; 
-        $QryGenomeSeq = $ORFeomesPath ."/". $QryGenomeName . ".ffn";
-        $QryDb = $BlastPath ."/". $QryGenomeName;
-        $DbHeaders = $QryDb . ".nhr";
+        $QryGenomeName          = $List[$i]; 
+        $QryGenomeSeq           = $ORFeomesPath ."/". $QryGenomeName . ".ffn";
+        $QryGenomeRemainingORFs = $ORFeomesPath ."/". $QryGenomeName . "_RemainingGenes" . ".ffn";
+        $QryDb                  = $BlastPath ."/". $QryGenomeName;
+        $DbHeaders              = $QryDb . ".nhr";
         
         if (not -e $DbHeaders){
                 $cmd = `makeblastdb -in $QryGenomeSeq -dbtype nucl -parse_seqids -out $QryDb`;
@@ -129,11 +124,11 @@ for ($i=$Progress; $i<$TotalQry; $i++){
         
         $NewReport -> [0][$i+2] = $QryGenomeName;
         
-        @QryIDs = AnnotatedGenes($QryGenomeSeq); # Get all names of query annotated genes
+        @QryIDs = AnnotatedGenes($QryGenomeSeq); # Get all query annotated genes
         $TotalQryIDs = scalar@QryIDs;
-        $TotalNewORFs = $TotalQryIDs; # Starting with all query genes
+        $TotalNewORFs = $TotalQryIDs; # Starting with the entire collection of query genes
         
-        $nPanGenome = `grep ">" -c $PanGenomeSeq`; # Get the number of genes on the PanGenome
+        $nPanGenome = `grep ">" -c $PanGenomeSeq`; # Get the number of genes on the current PanGenome
         
         #ORF level
         # Processing all shared genes
@@ -219,37 +214,92 @@ for ($i=$Progress; $i<$TotalQry; $i++){
                         $NewReport -> [$j][$i+2] = "";
                 }
                 system("rm $ORFTemp");
-        }    
+        }
         
+        #Solving duplicates and fragmented genes
+        #################################### 
+        Purge: {
+                for($j=0;$j<$TotalNewORFs;$j++){
+                        $LastCount = scalar@QryIDs;
+                        
+                        if ($LastCount > 0){
+                                for($k=0; $k<$LastCount; $k++){
+                                        $Gene = $QryIDs[$k];
+                                        $cmd = `blastdbcmd -db $QryDb -dbtype nucl -entry "$Gene" >> $QryGenomeRemainingORFs`;
+                                }
+                                        
+                                for ($k=1; $k<$Counter; $k++){
+                                        $ORFSufix = sprintf "%.4d", $k;
+                                        $TestingORF = "ORF" ."_". $ORFSufix;
+                                        $ORFpath = $ORFsPath ."/". $TestingORF;
+                                        $Hmm = $ORFpath ."/". $TestingORF . $HmmExt;
+                                        $ORFTemp = $ORFpath ."/". $TestingORF ."-". $QryGenomeName . ".temp";
+                                        
+                                        system("nhmmer -E $eValue --cpu $CPUs --noali --dfamtblout $ORFTemp $Hmm $QryGenomeRemainingORFs");
+                                        
+                                        @nHMMerReport = ReadFile($ORFTemp);
+                                        if(@nHMMerReport){
+                                                open (FILE, ">$ORFTemp");
+                                                        print FILE $nHMMerReport[0];
+                                                close FILE;
+                                                @nHMMerReport = ReadFile($ORFTemp);
+                                                
+                                                $BestHit = $nHMMerReport[0];
+                                                $BestHit =~ s/\s^//g;
+                                                $BestHit =~ s/\s+/,/g;
+                                                @BestHitArray = split(",",$BestHit);
+                                                $Entry = $BestHitArray[0];
+                                                
+                                                if ( any { $_ eq $Entry} @QryIDs){  
+                                                        $Index = first_index{$_ eq $Entry} @QryIDs;
+                                                        splice@QryIDs,$Index,1;
+                                                }
+                                        }
+                                        system("rm $ORFTemp");
+                                }
+                                        
+                                $NewCount = scalar@QryIDs;
+                                system("rm $QryGenomeRemainingORFs");
+                                if ($LastCount == $NewCount){
+                                        last Purge;
+                                }
+                        }
+                }
+        }
+        ####################################
         
         # Processing all non shared genes from query file
         print "\nProcessing New ORFs\n";
         $TotalNewORFs = scalar@QryIDs; # Number of remaining genes 
-        for($j=0; $j<$TotalNewORFs; $j++){
-                $NewORFId = $QryIDs[$j];
-                $NewCounter = sprintf "%.4d",$Counter+1+$j;
-                $NewORF = "ORF" ."_". $NewCounter;
-                $NewORFPath = $ORFsPath ."/". $NewORF;
-                $NewORFSeq = $NewORFPath ."/". $QryGenomeName ."-". $NewORFId . $SeqExt;
-                $NewORFHmm = $NewORFPath ."/". $NewORF . $HmmExt;
-                $NewORFAln = $NewORFPath ."/". "1-" . $NewORF . $AlnExt;
-                
-                print "\nProcessing ORF $NewCounter: \n";
-                MakeDir($NewORFPath);
-                Extract($QryGenomeName,$QryDb,$NewORFId,$NewORFSeq);
-                $cmd = `cp $NewORFSeq $NewORFAln`;
-                HMM($CPUs,$NewORFHmm,$NewORFAln);
+        if ($TotalNewORFs > 0){
+                for($j=0; $j<$TotalNewORFs; $j++){
+                        $NewORFId = $QryIDs[$j];
+                        $NewCounter = sprintf "%.4d",$Counter+1+$j;
+                        $NewORF = "ORF" ."_". $NewCounter;
+                        $NewORFPath = $ORFsPath ."/". $NewORF;
+                        $NewORFSeq = $NewORFPath ."/". $QryGenomeName ."-". $NewORFId . $SeqExt;
+                        $NewORFHmm = $NewORFPath ."/". $NewORF . $HmmExt;
+                        $NewORFAln = $NewORFPath ."/". "1-" . $NewORF . $AlnExt;
                         
-                print "\tAdding ORF $NewCounter to PanGenome...";
-                $cmd = `blastdbcmd -db $QryDb -dbtype nucl -entry "$NewORFId" >> $PanGenomeSeq`;
-                print "Done!\n";
+                        print "\nProcessing ORF $NewCounter: \n";
+                        MakeDir($NewORFPath);
+                        Extract($QryGenomeName,$QryDb,$NewORFId,$NewORFSeq);
+                        $cmd = `cp $NewORFSeq $NewORFAln`;
+                        HMM($CPUs,$NewORFHmm,$NewORFAln);
+                                
+                        print "\tAdding ORF $NewCounter to PanGenome...";
+                        $cmd = `blastdbcmd -db $QryDb -dbtype nucl -entry "$NewORFId" >> $PanGenomeSeq`;
+                        print "Done!\n";
+                                
+                        $NewReport -> [$NewCounter][0] = $NewORF;
                         
-                $NewReport -> [$NewCounter][0] = $NewORF;
-                
-                for ($k=1; $k<$i+1;$k++){
-                        $NewReport -> [$NewCounter][$k] = "";
+                        for ($k=1; $k<$i+1;$k++){
+                                $NewReport -> [$NewCounter][$k] = "";
+                        }
+                        $NewReport -> [$NewCounter][$i+2] = $NewORFId;
                 }
-                $NewReport -> [$NewCounter][$i+2] = $NewORFId;
+        }else{
+                $NewCounter = sprintf "%.4d",$Counter;
         }
 
         # Building a Presence/Absence file
