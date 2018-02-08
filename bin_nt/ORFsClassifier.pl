@@ -50,7 +50,8 @@ my($Test, $Run, $TestReport, $PercentagesReport, $Plot, $HeatMap, $PlotRScript,
    $TestInformative, $PresenceInformative, $InformativeFeatures, $InformativeLines,
    $CombinedReport, $TestReportLine, $CombinedReportLine, $BoleanInformative,
    $TrainingHeader, $PresenceReportLine, $SummaryReport, $InformativeIndex,
-   $InformativeClass, $SuperHeatMapRScript, $Percentage, $LinesOnAnnotation);
+   $InformativeClass, $SuperHeatMapRScript, $Percentage, $LinesOnAnnotation,
+   $SelectedClass);
 my($i, $j);
 my(@TrainingFile, @TrainingFileFields, @TrainingMatrix, @MetaDataFile,
    @MetaDataFileFields, @MetaDataMatrix, @Classes, @Elements, @ChiConfidence,
@@ -92,6 +93,8 @@ print "\n\nPlease type the index of the desired class: ";
 $Column = <STDIN>;
 chomp $Column;
 
+$SelectedClass = $MetaDataMatrix[0]->[$Column];
+
 for ($i=1;$i<$LinesOnMetaDataFile;$i++){
 	$Class = $MetaDataMatrix[$i]->[$Column];
         #$Class =~ s/\s//g;
@@ -107,22 +110,22 @@ my $Report = [ ];
 my $Percentages = [ ];
 my $Combined = [ ];
         
-        $TestReport          = $OutPath ."/". $Test . "_Values" . ".csv";
-        $PercentagesReport   = $OutPath ."/". "PresencePercentages" . ".csv";
-        $CombinedReport      = $OutPath ."/". $Test . "_ValuesAndPresencePercentages" . ".csv";
+        $TestReport          = $OutPath ."/". $SelectedClass ."_". $Test . "_Values" . ".csv";
+        $PercentagesReport   = $OutPath ."/". $SelectedClass ."_". "PresencePercentages" . ".csv";
+        $CombinedReport      = $OutPath ."/". $SelectedClass ."_". $Test . "_ValuesAndPresencePercentages" . ".csv";
         
-        $TestInformative     = $OutPath ."/". $Test . "_ValuesOfInformativeFeatures" . ".csv";
-        $PresenceInformative = $OutPath ."/". $Test . "_PercentagesOfInformativeFeatures" . ".csv";
-        $CombinedInformative = $OutPath ."/". $Test . "_ValuesAndPresencePercentagesOfInformativeFeatures" . ".csv";
-        $BoleanInformative   = $OutPath ."/". $Test . "_BoleanInformativeFeatures" . ".csv";
+        $TestInformative     = $OutPath ."/". $SelectedClass ."_". $Test . "_ValuesOfInformativeFeatures" . ".csv";
+        $PresenceInformative = $OutPath ."/". $SelectedClass ."_". $Test . "_PercentagesOfInformativeFeatures" . ".csv";
+        $CombinedInformative = $OutPath ."/". $SelectedClass ."_". $Test . "_ValuesAndPresencePercentagesOfInformativeFeatures" . ".csv";
+        $BoleanInformative   = $OutPath ."/". $SelectedClass ."_". $Test . "_BoleanInformativeFeatures" . ".csv";
         
-        $SummaryReport       = $OutPath ."/". $Test . "_AssociatedGenes" . ".csv";
+        $SummaryReport       = $OutPath ."/". $SelectedClass ."_". $Test . "_AssociatedGenes" . ".csv";
         
-        $Plot                = $OutPath ."/". $Test . "_DotPlot" . ".pdf";
-        $HeatMap             = $OutPath ."/". $Test . "_HeatMap" . ".png";
-        $PlotRScript         = $OutPath ."/". "DotPlotScript" . ".R";
-        $HeatMapRScript      = $OutPath ."/". "HeatMapScript" . ".R";
-        $SuperHeatMapRScript = $OutPath ."/". "SuperHeatMapScript" . ".R";
+        $Plot                = $OutPath ."/". $SelectedClass ."_". $Test . "_DotPlot" . ".pdf";
+        $HeatMap             = $OutPath ."/". $SelectedClass ."_". $Test . "_HeatMap" . ".png";
+        $PlotRScript         = $OutPath ."/". $SelectedClass ."_". "DotPlotScript" . ".R";
+        $HeatMapRScript      = $OutPath ."/". $SelectedClass ."_". "HeatMapScript" . ".R";
+        $SuperHeatMapRScript = $OutPath ."/". $SelectedClass ."_". "SuperHeatMapScript" . ".R";
         
         # Loading the bolean training file
         ($LinesOnTrainingFile, $ColumnsOnTrainingFile, @TrainingMatrix) = Matrix($TrainingFile);
@@ -329,7 +332,7 @@ my $Combined = [ ];
                                         close COMBINED;
                                         
                                         open (BOLEAN, ">>$BoleanInformative");
-                                                my $InformativeFeature = `grep $Feature $TrainingFile`;
+                                                my $InformativeFeature = `grep -w $Feature $TrainingFile`;
                                                 chop $InformativeFeature;
                                                 chop $InformativeFeature;
                                                 print BOLEAN $InformativeFeature, "\n";
@@ -369,7 +372,7 @@ my $Combined = [ ];
                                         close COMBINED;
                                            
                                         open (BOLEAN, ">>$BoleanInformative");
-                                                my $InformativeFeature = `grep $Feature $TrainingFile`;
+                                                my $InformativeFeature = `grep -w $Feature $TrainingFile`;
                                                 chop $InformativeFeature;
                                                 chop $InformativeFeature;
                                                 print BOLEAN $InformativeFeature, "\n";

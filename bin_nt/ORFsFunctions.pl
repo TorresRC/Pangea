@@ -62,18 +62,15 @@ for ($i=1; $i<$LinesOnPresenceAbsence; $i++){
         $Index = first_index { $_ ne "" } @ORFData;
 
         $OTUORF = $ORFData[$Index];
-        $OTU = $Header[$Index+1];   
+        $OTU = $Header[$Index+1];
+        $OTU =~s/\r//g;
         
         $AnnotationFile = $AnnotationPath ."/". $OTU ."/". $OTU . ".tsv";
 
-        $cmd = `grep \"$OTUORF\t\" $AnnotationFile`;
+        $cmd = `grep -w $OTUORF $AnnotationFile`;
          
         @Annotation = split("\t",$cmd);
-        #homp@Annotation;
         $ColumnsOnAnnotation = $#Annotation;
-        #$Function = $Annotation[$#Annotation];
-        #$Function =~ s/,/-/g;
-        #chomp$Function;
         
         if ($Annotation[2] ne ""){
                 $Gene     = $Annotation[2];
@@ -104,48 +101,50 @@ for ($i=1; $i<$LinesOnPresenceAbsence; $i++){
         Progress($LinesOnPresenceAbsence, $i);
 }
 
-#($LinesOnPresenceAbsence, $ColumnsOnPresenceAbsence, @PresenceAbsenceMatrix) = Matrix($PresenceAbsence);
-#
-#$Annotated -> [0][0] = $PresenceAbsenceMatrix[0]->[0];
-#
-#print "\nGetting annotation of each ORF:\n";
-#for ($i=1; $i<$LinesOnPresenceAbsence; $i++){
-#   for ($j=1; $j<$ColumnsOnPresenceAbsence; $j++){
-#      $OTU = $PresenceAbsenceMatrix[0][$j];
-#      $Annotated -> [$i][0] = $PresenceAbsenceMatrix[$i]->[0];
-#      $Annotated -> [0][$j] = $OTU;
-#      $ORF = $PresenceAbsenceMatrix[$i][$j];
-#      
-#      $AnnotationFile = $AnnotationPath ."/". $OTU ."/". $OTU . ".tsv";
-#     
-#      if ($ORF ne ""){
-#         #$cmd = `grep -r --include \"*.tsv\" \"$ORF\tCDS\" $AnnotationPath`;
-#         $cmd = `grep \"$ORF\tCDS\" $AnnotationFile`;
-#         
-#         @Annotation = split("\t",$cmd);
-#         $Function = $Annotation[$#Annotation];
-#         $Function =~ s/,/-/g;
-#         chomp$Function;
-#         $Annotated -> [$i][$j] = $Function;
-#         
-#         #print "\nThe function of the $PresenceAbsenceMatrix[$i]->[0] of $OTU is $Function";
-#      }else{
-#         $Annotated -> [$i][$j] = "";
-#      }
-#   }
-#   Progress($LinesOnPresenceAbsence, $i);
-#}
+($LinesOnPresenceAbsence, $ColumnsOnPresenceAbsence, @PresenceAbsenceMatrix) = Matrix($PresenceAbsence);
 
-#print "\nBuilding Annotated file:\n";
-#open (FILE, ">$AnnotatedPresenceAnsence");
-#for ($i=0; $i<$LinesOnPresenceAbsence; $i++){
-#   for ($j=0; $j<$ColumnsOnPresenceAbsence; $j++){
-#      print FILE $Annotated -> [$i][$j], ",";
-#   }
-#   print FILE "\n";
-#   Progress($LinesOnPresenceAbsence, $i);
-#}
-#close FILE;
+$Annotated -> [0][0] = $PresenceAbsenceMatrix[0]->[0];
+
+print "\nGetting annotation of each ORF:\n";
+for ($i=1; $i<$LinesOnPresenceAbsence; $i++){
+   for ($j=1; $j<$ColumnsOnPresenceAbsence; $j++){
+      $OTU = $PresenceAbsenceMatrix[0][$j];
+      $OTU =~s/\r//g;
+
+      $Annotated -> [$i][0] = $PresenceAbsenceMatrix[$i]->[0];
+      $Annotated -> [0][$j] = $OTU;
+      $ORF = $PresenceAbsenceMatrix[$i][$j];
+      
+      $AnnotationFile = $AnnotationPath ."/". $OTU ."/". $OTU . ".tsv";
+     
+      if ($ORF ne ""){
+         #$cmd = `grep -r --include \"*.tsv\" \"$ORF\tCDS\" $AnnotationPath`;
+         $cmd = `grep \"$ORF\tCDS\" $AnnotationFile`;
+         
+         @Annotation = split("\t",$cmd);
+         $Function = $Annotation[$#Annotation];
+         $Function =~ s/,/-/g;
+         chomp$Function;
+         $Annotated -> [$i][$j] = $Function;
+         
+         #print "\nThe function of the $PresenceAbsenceMatrix[$i]->[0] of $OTU is $Function";
+      }else{
+         $Annotated -> [$i][$j] = "";
+      }
+   }
+   Progress($LinesOnPresenceAbsence, $i);
+}
+
+print "\nBuilding Annotated file:\n";
+open (FILE, ">$AnnotatedPresenceAnsence");
+for ($i=0; $i<$LinesOnPresenceAbsence; $i++){
+   for ($j=0; $j<$ColumnsOnPresenceAbsence; $j++){
+      print FILE $Annotated -> [$i][$j], ",";
+   }
+   print FILE "\n";
+   Progress($LinesOnPresenceAbsence, $i);
+}
+close FILE;
 
 exit;
 
