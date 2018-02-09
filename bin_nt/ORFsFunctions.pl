@@ -72,27 +72,27 @@ for ($i=1; $i<$LinesOnPresenceAbsence; $i++){
         @Annotation = split("\t",$cmd);
         $ColumnsOnAnnotation = $#Annotation;
         
-        if ($Annotation[2] ne ""){
+        if(scalar@Annotation == 3){
+            $Gene = "";
+            $ECNumber = "";
+        }elsif(scalar@Annotation == 4){
+            if ($Annotation[2] =~ /^\d/){
+                $ECNumber = $Annotation[2];
+                chomp$ECNumber;
+                $Gene = "";
+            }else{
                 $Gene     = $Annotation[2];
                 chomp$Gene;
-        }else{
-                $Gene     = "";
-        }
-        
-        if ($Annotation[3] ne ""){
-                $ECNumber = $Annotation[3];
-                chomp$ECNumber;
-        }else{
                 $ECNumber = "";
+            }
+        }elsif(scalar@Annotation == 5){
+            $Gene = $Annotation[2];
+            $ECNumber = $Annotation[3];
         }
         
-        if ($Annotation[4] ne ""){
-                $Function = $Annotation[4];
-                chomp$Function;
-                $Function =~ s/,/-/g;
-        }else{
-                $Function = "";
-        }
+        $Function = $Annotation[$#Annotation];
+        chomp$Function;
+        $Function =~ s/,/-/g;
         
         open (FILE, ">>$ORFsFunctionsFile");
                 print FILE "\n$ORF,$Gene,$ECNumber,$Function";
