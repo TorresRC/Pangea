@@ -161,7 +161,7 @@ print "Done!\n";
                 #}
                        
                 print RSCRIPT 'Rowv = "NA",' . "\n";                             # Turn off row sort
-                #print RSCRIPT "Colv = as.dendrogram(hclust(dist($Matrix, method = \"euclidean\"), method = \"ward\"))," . "\n";      # apply default clustering method just on columns
+                #print RSCRIPT "Colv = as.dendrogram(hclust(dist($Matrix, method = \"euclidean\"), method = \"average\"))," . "\n";      # apply default clustering method just on columns
                 print RSCRIPT "Colv = as.dendrogram(hclust(dist($Matrix, method = \"euclidean\")))," . "\n";
                 print RSCRIPT 'dendrogram = "column",' ."\n";                    # Shows dendrogram for columns
                 

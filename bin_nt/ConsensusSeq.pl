@@ -45,23 +45,6 @@ open (STDERR, "| tee -ai $LogFile") or die "$0: dup: $!";
 #$TotalPresenceAbsence = scalar@PresenceAbsence;
 
 print "Loading the Presence/Absence file:\n";
-#for ($i=0; $i<$TotalPresenceAbsence; $i++){
-#     $Row = $PresenceAbsence[$i];
-#     @PresenceAbsenceFields = split(",",$Row);
-#     $j = scalar@PresenceAbsenceFields;
-#     push (@PresenceAbsenceArray, [@PresenceAbsenceFields]);
-#     Progress($TotalPresenceAbsence, $i);
-#}
-
-#print "Buiding a consensus Pan-Genome:\n";
-#for ($i=1; $i<$TotalPresenceAbsence; $i++){
-#        $ORF = $PresenceAbsenceArray[$i]->[0];
-#        $ORFHmm = $ORFsPath ."/". $ORF ."/". $ORF . ".hmm";
-#        
-#        system("hmmemit -c $ORFHmm >> $ConsensusPanGenome");
-#        
-#        Progress($TotalPresenceAbsence, $i);
-#}
 
 ($LinesOnPresenceabsenceFile, $ColumnsOnPresenceabsenceFile, @PresenceAbsenceMatrix) = Matrix($PresenceAbsence);
 
