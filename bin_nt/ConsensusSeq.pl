@@ -35,7 +35,7 @@ my(@PresenceAbsence, @PresenceAbsenceFields, @PresenceAbsenceArray,
 $Project            = $MainPath ."/". $ProjectName;
 $ORFsPath           = $Project ."/". "ORFs";
 #$PresenceAbsence    = $Project ."/". $ProjectName . "_Presence_Absence.csv";
-$PresenceAbsence    = $Project ."/". "Chi_Square_AssociatedGenes.csv";
+$PresenceAbsence    = $Project ."/". "Disease_Chi_Square_AssociatedGenes.csv";
 $ConsensusSeq       = $Project ."/". $ProjectName ."_". $ConsensusFile . ".fasta";
 $LogFile            = $Project ."/". $ProjectName . ".log";
 
