@@ -13,22 +13,27 @@ use List::MoreUtils qw{any first_index};
 use lib "$FindBin::Bin/../lib_nt";
 use Routines;
 
-my ($Usage, $ProjectName, $List, $CPUs, $MainPath, $Recovery, $Add, $AddList, $eValue);
+my $Src = "$FindBin::Bin";
 
-$Usage = "\tUsage: CoreGenome.pl <Project Name> <List File Name> <CPUs> <Main_Path>\n";
+my ($Usage, $ProjectName, $List, $CPUs, $MainPath, $eValue, $MolType, $Recovery,
+    $AnnotationPath, $Add, $AddList);
+
+$Usage = "\tUsage: CoreGenome.pl <Main_Path> <Project Name> <List File Name> <Molecule Type> <e-value> <CPUs>\n";
 unless(@ARGV) {
         print $Usage;
         exit;
 }
 chomp @ARGV;
-$ProjectName = $ARGV[0];
-$List        = $ARGV[1];
-$CPUs        = $ARGV[2];
-$MainPath    = $ARGV[3];
-$eValue      = $ARGV[4];
-$Recovery    = $ARGV[5];
-$Add         = $ARGV[6];
-$AddList     = $ARGV[7];
+$MainPath       = $ARGV[0];
+$ProjectName    = $ARGV[1];
+$List           = $ARGV[2];
+$MolType        = $ARGV[3];
+$eValue         = $ARGV[4];
+$CPUs           = $ARGV[5];
+$Recovery       = $ARGV[6];
+$AnnotationPath = $ARGV[7];
+$Add            = $ARGV[8];
+$AddList        = $ARGV[9];
 
 my($Project, $MainList, $ORFeomesPath, $BlastPath, $ORFsPath,
    $InitialPresenceAbsence, $PresenceAbsence, $PanGenomeSeq, $Stats, $SeqExt,
@@ -42,7 +47,8 @@ my($Project, $MainList, $ORFeomesPath, $BlastPath, $ORFsPath,
    $CurrentAlnPrefix, $CoreGenes, $PreviousAlnName, $FindingPreviousAln, $ID,
    $QryId, $NewORFId, $Summary, $NewCounter, $NewORF, $NewORFPath, $NewORFSeq,
    $NewORFHmm, $PreviousAln, $nPanGenome, $NewStrains, $Progress, $CheckAln,
-   $DbHeaders, $Index, $QryGenomeRemainingORFs, $ORFSufix);
+   $DbHeaders, $Index, $QryGenomeRemainingORFs, $ORFSufix, $MolExt,
+   $FormatORFeomes, $TempList, $HmmSearch, $HmmTblOut);
 my($LinesOnPresenceAbsence, $ColumnsOnPresenceAbsence, $LinesOnCoreGenome,
    $nCore, $i, $j, $k, $LastCount, $NewCount);
 my(@List, @PresenceAbsence, @nHMMerReport, @BestHitArray, @DataInRow,
@@ -60,19 +66,31 @@ $SeqExt = ".fasta";
 $AlnExt = ".aln.fasta";
 $HmmExt = ".hmm";
 
-$MainList               = $Project ."/". $List;
-$ORFeomesPath           = $Project ."/". "ORFeomes" ."/". "Filtered";
+$ORFeomesPath           = $Project ."/". "ORFeomes";
 $BlastPath              = $Project ."/". "Blast";
-$ORFsPath               = $Project."/". "ORFs";
+$ORFsPath               = $Project ."/". "ORFs";
+$CoreSeqsPath           = $Project ."/". "CoreSequences";
+
+$MainList               = $Project ."/". $List;
 $InitialPresenceAbsence = $Project ."/". $ProjectName . "_Initial_Presence_Absence.csv";
+
 $PresenceAbsence        = $Project ."/". $ProjectName . "_Presence_Absence.csv";
 $CoreGenomeFile         = $Project ."/". $ProjectName . "_CoreGenome.csv";
-$CoreSeqsPath           = $Project ."/". "CoreSequences";
+$Stats                  = $Project ."/". $ProjectName . "_Progress.csv";
 $Summary                = $Project ."/". $ProjectName . "_Summary.txt";
 $PanGenomeSeq           = $Project ."/". $ProjectName . "_PanGenome" . $SeqExt;
-$Stats                  = $Project ."/". $ProjectName . "_Statistics.csv";
 
 $LogFile                = $Project ."/". $ProjectName . ".log";
+
+if ($MolType eq "nucl"){
+	$MolExt = ".ffn";
+        $HmmSearch = "nhmmer";
+        $HmmTblOut = "dfamtblout";
+}elsif($MolType eq "prot"){
+	$MolExt = ".faa";
+        $HmmSearch = "hmmsearch";
+        $HmmTblOut = "pfamtblout";
+}
 
 open (STDERR, "| tee -ai $LogFile") or die "$0: dup: $!";
 
@@ -113,13 +131,20 @@ for ($i=0; $i<$LinesOnPresenceAbsence; $i++){
 #Job for each query
 for ($i=$Progress; $i<$TotalQry; $i++){
         $QryGenomeName          = $List[$i]; 
-        $QryGenomeSeq           = $ORFeomesPath ."/". $QryGenomeName . ".ffn";
-        $QryGenomeRemainingORFs = $ORFeomesPath ."/". $QryGenomeName . "_RemainingGenes" . ".ffn";
+        $QryGenomeSeq           = $ORFeomesPath ."/". $QryGenomeName . $MolExt;
+        $QryGenomeRemainingORFs = $ORFeomesPath ."/". $QryGenomeName . "_RemainingGenes" . $MolExt;
         $QryDb                  = $BlastPath ."/". $QryGenomeName;
         $DbHeaders              = $QryDb . ".nhr";
         
         if (not -e $DbHeaders){
-                $cmd = `makeblastdb -in $QryGenomeSeq -dbtype nucl -parse_seqids -out $QryDb`;
+                $FormatORFeomes = $Src ."/". "FormatORFeomes.pl";
+                $TempList       = $Project ."/". "TempList.ls";
+                open (FILE, ">$TempList");
+                        print FILE $QryGenomeName;
+                close FILE;
+                system("perl $FormatORFeomes $MainPath $ProjectName $TempList $AnnotationPath $MolType");
+                system("rm $TempList");
+                $cmd = `makeblastdb -in $QryGenomeSeq -dbtype $MolType -parse_seqids -out $QryDb`;
         }
         
         $NewReport -> [0][$i+2] = $QryGenomeName;
@@ -144,7 +169,7 @@ for ($i=$Progress; $i<$TotalQry; $i++){
                 
                 print "\n----------------Looking for $TestingORF in $QryGenomeName----------------\n";
                 
-                system("nhmmer -E $eValue --cpu $CPUs --noali --dfamtblout $ORFTemp $Hmm $QryGenomeSeq");
+                system("$HmmSearch -E $eValue --cpu $CPUs --noali --$HmmTblOut $ORFTemp $Hmm $QryGenomeSeq");
                 
                 #Analyzing the hmm results
                 @nHMMerReport = ReadFile($ORFTemp);
@@ -173,7 +198,7 @@ for ($i=$Progress; $i<$TotalQry; $i++){
                                 $NewReport -> [$j][$i+2] = $Entry;
                                 
                                 if (not -e $QryORFSeq){
-                                        Extract($QryGenomeName,$QryDb,$Entry,$QryORFSeq);
+                                        Extract($QryGenomeName,$QryDb,$MolType,$Entry,$QryORFSeq);
                                 }
                                         
                                 $PreviousAln = $ORFpath ."/*-". $TestingORF . $AlnExt;
@@ -225,7 +250,7 @@ for ($i=$Progress; $i<$TotalQry; $i++){
                         if ($LastCount > 0){
                                 for($k=0; $k<$LastCount; $k++){
                                         $Gene = $QryIDs[$k];
-                                        $cmd = `blastdbcmd -db $QryDb -dbtype nucl -entry "$Gene" >> $QryGenomeRemainingORFs`;
+                                        $cmd = `blastdbcmd -db $QryDb -dbtype $MolType -entry "$Gene" >> $QryGenomeRemainingORFs`;
                                 }
                                         
                                 for ($k=1; $k<$Counter; $k++){
@@ -235,7 +260,7 @@ for ($i=$Progress; $i<$TotalQry; $i++){
                                         $Hmm = $ORFpath ."/". $TestingORF . $HmmExt;
                                         $ORFTemp = $ORFpath ."/". $TestingORF ."-". $QryGenomeName . ".temp";
                                         
-                                        system("nhmmer -E $eValue --cpu $CPUs --noali --dfamtblout $ORFTemp $Hmm $QryGenomeRemainingORFs");
+                                        system("$HmmSearch -E $eValue --cpu $CPUs --noali --$HmmTblOut $ORFTemp $Hmm $QryGenomeRemainingORFs");
                                         
                                         @nHMMerReport = ReadFile($ORFTemp);
                                         if(@nHMMerReport){
@@ -283,12 +308,12 @@ for ($i=$Progress; $i<$TotalQry; $i++){
                         
                         print "\nProcessing ORF $NewCounter: \n";
                         MakeDir($NewORFPath);
-                        Extract($QryGenomeName,$QryDb,$NewORFId,$NewORFSeq);
+                        Extract($QryGenomeName,$QryDb,$MolType,$NewORFId,$NewORFSeq);
                         $cmd = `cp $NewORFSeq $NewORFAln`;
-                        HMM($CPUs,$NewORFHmm,$NewORFAln);
+                        HMM($NewORFAln,$MolType,$NewORFHmm,$CPUs);                  
                                 
                         print "\tAdding ORF $NewCounter to PanGenome...";
-                        $cmd = `blastdbcmd -db $QryDb -dbtype nucl -entry "$NewORFId" >> $PanGenomeSeq`;
+                        $cmd = `blastdbcmd -db $QryDb -dbtype $MolType -entry "$NewORFId" >> $PanGenomeSeq`;
                         print "Done!\n";
                                 
                         $NewReport -> [$NewCounter][0] = $NewORF;
@@ -342,8 +367,8 @@ for ($i=$Progress; $i<$TotalQry; $i++){
                 
         $NewStrains = $i+1;
         open (FILE, ">>$Stats");
-        #  "Number Of New Strains,Analyzed Strain,Core Genome,Pan Genome,New Genes\n";
-        print FILE "$NewStrains,$QryGenomeName,$CoreGenes,$NewCounter,$TotalNewORFs\n";
+        #  "Number Of New Strains,Analyzed Strain,Pan Genome,Core Genome,New Genes\n";
+        print FILE "$NewStrains,$QryGenomeName,$NewCounter,$CoreGenes,$TotalNewORFs\n";
         close FILE;
 }
 
@@ -374,7 +399,7 @@ for ($i=2; $i<$TotalQry+2; $i++){
        for($j=1; $j<$nCore; $j++){ 
               $Gene = $CoreData[$j]->[$i];
               $GeneTemp = $CoreSeqsPath ."/". $Strain ."-". $Gene . ".temp";
-              $cmd = `blastdbcmd -db $Db -dbtype nucl -entry "$Gene" -out $GeneTemp`;          
+              $cmd = `blastdbcmd -db $Db -dbtype $MolType -entry "$Gene" -out $GeneTemp`;          
               $cmd = `cat $GeneTemp >> "$OutCore"`;   
               $cmd = `rm $GeneTemp`;
        }
