@@ -343,9 +343,9 @@ close FILE;
 
 #Progress File
 open (FILE, ">$Stats");
-	print FILE "NumberOfNewStrains,AnalyzedStrain,CoreGenome,PanGenome,NewGenes\n";
+	print FILE "NumberOfNewStrains,AnalyzedStrain,PanGenome,CoreGenome,NewGenes\n";
 	print FILE "0,$TrustedORFeomePrefix,$TotalTrustedORFs,$TotalTrustedORFs,0\n";
-	print FILE "1,$Qry,$CoreGenomeSize,$PanGenomeSize,$TotalNewORFs\n";
+	print FILE "1,$Qry,$PanGenomeSize,$CoreGenomeSize,$TotalNewORFs\n";
 close FILE;
 
 exit;
