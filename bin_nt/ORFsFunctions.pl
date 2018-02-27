@@ -49,57 +49,57 @@ $LinesOnPresenceAbsence = scalar@PresenceAbsence;
 $ColumnsOnPresenceAbsence = scalar@Header;
 print "Done!\n";
 
-open (FILE, ">$ORFsFunctionsFile");
-        print FILE "ORF,Gene,EC_Number,Product";
-close FILE;
+#open (FILE, ">$ORFsFunctionsFile");
+#        print FILE "ORF,Gene,EC_Number,Product";
+#close FILE;
 
-for ($i=1; $i<$LinesOnPresenceAbsence; $i++){
-        @ORFData = split (",",$PresenceAbsence[$i]);
-        $ORF = $ORFData[0];
-        chomp$ORF;
-        shift@ORFData; 
-
-        $Index = first_index { $_ ne "" } @ORFData;
-
-        $OTUORF = $ORFData[$Index];
-        $OTU = $Header[$Index+1];
-        $OTU =~s/\r//g;
-        
-        $AnnotationFile = $AnnotationPath ."/". $OTU ."/". $OTU . ".tsv";
-
-        $cmd = `grep -w $OTUORF $AnnotationFile`;
-         
-        @Annotation = split("\t",$cmd);
-        $ColumnsOnAnnotation = $#Annotation;
-        
-        if(scalar@Annotation == 3){
-            $Gene = "";
-            $ECNumber = "";
-        }elsif(scalar@Annotation == 4){
-            if ($Annotation[2] =~ /^\d/){
-                $ECNumber = $Annotation[2];
-                chomp$ECNumber;
-                $Gene = "";
-            }else{
-                $Gene     = $Annotation[2];
-                chomp$Gene;
-                $ECNumber = "";
-            }
-        }elsif(scalar@Annotation == 5){
-            $Gene = $Annotation[2];
-            $ECNumber = $Annotation[3];
-        }
-        
-        $Function = $Annotation[$#Annotation];
-        chomp$Function;
-        $Function =~ s/,/-/g;
-        
-        open (FILE, ">>$ORFsFunctionsFile");
-                print FILE "\n$ORF,$Gene,$ECNumber,$Function";
-        close FILE;
-        
-        Progress($LinesOnPresenceAbsence, $i);
-}
+#for ($i=1; $i<$LinesOnPresenceAbsence; $i++){
+#        @ORFData = split (",",$PresenceAbsence[$i]);
+#        $ORF = $ORFData[0];
+#        chomp$ORF;
+#        shift@ORFData; 
+#
+#        $Index = first_index { $_ ne "" } @ORFData;
+#
+#        $OTUORF = $ORFData[$Index];
+#        $OTU = $Header[$Index+1];
+#        $OTU =~s/\r//g;
+#        
+#        $AnnotationFile = $AnnotationPath ."/". $OTU ."/". $OTU . ".tsv";
+#
+#        $cmd = `grep -w $OTUORF $AnnotationFile`;
+#         
+#        @Annotation = split("\t",$cmd);
+#        $ColumnsOnAnnotation = $#Annotation;
+#        
+#        if(scalar@Annotation == 3){
+#            $Gene = "";
+#            $ECNumber = "";
+#        }elsif(scalar@Annotation == 4){
+#            if ($Annotation[2] =~ /^\d/){
+#                $ECNumber = $Annotation[2];
+#                chomp$ECNumber;
+#                $Gene = "";
+#            }else{
+#                $Gene     = $Annotation[2];
+#                chomp$Gene;
+#                $ECNumber = "";
+#            }
+#        }elsif(scalar@Annotation == 5){
+#            $Gene = $Annotation[2];
+#            $ECNumber = $Annotation[3];
+#        }
+#        
+#        $Function = $Annotation[$#Annotation];
+#        chomp$Function;
+#        $Function =~ s/,/-/g;
+#        
+#        open (FILE, ">>$ORFsFunctionsFile");
+#                print FILE "\n$ORF,$Gene,$ECNumber,$Function";
+#        close FILE;
+#        
+#        Progress($LinesOnPresenceAbsence, $i);
+#}
 
 ($LinesOnPresenceAbsence, $ColumnsOnPresenceAbsence, @PresenceAbsenceMatrix) = Matrix($PresenceAbsence);
 
