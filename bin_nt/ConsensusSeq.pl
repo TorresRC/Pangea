@@ -6,7 +6,6 @@
 #e-mail:        torres.roberto.c@gmail.com                                      #
 #Date:          19 de octubre de 2017                                           #
 #################################################################################
-
 use strict; 
 use List::MoreUtils qw{any};
 use FindBin;
