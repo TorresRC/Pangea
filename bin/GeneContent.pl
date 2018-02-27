@@ -10,7 +10,7 @@
 use strict;
 use FindBin;
 use List::MoreUtils qw{any first_index};
-use lib "$FindBin::Bin/../lib_nt";
+use lib "$FindBin::Bin/../lib";
 use Routines;
 
 my $Src = "$FindBin::Bin";
@@ -32,8 +32,6 @@ $eValue         = $ARGV[4];
 $CPUs           = $ARGV[5];
 $Recovery       = $ARGV[6];
 $AnnotationPath = $ARGV[7];
-$Add            = $ARGV[8];
-$AddList        = $ARGV[9];
 
 my($Project, $MainList, $ORFeomesPath, $BlastPath, $ORFsPath,
    $InitialPresenceAbsence, $PresenceAbsence, $PanGenomeSeq, $Stats, $SeqExt,
@@ -98,7 +96,7 @@ open (STDERR, "| tee -ai $LogFile") or die "$0: dup: $!";
 if($Recovery == "0"){
         $Progress = 1;
         @PresenceAbsence = ReadFile($InitialPresenceAbsence);
-        #system("rm $InitialPresenceAbsence");
+        system("rm $InitialPresenceAbsence");
 }elsif($Recovery == "1"){
         @Progress = ReadFile($Stats);
         $Progress = scalar@Progress-2;
