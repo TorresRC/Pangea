@@ -13,9 +13,9 @@ use FindBin;
 use lib "$FindBin::Bin/../lib";
 use Routines;
 
-my ($Usage, $ProjectName, $List, $CPUs, $MainPath, $ConsensusFile);
+my ($Usage, $ProjectName, $List, $CPUs, $MainPath, $ORFsTable, $ConsensusFile);
 
-$Usage = "\tUsage: ConsensusSeq.pl <Main_Path> <Project Name> <Consensus File Name>\n";
+$Usage = "\tUsage: ConsensusSeq.pl <Main_Path> <Project Name> <ORFs Table> <Consensus Fasta File Name>\n";
 unless(@ARGV) {
         print $Usage;
         exit;
@@ -23,7 +23,8 @@ unless(@ARGV) {
 chomp @ARGV;
 $MainPath      = $ARGV[0];
 $ProjectName   = $ARGV[1];
-$ConsensusFile = $ARGV[2];
+$ORFsTable     = $ARGV[2];
+$ConsensusFile = $ARGV[3];                                # Name of the out file
 
 my($Project, $ORFsPath, $PresenceAbsence, $TotalPresenceAbsence, $Row, $ORF,
    $ConsensusSeq, $ORFHmm, $LogFile, $LinesOnPresenceabsenceFile,
@@ -35,7 +36,8 @@ my(@PresenceAbsence, @PresenceAbsenceFields, @PresenceAbsenceArray,
 $Project            = $MainPath ."/". $ProjectName;
 $ORFsPath           = $Project ."/". "ORFs";
 #$PresenceAbsence    = $Project ."/". $ProjectName . "_Presence_Absence.csv";
-$PresenceAbsence    = $Project ."/". "Disease_Chi_Square_AssociatedGenes.csv";
+#$PresenceAbsence    = $Project ."/". "Disease_Chi_Square_AssociatedGenes.csv";
+$PresenceAbsence    = $ORFsTable;
 $ConsensusSeq       = $Project ."/". $ProjectName ."_". $ConsensusFile . ".fasta";
 $LogFile            = $Project ."/". $ProjectName . ".log";
 
