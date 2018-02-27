@@ -37,7 +37,7 @@ $Project                 = $MainPath ."/". $ProjectName;
 #$MainList                = $Project ."/". $List;
 $PresenceAbsenceFile     = $Project ."/". $ProjectName . "_Presence_Absence.csv";
 $BoleanReport            = $Project ."/". $ProjectName . "_Bolean_PanGenome.csv";
-$BoleanInformativeReport = $Project ."/". $ProjectName . "_Bolean_Accesorygenes.csv";
+$BoleanInformativeReport = $Project ."/". $ProjectName . "_Bolean_AccessoryGenes.csv";
 $HeatMapRScript          = $Project ."/". $ProjectName . "_Presence_Absence_HeatMapScript" . ".R";
 $HeatMap                 = $Project ."/". $ProjectName . "_Presence_Absence_HeatMap" . ".pdf";
 
