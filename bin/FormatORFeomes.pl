@@ -7,7 +7,7 @@
 #################################################################################
 use strict;
 use FindBin;
-use lib "$FindBin::Bin/../lib_nt";
+use lib "$FindBin::Bin/../lib";
 use Routines;
 
 my ($Usage, $MainPath, $ProjectName, $List, $AnnotationPath, $MolType);
