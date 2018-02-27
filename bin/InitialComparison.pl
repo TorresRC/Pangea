@@ -10,7 +10,7 @@
 use strict; 
 use List::MoreUtils qw{any first_index};
 use FindBin;
-use lib "$FindBin::Bin/../lib_nt";
+use lib "$FindBin::Bin/../lib";
 use Routines;
 
 my ($Usage, $ProjectName, $List, $TrustedORFeome, $MolType, $eValue, $PIdent,
