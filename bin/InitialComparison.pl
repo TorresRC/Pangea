@@ -305,7 +305,7 @@ for($i=0; $i<$TotalNewORFs; $i++){
         HMM($NewORFAln,$MolType,$NewORFHmm,$CPUs);
         
 	print "\tAdding ORF $NewCounter to PanGenome...";
-        $cmd = `blastdbcmd -db $QryDb -dbtype nucl -entry "$NewORFId" >> $PanGenomeSeq`;
+        $cmd = `blastdbcmd -db $QryDb -dbtype $MolType -entry "$NewORFId" >> $PanGenomeSeq`;
 	print "Done!\n";
         
         $OutReport -> [$NewCounter][0] = $NewORF; 
