@@ -14,25 +14,25 @@ use Routines;
 
 my ($Usage, $ProjectName, $List, $MainPath);
 
-$Usage = "\tUsage: CoreGenome.pl <Project_Name> <List_File_Name> <Main_Path>\n";
+$Usage = "\tUsage: CoreGenome.pl <Main_Path> <Project_Name> <List_File_Name>\n";
 unless(@ARGV) {
         print $Usage;
         exit;
 }
 chomp @ARGV;
-$ProjectName = $ARGV[0];
-$List        = $ARGV[1];
-$MainPath    = $ARGV[2];
+$MainPath    = $ARGV[0];
+$ProjectName = $ARGV[1];
+$List        = $ARGV[2];
 
-my ($Project, $MainList, $PresenceAbsence, $Plot, $RScript);
+my ($Project, $MainList, $Progress, $Plot, $RScript);
 my ($n);
 my (@List);
 
-$Project         = $MainPath ."/". $ProjectName;
-$MainList        = $Project ."/". $List;
-$PresenceAbsence = $Project ."/". $ProjectName . '_Statistics.csv';
-$Plot            = $Project ."/". $ProjectName . "_GeneContentPlot.pdf";
-$RScript         = $Project ."/". "GeneContentScript.R";
+$Project  = $MainPath ."/". $ProjectName;
+$MainList = $Project ."/". $List;
+$Progress = $Project ."/". $ProjectName . '_Progress.csv';
+$Plot     = $Project ."/". $ProjectName . "_GeneContentPlot.pdf";
+$RScript  = $Project ."/". "GeneContentScript.R";
 
 @List = ReadFile($MainList);
 $n = scalar@List;
@@ -41,7 +41,7 @@ chdir ($Project);
 
 open (RSCRIPT, ">$RScript");
         print RSCRIPT 'library(ggplot2)' . "\n";
-        print RSCRIPT "df <- read.csv(\"$PresenceAbsence\")" . "\n";
+        print RSCRIPT "df <- read.csv(\"$Progress\")" . "\n";
         print RSCRIPT 'ggplot(df, aes(NumberOfNewStrains))';
         print RSCRIPT '+ geom_line(aes(y=CoreGenome,linetype="CoreGenome"))';
         print RSCRIPT '+ geom_line(aes(y=PanGenome,linetype="PanGenome"))';

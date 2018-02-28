@@ -20,9 +20,9 @@ unless(@ARGV) {
         exit;
 }
 chomp @ARGV;
-$ProjectName = $ARGV[0];
-$Columns     = $ARGV[1];
-$MainPath    = $ARGV[2];
+$MainPath    = $ARGV[0];
+$ProjectName = $ARGV[1];
+$Columns     = $ARGV[2];
 
 my($Project, $ORFsPath, $CoreGenome, $Line, $ORF, $ORFAln, $Name, $Seq, $Key,
    $AlnExt, $ORFPath, $Genome, $AlignedCoresPath, $SeqExt, $AlignedCore,
@@ -38,17 +38,19 @@ $AlignedCoresPath = $Project ."/". "CoreSequences";
 $SeqExt = ".fasta";
 $AlnExt = ".aln" . $SeqExt;
 
-@CoreGenome = ReadFile($CoreGenome);
-$LinesOnCoreGenome = scalar@CoreGenome;
- 
-print "Loading the Core-Genome table:\n";
-for ($i=0; $i<$LinesOnCoreGenome; $i++){
-     $Line = $CoreGenome[$i];
-     @CoreGenomeFields = split(",",$Line);
-     $ColumnsOnCoreGenome = scalar@CoreGenomeFields;
-     push (@CoreGenomeArray, [@CoreGenomeFields]);
-     Progress($LinesOnCoreGenome, $i);
-}
+#@CoreGenome = ReadFile($CoreGenome);
+#$LinesOnCoreGenome = scalar@CoreGenome;
+# 
+#print "Loading the Core-Genome table:\n";
+#for ($i=0; $i<$LinesOnCoreGenome; $i++){
+#     $Line = $CoreGenome[$i];
+#     @CoreGenomeFields = split(",",$Line);
+#     $ColumnsOnCoreGenome = scalar@CoreGenomeFields;
+#     push (@CoreGenomeArray, [@CoreGenomeFields]);
+#     Progress($LinesOnCoreGenome, $i);
+#}
+
+($LinesOnCoregenome, $ColumnsOnCoreGenome, @CoreGenomeArray) = Matrix($CoreGenome);
 
 print "Buiding aligned Core-Genomes fasta sequences:\n";
 for ($i=1; $i<$LinesOnCoreGenome; $i++){
@@ -57,8 +59,6 @@ for ($i=1; $i<$LinesOnCoreGenome; $i++){
         $ORFAln = `find $ORFPath -type f -name \*$AlnExt`;
         chomp $ORFAln;
         %Seq = ();
-        
-        #print "\nAligning $ORF:\n";
         
         open (FILE, $ORFAln) or die ("Could not open $ORFAln file. On $0 line 63.");
         while (<FILE>){

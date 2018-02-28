@@ -178,10 +178,10 @@ sub DismissORFs{
 
 ################################################################################
 sub Extract{
-        my ($Qry, $DataBase,$Entry,$OutSeq, $null) = @_;
+        my ($Qry,$DataBase,$MolType,$Entry,$OutSeq,$null) = @_;
         print "\tExtracting ORF from $Qry...";
-        #my $cmd = `blastdbcmd -db $DataBase -dbtype nucl -entry "$Entry" -out $OutSeq`;
-        my $cmd = `blastdbcmd -db $DataBase -dbtype prot -entry "$Entry" -out $OutSeq`;
+        my $cmd = `blastdbcmd -db $DataBase -dbtype $MolType -entry "$Entry" -out $OutSeq`;
+        #my $cmd = `blastdbcmd -db $DataBase -dbtype prot -entry "$Entry" -out $OutSeq`;
         print "Done!\n";
 }
 
@@ -196,9 +196,15 @@ sub Align{
 
 ################################################################################
 sub HMM{
-        my ($CPUs, $HmmFile, $AlnFile, $null) = @_;
+        my ($AlnFile,$MolType,$HmmFile,$CPUs,$null) = @_;
+        my $Mol;
+        if ($MolType eq "nucl"){
+            $Mol = "dna";
+        }elsif($MolType eq "prot"){
+            $Mol = "amino";
+        }
         print "\tBuilding a HMM...";
-        my $cmd = `hmmbuild --amino --cpu $CPUs $HmmFile $AlnFile`;
+        my $cmd = `hmmbuild --$Mol --cpu $CPUs $HmmFile $AlnFile`;
         print "Done!\n";
 }
 
