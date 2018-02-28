@@ -341,10 +341,11 @@ for ($i=0;$i<$LinesOnTrainingFile;$i++){
             close PRESENCE;
             close COMBINED;
             close CHI;
-
+                                        
             $InformativeIndex = first_index{$_ eq max@TestReportData} @TestReportData;
             $InformativeClass = $Classes[$InformativeIndex];
             $InformativeClass{$Feature} = $InformativeClass;
+            #open (SUM, ">>$SummaryReport");
             open (PRESENT, ">>$PresentSummaryReport");
             open (ABSENT, ">>$AbsentSummaryReport");
             $Function{$Feature} =~ s/\s//g;
