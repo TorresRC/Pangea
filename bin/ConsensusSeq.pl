@@ -12,7 +12,8 @@ use FindBin;
 use lib "$FindBin::Bin/../lib";
 use Routines;
 
-my ($Usage, $ProjectName, $List, $CPUs, $MainPath, $ORFsTable, $ConsensusFile);
+my ($Usage, $ProjectName, $List, $CPUs, $MainPath, $ConsensusFile, $PanGenome,
+    $StatORFs);
 
 $Usage = "\tUsage: ConsensusSeq.pl <Main_Path> <Project Name> <ORFs Table> <Consensus Fasta File Name>\n";
 unless(@ARGV) {
@@ -22,8 +23,8 @@ unless(@ARGV) {
 chomp @ARGV;
 $MainPath      = $ARGV[0];
 $ProjectName   = $ARGV[1];
-$ORFsTable     = $ARGV[2];
-$ConsensusFile = $ARGV[3];                                # Name of the out file
+$PanGenome     = $ARGV[2];
+$StatORFs      = $ARGV[3];
 
 my($Project, $ORFsPath, $PresenceAbsence, $TotalPresenceAbsence, $Row, $ORF,
    $ConsensusSeq, $ORFHmm, $LogFile, $LinesOnPresenceabsenceFile,
@@ -34,20 +35,22 @@ my(@PresenceAbsence, @PresenceAbsenceFields, @PresenceAbsenceArray,
 
 $Project            = $MainPath ."/". $ProjectName;
 $ORFsPath           = $Project ."/". "ORFs";
-#$PresenceAbsence    = $Project ."/". $ProjectName . "_Presence_Absence.csv";
-#$PresenceAbsence    = $Project ."/". "Disease_Chi_Square_AssociatedGenes.csv";
-$PresenceAbsence    = $ORFsTable;
-$ConsensusSeq       = $Project ."/". $ProjectName ."_". $ConsensusFile . ".fasta";
+
 $LogFile            = $Project ."/". $ProjectName . ".log";
+
+if ($PanGenome == 1){
+        $PresenceAbsence    = $Project ."/". $ProjectName . "_Presence_Absence.csv";
+        $ConsensusSeq       = $Project ."/". $ProjectName ."_". "Consensus_PanGenome" . ".fasta";
+}elsif ($StatORFs == 1){
+        $PresenceAbsence    = $Project ."/". "Statistically_AssociatedGenes.csv";
+        $ConsensusSeq       = $Project ."/". $ProjectName ."_". "Statistically_AssociatedGenes" . ".fasta";
+}
 
 open (STDERR, "| tee -ai $LogFile") or die "$0: dup: $!";
 
-#@PresenceAbsence = ReadFile($PresenceAbsence);
-#$TotalPresenceAbsence = scalar@PresenceAbsence;
-
-print "Loading the Presence/Absence file:\n";
-
+print "Loading the Presence/Absence file...";
 ($LinesOnPresenceabsenceFile, $ColumnsOnPresenceabsenceFile, @PresenceAbsenceMatrix) = Matrix($PresenceAbsence);
+print "Done!\n";
 
 print "Buiding a consensus multifasta file:\n";
 for ($i=1; $i<$LinesOnPresenceabsenceFile; $i++){
@@ -58,6 +61,4 @@ for ($i=1; $i<$LinesOnPresenceabsenceFile; $i++){
         
         Progress($LinesOnPresenceabsenceFile, $i);
 }
-
-
 exit;

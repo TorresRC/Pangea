@@ -8,14 +8,14 @@ use strict;
 use Getopt::Long qw(GetOptions);
 Getopt::Long::Configure qw(gnu_getopt);
 use FindBin;
-use lib "$FindBin::Bin/../lib_nt";
+use lib "$FindBin::Bin/../lib";
 use Routines;
 
 my $Src      = "$FindBin::Bin";
 my $MainPath = "$FindBin::Bin/../..";
 
 my ($Usage, $ProjectName, $List, $TrustedORFeome, $eVal, $PIdent, $CPUs, $Help,
-    $PanGenome, $CoreGenome, $Bolean, $Annotation, $Recovery);
+    $PanGenome, $CoreGenome, $Bolean, $AnnotationPath, $MolType, $Recovery);
 
 $Recovery = 0;
 GetOptions(
@@ -29,8 +29,9 @@ GetOptions(
         'conpan|P'      => \$PanGenome,
         'alncore|C'     => \$CoreGenome,
         'boleantbl|b'   => \$Bolean,
-        'annotatedtbl|a'=> \$Annotation,
-        'recovery|r'    => \$Recovery,
+        'annotation|a'  => \$AnnotationPath,
+        'moltype|m'     => \$MolType,
+        'recovery|r'    => \$Recovery
         ) or die "USAGE:\n  $0 [--help] [--project -p prefix] [--list -l filename]
       [--trusted -c filename] [--evalue -e evalue] [--ident -i percentage]
       [--cpus -t]
@@ -48,6 +49,7 @@ if($Help){
         \t--alncore      <Bolean>
         \t--boleantbl    <Bolean>
         \t--annotatedtbl <Bolean>
+        \t--moltype      <nucl or prot>
         \t--recovery     <Bolean>
         \n\n";
         exit;
@@ -55,12 +57,14 @@ if($Help){
 
 print "\nProject: $ProjectName\nList: $List\nTrusted: $TrustedORFeome\ne: $eVal\nPI: $PIdent\nCPUs $CPUs\n\n";
 
-my ($Project, $SortGenes, $FilterORFeomes, $MakeBlastDb, $InitialComparison,
-    $GeneContent, $GeneContentPlot, $BoleanPresenceAbsence, $ConsensusSeq,
-    $CoreAlign, $Start, $End, $Time, $RunTime, $Period, $Functions);
+my ($Project, $FormatORFeomes, $SortGenes, $FilterORFeomes, $MakeBlastDb,
+    $InitialComparison, $GeneContent, $GeneContentPlot, $BoleanPresenceAbsence,
+    $ConsensusSeq, $CoreAlign, $Start, $End, $Time, $RunTime, $Period,
+    $Functions, $Presence, $Core);
 
 $Start = time();
 
+$FormatORFeomes        = $Src ."/". "FormatORFeomes.pl";
 $SortGenes             = $Src ."/". "SortGenes.pl";
 $FilterORFeomes        = $Src ."/". "FilterORFeomes.pl";
 $MakeBlastDb           = $Src ."/". "MakeBlastDBs.pl";
@@ -73,31 +77,34 @@ $CoreAlign             = $Src ."/". "CoreAlign.pl";
 $Functions             = $Src ."/". "ORFsFunctions.pl";
 
 if($Recovery == "0"){
-        #system("perl $SortGenes $ProjectName $List $TrustedORFeome $MainPath");
-        system("perl $FilterORFeomes $ProjectName $List $TrustedORFeome $MainPath");
-        system("perl $MakeBlastDb $ProjectName $List $TrustedORFeome $MainPath");
-        system("perl $InitialComparison $ProjectName $List $TrustedORFeome $eVal $PIdent $CPUs $MainPath");
-        system("perl $GeneContent $ProjectName $List $CPUs $MainPath $eVal $Recovery ");
+        system("perl $FormatORFeomes $MainPath $ProjectName $List $AnnotationPath $MolType");
+        #system("perl $FilterORFeomes $ProjectName $List $TrustedORFeome $MainPath");
+        system("perl $MakeBlastDb $MainPath $ProjectName $List $TrustedORFeome $MolType");
+        system("perl $InitialComparison $MainPath $ProjectName $List $TrustedORFeome $MolType $eVal $PIdent $CPUs");
+        system("perl $GeneContent $MainPath $ProjectName $List $MolType $eVal $CPUs $Recovery $AnnotationPath");
 }elsif($Recovery == "1"){
-        system("perl $GeneContent $ProjectName $List $CPUs $MainPath $eVal $Recovery");
+        system("perl $GeneContent $MainPath $ProjectName $List $MolType $eVal $CPUs $Recovery $AnnotationPath");
 }
 
-system("perl $GeneContentPlot $ProjectName $List $MainPath");
+system("perl $GeneContentPlot $MainPath $ProjectName $List");
 
-if($Functions == "0"){
-        system("perl $Functions $ProjectName $AnnotationPath $MainPath $Presence")
+if($Functions == "1"){
+        $Presence = $MainPath ."/". $ProjectName ."/". $ProjectName ."/". "_Presence_Absence.csv";
+        $Core     = $MainPath ."/". $ProjectName ."/". $ProjectName ."/". "_CoreGenome.csv";
+        system("perl $Functions $MainPath $ProjectName $AnnotationPath $Presence 1 1");
+        system("perl $Functions $MainPath $ProjectName $AnnotationPath $Core 0 1");
 }
 
 if($PanGenome){
-        system("perl $ConsensusSeq $MainPath $ProjectName ConsensusPanGenome");
+        system("perl $ConsensusSeq $MainPath $ProjectName 1 0");
 }
 
 if($CoreGenome){
-        system("perl $CoreAlign $ProjectName 125 $MainPath");
+        system("perl $CoreAlign $MainPath $ProjectName 125");
 }
 
 if($Bolean){
-        system("perl $BoleanPresenceAbsence $ProjectName $List $MainPath");
+        system("perl $BoleanPresenceAbsence $MainPath $ProjectName");
 }
 
 #Timestamp

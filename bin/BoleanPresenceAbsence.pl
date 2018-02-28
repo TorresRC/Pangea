@@ -13,61 +13,50 @@ use Routines;
 
 my ($Usage, $ProjectName, $List, $MainPath);
 
-$Usage = "\tUsage: CoreGenome.pl <Project_Name> <List_File_Name> <Main_Path>\n";
+$Usage = "\tUsage: CoreGenome.pl <Main_Path> <Project_Name>\n";
 unless(@ARGV) {
         print $Usage;
         exit;
 }
 chomp @ARGV;
-$ProjectName = $ARGV[0];
-$List        = $ARGV[1];
-$MainPath    = $ARGV[2];
+$MainPath    = $ARGV[0];
+$ProjectName = $ARGV[1];
 
-my ($Project, $MainList, $PresenceAbsenceFile, $BoleanReport, $TotalQry,
-    $TotalPresenceAbsence, $Row, $Field, $BoleanInformativeReport, $Line,
-    $nColumns, $Count);
-my ($o, $i, $j);
-my (@List, @PresenceAbsence, @PresenceAbsenceFields, @PresenceAbsenceArray,
-    @Columns);
+my ($Project, $PresenceAbsenceFile, $BoleanReport, $TotalQry,
+    $LinesOnPresenceAbsence, $ColumnsOnPresenceAbsence, $Row, $Field,
+    $BoleanInformativeReport, $Line, $nElements, $Count, $ORF, $HeatMapRScript,
+    $HeatMap, $Matrix);
+my ($i, $j);
+my (@PresenceAbsence, @PresenceAbsenceFields, @PresenceAbsenceArray,
+    @Elements, @PresenceAbsenceMatrix);
 my $BoleanTable = [ ];
 my $GenesAnnotationReport = [ ];
 
 $Project                 = $MainPath ."/". $ProjectName;
-$MainList                = $Project ."/". $List;
 $PresenceAbsenceFile     = $Project ."/". $ProjectName . "_Presence_Absence.csv";
-$BoleanReport            = $Project ."/". $ProjectName . "_Bolean_Presence_Absence.csv";
-$BoleanInformativeReport = $Project ."/". $ProjectName . "_Bolean_Informative_Presence_Absence.csv";
+$BoleanReport            = $Project ."/". $ProjectName . "_Bolean_PanGenome.csv";
+$BoleanInformativeReport = $Project ."/". $ProjectName . "_Bolean_AccessoryGenes.csv";
+$HeatMapRScript          = $Project ."/". $ProjectName . "_Presence_Absence_HeatMapScript" . ".R";
+$HeatMap                 = $Project ."/". $ProjectName . "_PanGenome_HeatMap" . ".pdf";
 
-#Loading the Presence/Absence genes file
-@List = ReadFile($MainList);
-$TotalQry = scalar@List;
-@PresenceAbsence = ReadFile($PresenceAbsenceFile);
-$TotalPresenceAbsence = scalar@PresenceAbsence;
+print "\nLoading the Presence/Absence file...";
+($LinesOnPresenceAbsence, $ColumnsOnPresenceAbsence, @PresenceAbsenceMatrix) = Matrix($PresenceAbsenceFile);
+print "Done!";
 
-for ($a=0; $a<$TotalPresenceAbsence; $a++){
-     $Row = $PresenceAbsence[$a];
-     @PresenceAbsenceFields = split(",",$Row);
-     chomp@PresenceAbsenceFields;
-     $o = scalar@PresenceAbsenceFields;
-     push (@PresenceAbsenceArray, [@PresenceAbsenceFields]);
-}
-
-print "\nFormating the Absence\/Presence report to a bolean file...";
-
-$BoleanTable -> [0][0] = $PresenceAbsenceArray[0][0];
-
-for ($i=0; $i<$TotalPresenceAbsence; $i++){
-     $BoleanTable -> [$i][0] = $PresenceAbsenceArray[$i][0];
-     for ($j=0; $j<$o; $j++){
-          $BoleanTable -> [0][$j] = $PresenceAbsenceArray[0][$j];  
+print "\nProcessing";
+$BoleanTable -> [0][0] = $PresenceAbsenceMatrix[0][0];
+for ($i=0; $i<$LinesOnPresenceAbsence; $i++){
+     $BoleanTable -> [$i][0] = $PresenceAbsenceMatrix[$i][0];
+     for ($j=0; $j<$ColumnsOnPresenceAbsence; $j++){
+          $BoleanTable -> [0][$j] = $PresenceAbsenceMatrix[0][$j];  
      }
 }
 
 #Setting the bolean data ("1" for presence and "0" for absence)
-for ($i=1; $i<$TotalPresenceAbsence; $i++){
-     for ($j=1; $j<$o; $j++){
-          if (defined $PresenceAbsenceArray[$i]->[$j]){          
-               $Field = $PresenceAbsenceArray[$i]->[$j];
+for ($i=1; $i<$LinesOnPresenceAbsence; $i++){
+     for ($j=1; $j<$ColumnsOnPresenceAbsence; $j++){
+          if (defined $PresenceAbsenceMatrix[$i]->[$j]){          
+               $Field = $PresenceAbsenceMatrix[$i]->[$j];
                if ($Field ne ""){   
                     $BoleanTable -> [$i][$j] = "1";
                }else{
@@ -77,38 +66,89 @@ for ($i=1; $i<$TotalPresenceAbsence; $i++){
                $BoleanTable -> [$i][$j] = "0";
           }
      }
+     Progress($LinesOnPresenceAbsence,$i);
 }
 
-print "\nWriting the bolean file...";
+print "Writing file...";
 open (FILE, ">$BoleanReport");
-for ($i=0; $i<$TotalPresenceAbsence; $i++){
-     for ($j=0; $j<$o; $j++){
-          print FILE $BoleanTable -> [$i][$j], ",";
+for ($i=0; $i<$LinesOnPresenceAbsence; $i++){
+     for ($j=0; $j<$ColumnsOnPresenceAbsence; $j++){
+        if ($j < $ColumnsOnPresenceAbsence-1){
+                print FILE $BoleanTable -> [$i][$j], ",";
+        }else{
+                print FILE $BoleanTable -> [$i][$j];
+        }
      }
      print FILE "\n";
+     Progress($LinesOnPresenceAbsence,$i);
 }
 close FILE;
+print "Done!\n";
 
+print "\nWriting a bolean file with only the informative ORFs...";
 my @BoleanReport = ReadFile($BoleanReport);  
 open (FILE,">$BoleanInformativeReport");
         print FILE "$BoleanReport[0]\n";
-        for ($i=0; $i<scalar@BoleanReport;$i++){
+        for ($i=1; $i<scalar@BoleanReport;$i++){
                 $Line = $BoleanReport[$i];
-                @Columns = split(",",$Line);
-                chomp@Columns;
-                $nColumns = scalar@Columns;
+                @Elements = split(",",$Line);
+                chomp@Elements;
+                $ORF = $Elements[0];
+                shift@Elements;
+                $nElements = scalar@Elements;
 
                 $Count = 0;
-                foreach my $Element(@Columns){
+                foreach my $Element(@Elements){
                         if ($Element ne "0"){
                                 $Count++;
                         }
                 }
-                if($Count < $nColumns){
+                if($Count < $nElements && $Count > 1){
                         print FILE "$Line\n";   
                 }
         }
 close FILE;
-
 print "Done!\n";
+
+
+#Heatmap
+open(RSCRIPT, ">$HeatMapRScript");
+        print RSCRIPT 'library(gplots)' . "\n";
+        print RSCRIPT 'library(RColorBrewer)' . "\n";
+        
+        print RSCRIPT "pdf(\"$HeatMap\", height=12, width=10)" . "\n";
+        
+        print RSCRIPT 'Colors <- colorRampPalette(c("beige","red"))(n=100)' . "\n";
+        
+        $Matrix = "Matrix";
+        print RSCRIPT "df <- read.csv(\"$BoleanReport\")" . "\n";
+        print RSCRIPT 'rnames <- df[,1]' . "\n";
+        print RSCRIPT "$Matrix <- data.matrix(df[,2:ncol(df)])" . "\n";
+        print RSCRIPT "rownames($Matrix) <- rnames" . "\n";
+        print RSCRIPT "heatmap.2($Matrix," . "\n";
+        print RSCRIPT "main = \"Pan-Genome of $ProjectName\"," . "\n";   
+        print RSCRIPT 'density.info="none",' . "\n";                     
+        print RSCRIPT 'trace = "none",' . "\n";                          
+        print RSCRIPT 'xlab = "Class",' . "\n";
+        print RSCRIPT 'ylab = "Genes",' . "\n";    
+        print RSCRIPT 'Rowv = "NA",' . "\n";                             
+        print RSCRIPT "Colv = as.dendrogram(hclust(as.dist(1-cor(t($Matrix)))))," . "\n";
+        print RSCRIPT 'dendrogram = "column",' ."\n";                    
+        
+        print RSCRIPT 'adjCol= c(1,1),' ."\n";
+        print RSCRIPT 'cexCol=0.3,' ."\n";                               
+        print RSCRIPT 'cexRow=0.3,' ."\n";                               
+        print RSCRIPT 'lhei=c(0.2,1),' ."\n";
+        print RSCRIPT 'offsetRow=0,' ."\n";
+        print RSCRIPT 'offsetCol=0,' ."\n";
+        print RSCRIPT 'col = Colors)' . "\n";                            
+        
+        print RSCRIPT 'dev.off()';
+close RSCRIPT;
+system ("R CMD BATCH $HeatMapRScript");
+system ("rm $HeatMapRScript");
+        
+system ("rm $Project/*.Rout $Project/Rplots.pdf");
+print "Done!\n\n";
+
 exit;
