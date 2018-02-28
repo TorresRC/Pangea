@@ -333,7 +333,7 @@ my $Combined = [ ];
                                         
                                         open (BOLEAN, ">>$BoleanInformative");
                                                 my $InformativeFeature = `grep -w $Feature $TrainingFile`;
-                                                chop $InformativeFeature;
+                                                #chop $InformativeFeature;
                                                 chop $InformativeFeature;
                                                 print BOLEAN $InformativeFeature, "\n";
                                         close BOLEAN;
