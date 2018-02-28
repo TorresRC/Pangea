@@ -19,19 +19,19 @@ my ($Usage, $ProjectName, $List, $TrustedORFeome, $eVal, $PIdent, $CPUs, $Help,
 
 $Recovery = 0;
 GetOptions(
-        'help'          => \$Help,
-        'project|p=s'   => \$ProjectName,
-        'list|l=s'      => \$List,
-        'trusted|c=s'   => \$TrustedORFeome,
-        'evalue|e=f'    => \$eVal,
-        'ident|i=i'     => \$PIdent,
-        'cpus|t=i'      => \$CPUs,
-        'conpan|P'      => \$PanGenome,
-        'alncore|C'     => \$CoreGenome,
-        'boleantbl|b'   => \$Bolean,
-        'annotation|a'  => \$AnnotationPath,
-        'moltype|m'     => \$MolType,
-        'recovery|r'    => \$Recovery
+        'help'           => \$Help,
+        'project|p=s'    => \$ProjectName,
+        'list|l=s'       => \$List,
+        'trusted|c=s'    => \$TrustedORFeome,
+        'evalue|e=f'     => \$eVal,
+        'ident|i=i'      => \$PIdent,
+        'cpus|t=i'       => \$CPUs,
+        'conpan|P'       => \$PanGenome,
+        'alncore|C'      => \$CoreGenome,
+        'boleantbl|b'    => \$Bolean,
+        'annotation|a=s' => \$AnnotationPath,
+        'moltype|m=s'    => \$MolType,
+        'recovery|r'     => \$Recovery
         ) or die "USAGE:\n  $0 [--help] [--project -p prefix] [--list -l filename]
       [--trusted -c filename] [--evalue -e evalue] [--ident -i percentage]
       [--cpus -t]
@@ -55,7 +55,7 @@ if($Help){
         exit;
 }
 
-print "\nProject: $ProjectName\nList: $List\nTrusted: $TrustedORFeome\ne: $eVal\nPI: $PIdent\nCPUs $CPUs\n\n";
+print "\nProject: $ProjectName\nList: $List\nTrusted: $TrustedORFeome\ne: $eVal\nPI: $PIdent\nCPUs $CPUs\nMol type: $MolType\n\n";
 
 my ($Project, $FormatORFeomes, $SortGenes, $FilterORFeomes, $MakeBlastDb,
     $InitialComparison, $GeneContent, $GeneContentPlot, $BoleanPresenceAbsence,
@@ -77,7 +77,7 @@ $CoreAlign             = $Src ."/". "CoreAlign.pl";
 $Functions             = $Src ."/". "ORFsFunctions.pl";
 
 if($Recovery == "0"){
-        system("perl $FormatORFeomes $MainPath $ProjectName $List $AnnotationPath $MolType");
+        system("perl $FormatORFeomes $MainPath $ProjectName $List $TrustedORFeome $AnnotationPath $MolType");
         #system("perl $FilterORFeomes $ProjectName $List $TrustedORFeome $MainPath");
         system("perl $MakeBlastDb $MainPath $ProjectName $List $TrustedORFeome $MolType");
         system("perl $InitialComparison $MainPath $ProjectName $List $TrustedORFeome $MolType $eVal $PIdent $CPUs");
