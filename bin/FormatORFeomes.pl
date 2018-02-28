@@ -10,7 +10,7 @@ use FindBin;
 use lib "$FindBin::Bin/../lib";
 use Routines;
 
-my ($Usage, $MainPath, $ProjectName, $List, $AnnotationPath, $MolType);
+my ($Usage, $MainPath, $ProjectName, $List, $Trusted, $AnnotationPath, $MolType);
 
 $Usage = "\tUsage: FormatORFeomes.pl <Main_Path> <Project Name> <List File Name> <Annotation Path> <Molecule Type>\n";
 unless(@ARGV) {
@@ -22,8 +22,9 @@ chomp @ARGV;
 $MainPath       = $ARGV[0];
 $ProjectName    = $ARGV[1];
 $List           = $ARGV[2];
-$AnnotationPath = $ARGV[3];
-$MolType        = $ARGV[4];    #nucl or prot
+$Trusted        = $ARGV[3];
+$AnnotationPath = $ARGV[4];
+$MolType        = $ARGV[5];    #nucl or prot
 
 my ($Project, $MainList, $ORFeomesPath, $Ext, $Qry, $Prefix, $OriginalORFeome,
 	 $FormatedORFeome, $Line, $FormatedHeader);
@@ -43,6 +44,8 @@ if ($MolType eq "nucl"){
 MakeDir($ORFeomesPath);
 
 @List = ReadFile($MainList);
+
+unshift @List, $Trusted;
 
 $n = scalar@List;
 for ($i=0;$i<$n;$i++){
