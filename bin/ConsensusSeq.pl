@@ -15,7 +15,7 @@ use Routines;
 my ($Usage, $ProjectName, $List, $CPUs, $MainPath, $ConsensusFile, $PanGenome,
     $StatORFs);
 
-$Usage = "\tUsage: ConsensusSeq.pl <Main_Path> <Project Name> <Consensus File Name>\n";
+$Usage = "\tUsage: ConsensusSeq.pl <Main_Path> <Project Name> <ORFs Table> <Consensus Fasta File Name>\n";
 unless(@ARGV) {
         print $Usage;
         exit;
@@ -26,7 +26,6 @@ $ProjectName   = $ARGV[1];
 $PanGenome     = $ARGV[2];
 $StatORFs      = $ARGV[3];
 
-
 my($Project, $ORFsPath, $PresenceAbsence, $TotalPresenceAbsence, $Row, $ORF,
    $ConsensusSeq, $ORFHmm, $LogFile, $LinesOnPresenceabsenceFile,
    $ColumnsOnPresenceabsenceFile);
@@ -36,7 +35,6 @@ my(@PresenceAbsence, @PresenceAbsenceFields, @PresenceAbsenceArray,
 
 $Project            = $MainPath ."/". $ProjectName;
 $ORFsPath           = $Project ."/". "ORFs";
-
 
 $LogFile            = $Project ."/". $ProjectName . ".log";
 
