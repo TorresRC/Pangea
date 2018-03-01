@@ -167,7 +167,7 @@ for ($i=$Progress; $i<$TotalQry; $i++){
                 
                 print "\n----------------Looking for $TestingORF in $QryGenomeName----------------\n";
                 
-                system("$HmmSearch -E $eValue --cpu $CPUs --noali --$HmmTblOut $ORFTemp $Hmm $QryGenomeSeq");
+                system("$HmmSearch -E $eValue --cpu $CPUs --noali --tblout $ORFTemp $Hmm $QryGenomeSeq");
                 
                 #Analyzing the hmm results
                 @nHMMerReport = ReadFile($ORFTemp);
@@ -184,7 +184,11 @@ for ($i=$Progress; $i<$TotalQry; $i++){
                         $BestHit =~ s/\s+/,/g;
                         @BestHitArray = split(",",$BestHit);
                         $Entry = $BestHitArray[0];
-                        $Strand = $BestHitArray[8];
+                        
+#print "->$Entry\<-n";
+#exit;
+                        
+                        #$Strand = $BestHitArray[8];
                         $QryORFSeq = $ORFpath ."/". $QryGenomeName ."-". $Entry . $SeqExt;
                         
                         #If the Entry is not already analyzed, extract it and incloude it into the hmm 
@@ -258,7 +262,7 @@ for ($i=$Progress; $i<$TotalQry; $i++){
                                         $Hmm = $ORFpath ."/". $TestingORF . $HmmExt;
                                         $ORFTemp = $ORFpath ."/". $TestingORF ."-". $QryGenomeName . ".temp";
                                         
-                                        system("$HmmSearch -E $eValue --cpu $CPUs --noali --$HmmTblOut $ORFTemp $Hmm $QryGenomeRemainingORFs");
+                                        system("$HmmSearch -E $eValue --cpu $CPUs --noali --tblout $ORFTemp $Hmm $QryGenomeRemainingORFs");
                                         
                                         @nHMMerReport = ReadFile($ORFTemp);
                                         if(@nHMMerReport){
