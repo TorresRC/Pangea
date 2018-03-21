@@ -217,12 +217,11 @@ sub Matrix{
         
         @File = ReadFile($File);
         $Lines = scalar@File;
-        for ($i=0;$i<$Lines;$i++){
-                $Line = $File[$i];
-                @Fields = split(",",$Line);
-                push (@Matrix, [@Fields]);
+        $Columns = scalar(split(",",$File[0])); 
+        foreach $Line(@File){
+            @Fields = split(",",$Line);
+            push (@Matrix, [@Fields]);
         }
-        $Columns = scalar@Fields;
         
         return ($Lines, $Columns, @Matrix);
 }

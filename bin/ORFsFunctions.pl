@@ -13,7 +13,7 @@ use lib "$FindBin::Bin/../lib";
 use Routines;
 
 my ($Usage, $ProjectName, $AnnotationPath, $MainPath, $PresenceAbsence,
-    $ORFsFunctionList, $AnnotatedTable);
+    $ORFsFunctionsList, $AnnotatedTable);
 
 $Usage = "\tUsage: ORFsFunctions.pl <Main_Path> <Project Name> <Annotation_Path> <Presence-Absence>\n";
 unless(@ARGV) {
@@ -25,7 +25,7 @@ $MainPath         = $ARGV[0];
 $ProjectName      = $ARGV[1];
 $AnnotationPath   = $ARGV[2];
 $PresenceAbsence  = $ARGV[3];
-$ORFsFuntionsList = $ARGV[4];
+$ORFsFunctionsList = $ARGV[4];
 $AnnotatedTable   = $ARGV[5];
 
 my ($Project, $AnnotatedPresenceAnsence, $LinesOnPresenceAbsence,
@@ -46,7 +46,7 @@ $Prefix = $InFileName[3];
 $AnnotatedPresenceAnsence = $Project ."/". $ProjectName . $Prefix . "_Annotated_Presence_Absence.csv";
 $ORFsFunctionsFile        = $Project ."/". $ProjectName . $Prefix . "_ORFsAnnotation.csv";
 
-if ($ORFsFunctionList == "1"){
+if ($ORFsFunctionsList == "1"){
         print "\nGetting the function of ORFs:";
 
         print "\nLoading the $PresenceAbsence file...";

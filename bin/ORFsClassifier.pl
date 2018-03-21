@@ -12,9 +12,11 @@ use lib "$FindBin::Bin/../lib";
 use Routines;
 my $MainPath = "$FindBin::Bin";
 
+#my $ConsensusScript = $MainPath ."/". "ConsensusSeq.pl";
+
 my ($Usage, $TrainingFile, $MetadataFile, $OutPath, $Method, $X2, $IG, $OR,
     $PsCounts, $MI, $DotPlot, $HeatMapPlot, $Correlation, $Sort, $Clusters,
-    $Dendrogram, $Runs, $Threshold, $AnnotatedPresenceAbsence);
+    $Dendrogram, $Runs, $Threshold, $AnnotatedPresenceAbsence, $ProjectName);
 
 $Usage = "\nUSAGE\n  $FindBin::Script <Observed Data [Absolute Path]>
                             <Metadata [Absolute Path]>
@@ -27,16 +29,14 @@ unless(@ARGV) {
         exit;
 }
 chomp @ARGV;
-$TrainingFile   = $ARGV[0];
-$MetadataFile   = $ARGV[1];
-$OutPath        = $ARGV[2];
-$PsCounts       = $ARGV[3];
-$Method         = $ARGV[4];  # <- X2, IG, OR, LO, MI
-$DotPlot        = $ARGV[5];  # <- AllClasses, ForClass
-$HeatMapPlot    = $ARGV[6];  # <- on/off
-$Dendrogram     = $ARGV[7]; # <- off/row/column/both
-$Threshold      = $ARGV[8];
-$AnnotatedPresenceAbsence = $ARGV[9];
+$ProjectName              = $ARGV[0];
+$TrainingFile             = $ARGV[1];
+$MetadataFile             = $ARGV[2];
+$OutPath                  = $ARGV[3];
+$AnnotatedPresenceAbsence = $ARGV[4];
+$Method                   = $ARGV[5];  # <- X2, IG, OR, LO, MI
+$DotPlot                  = $ARGV[6];  # <- AllClasses, ForClass
+$Threshold                = $ARGV[7];
 
 my($Test, $Run, $TestReport, $PercentagesReport, $Plot, $HeatMap, $PlotRScript,
    $LinesOnTrainingFile, $nFeature, $Line, $ColumnsOnTrainingFile, $N,
@@ -45,19 +45,26 @@ my($Test, $Run, $TestReport, $PercentagesReport, $Plot, $HeatMap, $PlotRScript,
    $nConfusion, $ChiConfidence, $Round, $HeatMapRScript, $Matrix, $CombinedInformative,
    $TestInformative, $PresenceInformative, $InformativeFeatures, $InformativeLines,
    $CombinedReport, $TestReportLine, $CombinedReportLine, $BoleanInformative,
-   $TrainingHeader, $PresenceReportLine, $SummaryReport, $InformativeIndex,
+   $TrainingHeader, $PresenceReportLine, $SignificantReport, $InformativeIndex,
    $InformativeClass, $SuperHeatMapRScript, $Percentage, $LinesOnAnnotation,
    $SelectedClass, $PresentSummaryReport, $AbsentSummaryReport, $BoleanInformativePresent,
-   $BoleanInformativeAbsent, $TestInformativePresent, $TestInformativeAbsent);
-my($i, $j, $nPresent);
+   $BoleanInformativeAbsent, $TestInformativePresent, $TestInformativeAbsent,
+   $StatCondition, $ChiValue, $SignificantGene, $BoleanSignificantGene, $SignificantGeneData,
+   $Strain, $nStrains, $PresentHeatMap, $PresentHeatMapRScript, $AbsentHeatMap,
+   $AbsentHeatMapRScript, $CorrelatedHeatMap, $CorrelatedHeatMapRScript, $BoleanFile,
+   $HeatMapOut, $ConsensusSeq);
+my($i, $j, $nPresent, $nAbsent, $BoleanPresent, $BoleanAbsent, $nSignificant);
+my ($FILE, $PRESENT, $ABSENT, $CORRELATED, $BOLEAN);
 my(@TrainingFile, @TrainingFileFields, @TrainingMatrix, @MetaDataFile,
    @MetaDataFileFields, @MetaDataMatrix, @Classes, @Elements, @ChiConfidence,
    @ChiConfidences, @TestReport, @Combined, @TestReportData, @Presence,
-   @PresenceData, @Annotation, @AnnotationData, @Present, @Absent);
+   @PresenceData, @Annotation, @AnnotationData, @Present, @Absent, @InformativeFiles,
+   @Percentages, @ChiValues, @SignificantGenes, @Strains, @SignificantAbsent, @SignificantPresent);
 my(%ClassOfElement, %Elements, %pClass, %cpClass, %ClassHits,
    %HitsOfFeaturesInClass, %TotalFeatureHits, %Test,%PercentageOfFeatureInClass,
-   %Gene, %EC, %Function, %InformativeClass, %Color, %InformativePresentClassCount,
-   %InformativeAbsentClassCount, %ClassCount);
+   %Gene, %EC, %Function, %InformativeClass, %Color, %PresentClassCount,
+   %AbsentClassCount, %ClassCount, %PercentageOfHit, %Phenotypes, %Classes, %SignificantPresentClassCount,
+   %SignificantAbsentClassCount, %ChiValues);
 my(%a, %b, %c, %d);
 
 my $Report = [ ];
@@ -79,6 +86,8 @@ if ($Method eq "IG"){
    exit;
 }
 
+MakeDir($OutPath);
+
 # Loading the metadata file
 ($LinesOnMetaDataFile, $ColumnsOnMetaDataFile, @MetaDataMatrix) = Matrix($MetadataFile);
 
@@ -95,35 +104,30 @@ chomp $Column;
 $SelectedClass = $MetaDataMatrix[0]->[$Column];
 
 for ($i=1;$i<$LinesOnMetaDataFile;$i++){
+   $Strain = $MetaDataMatrix[$i]->[0];
 	$Class = $MetaDataMatrix[$i]->[$Column];
-        #$Class =~ s/\s//g;
-	push @Classes, $Class;
+   push @Classes, $Class;
+   push @Strains, $Strain;
+   push (@{$Classes{$Class}}, $Strain);
 }
-
 @Classes = uniq(@Classes);
 $nClasses = scalar@Classes;
+$nStrains = scalar@Strains;
         
-$TestReport               = $OutPath ."/". $SelectedClass ."_". $Test ."_". $Threshold . "CI" ."_". "Values" . ".csv";
-$PercentagesReport        = $OutPath ."/". $SelectedClass ."_". $Test ."_". $Threshold . "CI" ."_". "PresencePercentages" . ".csv";
-$CombinedReport           = $OutPath ."/". $SelectedClass ."_". $Test ."_". $Threshold . "CI" ."_". "ValuesAndPresencePercentages" . ".csv";
-        
-$TestInformative          = $OutPath ."/". $SelectedClass ."_". $Test ."_". $Threshold . "CI" ."_". "ValuesOfInformativeFeatures" . ".csv";
-$TestInformativePresent   = $OutPath ."/". $SelectedClass ."_". $Test ."_". $Threshold . "CI" ."_". "ValuesOfInformativePresentFeatures" . ".csv";
-$TestInformativeAbsent    = $OutPath ."/". $SelectedClass ."_". $Test ."_". $Threshold . "CI" ."_". "ValuesOfInformativeAbsentFeatures" . ".csv";
-$PresenceInformative      = $OutPath ."/". $SelectedClass ."_". $Test ."_". $Threshold . "CI" ."_". "PercentagesOfInformativeFeatures" . ".csv";
-$CombinedInformative      = $OutPath ."/". $SelectedClass ."_". $Test ."_". $Threshold . "CI" ."_". "ValuesAndPresencePercentagesOfInformativeFeatures" . ".csv";
-$BoleanInformativePresent = $OutPath ."/". $SelectedClass ."_". $Test ."_". $Threshold . "CI" ."_". "BoleanInformativePresentFeatures" . ".csv";
-$BoleanInformativeAbsent  = $OutPath ."/". $SelectedClass ."_". $Test ."_". $Threshold . "CI" ."_". "BoleanInformativeAbsentFeatures" . ".csv";
-        
-$SummaryReport            = $OutPath ."/". $SelectedClass ."_". $Test ."_". $Threshold . "CI" ."_". "AssociatedGenes" . ".csv";
-$PresentSummaryReport     = $OutPath ."/". $SelectedClass ."_". $Test ."_". $Threshold . "CI" ."_". "AssociatedPresentGenes" . ".csv";
-$AbsentSummaryReport      = $OutPath ."/". $SelectedClass ."_". $Test ."_". $Threshold . "CI" ."_". "AssociatedAbsentGenes" . ".csv";
-        
-$Plot                     = $OutPath ."/". $SelectedClass ."_". $Test ."_". $Threshold . "CI" ."_". "DotPlot" . ".pdf";
-$HeatMap                  = $OutPath ."/". $SelectedClass ."_". $Test ."_". $Threshold . "CI" ."_". "HeatMap" . ".pdf";
-$PlotRScript              = $OutPath ."/". $SelectedClass ."_". "DotPlotScript" . ".R";
-$HeatMapRScript           = $OutPath ."/". $SelectedClass ."_". "HeatMapScript" . ".R";
-$SuperHeatMapRScript      = $OutPath ."/". $SelectedClass ."_". "SuperHeatMapScript" . ".R";
+$TestReport               = $OutPath ."/". $ProjectName ."_". $SelectedClass ."_". $Test . $Threshold . "CI" ."_". "ValuesOfAllGenes" . ".csv";
+$SignificantReport        = $OutPath ."/". $ProjectName ."_". $SelectedClass ."_". $Test . $Threshold . "CI" ."_". "ValuesOfSignificantGenes" . ".csv";
+$BoleanInformative        = $OutPath ."/". $ProjectName ."_". $SelectedClass ."_". $Test . $Threshold . "CI" ."_". "BoleanSignificantGenes" . ".csv";
+$ConsensusSeq             = $OutPath ."/". $ProjectName ."_". $SelectedClass ."_". $Test . $Threshold . "CI" ."_". "SignificantGenes" . ".fasta";
+       
+$Plot                     = $OutPath ."/". $ProjectName ."_". $SelectedClass ."_". $Test . $Threshold . "CI" ."_". "ValuesOfAllGenes_DotPlot" . ".pdf";
+$PlotRScript              = $OutPath ."/". $ProjectName ."_". $SelectedClass ."_". $Test . $Threshold . "CI" ."_". "DotPlotScript" . ".R";
+$PresentHeatMapRScript    = $OutPath ."/". $ProjectName ."_". $SelectedClass ."_". $Test . $Threshold . "CI" ."_". "PresentHeatMapScript" . ".R";
+$AbsentHeatMapRScript     = $OutPath ."/". $ProjectName ."_". $SelectedClass ."_". $Test . $Threshold . "CI" ."_". "AbsentHeatMapScript" . ".R";
+$CorrelatedHeatMapRScript = $OutPath ."/". $ProjectName ."_". $SelectedClass ."_". $Test . $Threshold . "CI" ."_". "CorrelatedHeatMapScript" . ".R";
+$HeatMapOut               = $OutPath ."/". $ProjectName ."_". $SelectedClass ."_". $Test . $Threshold . "CI";
+
+
+@TrainingFile = ReadFile($TrainingFile);
         
 # Loading the bolean training file
 ($LinesOnTrainingFile, $ColumnsOnTrainingFile, @TrainingMatrix) = Matrix($TrainingFile);
@@ -134,12 +138,9 @@ $TrainingHeader = join ',', @{$TrainingMatrix[0]} [0..$N];
 #chop $TrainingHeader;
 #chop $TrainingHeader;
         
-open (BOLEANPRESENT, ">$BoleanInformativePresent");
-open (BOLEANABSENT, ">$BoleanInformativeAbsent");
-   print BOLEANPRESENT "$TrainingHeader\n";
-   print BOLEANABSENT "$TrainingHeader\n";
-close BOLEANPRESENT;
-close BOLEANABSENT;
+open (BOLEANINFORMATIVE, ">$BoleanInformative");
+   print BOLEANINFORMATIVE "$TrainingHeader\n";
+close BOLEANINFORMATIVE;
         
 for ($i=0;$i<$nClasses;$i++){
    for ($j=1;$j<$ColumnsOnTrainingFile;$j++){
@@ -164,13 +165,13 @@ for ($i=1; $i<$LinesOnTrainingFile; $i++){
    }
 }
 
-#Hits of each class
+#Hits on each class
 foreach $Class(@Classes){
    for ($i=1;$i<$ColumnsOnTrainingFile; $i++){
       $Element = "$TrainingMatrix[0][$i]";
       if ($ClassOfElement{$Element} eq $Class){
          for ($j=1;$j<$LinesOnTrainingFile;$j++){
-            $ClassHits{$Class} += $TrainingMatrix[$j][$i]+$PsCounts;  # <- Total of hits in class
+            $ClassHits{$Class} += $TrainingMatrix[$j][$i];  # <- Total of hits in class
          }
       }
    }
@@ -183,12 +184,13 @@ foreach $Class(@Classes){
       $TotalFeatureHits{$Feature} = 0;
       for ($j=1;$j<$ColumnsOnTrainingFile; $j++){         
          $Element = $TrainingMatrix[0][$j];
-         $TotalFeatureHits{$Feature} += $TrainingMatrix[$i][$j]+$PsCounts; # <- Total Feature Hits
+         $TotalFeatureHits{$Feature} += $TrainingMatrix[$i][$j]; # <- Total Feature Hits
          if ($ClassOfElement{$Element} eq $Class){
-            $HitsOfFeaturesInClass{$Feature}{$Class} += $TrainingMatrix[$i][$j]+$PsCounts; # <- Total Feature Hits in Class
+            $HitsOfFeaturesInClass{$Feature}{$Class} += $TrainingMatrix[$i][$j]; # <- Total Feature Hits in Class
          }
       }
-         $PercentageOfFeatureInClass{$Feature}{$Class} = ($HitsOfFeaturesInClass{$Feature}{$Class})/($Elements{$Class})*100; # <- Percentage of Feature Hits in Class
+      $PercentageOfHit{$Feature} = ($TotalFeatureHits{$Feature}/$N)*100;
+      $PercentageOfFeatureInClass{$Feature}{$Class} = ($HitsOfFeaturesInClass{$Feature}{$Class})/($Elements{$Class})*100; # <- Percentage of Feature Hits in Class
    }
 }
 
@@ -232,51 +234,11 @@ for ($i=0; $i<$nClasses; $i++){
    }
    $iClass++;
 }
-        
-# Building output file
-open (FILE, ">$TestReport");
-open (PERCENTAGES, ">$PercentagesReport");
-   for ($i=0;$i<$LinesOnTrainingFile;$i++){
-      for ($j=0;$j<$nClasses+1;$j++){
-         if($j < $nClasses){
-            print FILE $Report -> [$i][$j], ",";
-            print PERCENTAGES $Percentages -> [$i][$j], ",";
-         }elsif($j == $nClasses){
-            print FILE $Report -> [$i][$j];
-            print PERCENTAGES $Percentages -> [$i][$j];
-         }
-      }
-      print FILE "\n";
-      print PERCENTAGES "\n";
-   }
-close FILE;
-close PERCENTAGES;
-        
-for ($i=0;$i<$LinesOnTrainingFile;$i++){
-   for ($j=0;$j<$nClasses*2+1;$j++){
-      if ($j<$nClasses+1){
-         $Combined -> [$i][$j] = $Report -> [$i][$j];
-      }else{
-         $Combined -> [$i][$j] = $Percentages -> [$i][$j-$nClasses];
-      }
-   }
-}
-        
-open (FILE, ">$CombinedReport");
-for ($i=0;$i<$LinesOnTrainingFile;$i++){
-   for ($j=0;$j<$nClasses*2+1;$j++){
-      print FILE $Combined -> [$i][$j], ",";
-   }
-   print FILE "\n";
-}
-close FILE;
-        
-@TestReport = ReadFile($TestReport);
-@Presence   = ReadFile($PercentagesReport);
-@Combined   = ReadFile($CombinedReport);
+
+print "\nBuilding OutPut Files...";
 @Annotation = ReadFile($AnnotatedPresenceAbsence);
 $LinesOnAnnotation = scalar@Annotation;
-        
+
 for ($i=1;$i<$LinesOnAnnotation;$i++){
    @AnnotationData = split(",",$Annotation[$i]);
    chomp@AnnotationData;
@@ -285,308 +247,433 @@ for ($i=1;$i<$LinesOnAnnotation;$i++){
    $Gene{$Feature}     = $AnnotationData[1];
    $EC{$Feature}       = $AnnotationData[2];
    $Function{$Feature} = $AnnotationData[3];
+   $Function{$Feature} =~ s/\s//g;
 }
-        
+
+open (TEST, ">$TestReport");
 for ($i=0;$i<$LinesOnTrainingFile;$i++){
-   $TestReportLine     = $TestReport[$i];
-   $PresenceReportLine = $Presence[$i];
-   $CombinedReportLine = $Combined[$i];
-                
-   @PresenceData = split(",",$PresenceReportLine);
-   shift@PresenceData;
-                
-   if ($i == 0){
-      open (CHI, ">$TestInformative");
-      open (CHIPRESENT, ">$TestInformativePresent");
-      open (CHIABSENT, ">$TestInformativeAbsent");
-      open (PRESENCE, ">$PresenceInformative");
-      open (COMBINED, ">$CombinedInformative");
-      open (PRESENT, ">$PresentSummaryReport");
-      open (ABSENT, ">$AbsentSummaryReport");
-         print CHIPRESENT $TestReportLine, "\n";
-         print CHIABSENT $TestReportLine, "\n";
-         print CHI $TestReportLine, "\n";
-         print PRESENCE $PresenceReportLine, "\n";
-         print COMBINED $CombinedReportLine, "\n";
-         print PRESENT "ORF,Gene,EC_Number,Product,";
-         print ABSENT "ORF,Gene,EC_Number,Product,";
+      if($i==0){
+         print TEST "ORF,Gene,EC_Number,Initial_Annotation,All(%),";
          foreach $Class(@Classes){
-            #chop$Class;
-            print PRESENT "$Class(%),";
-            print ABSENT "$Class(%),";
+            print TEST "$Class(%),";
          }
-         print PRESENT "Represented_Class,Statistical_Prediction\n";
-         print ABSENT "Represented_Class,Statistical_Prediction\n";
-      close CHIPRESENT;
-      close CHIABSENT;
-      close PRESENCE;
-      close COMBINED;
-      close PRESENT;
-      close ABSENT;
-      close CHI;
-   }else{
-      @TestReportData = split(",",$TestReportLine);
-      $Feature = $TestReportData[0];
-      chomp$Feature;
-      shift@TestReportData;
-                        
-      if ($Method eq "X2"){
-         if ( any { $_ > $Threshold} @TestReportData){
-            open (CHI, ">>$TestInformative");                     
-            open (PRESENCE, ">>$PresenceInformative");
-            open (COMBINED, ">>$CombinedInformative");
-               print CHI $TestReportLine, "\n";
-               print PRESENCE $PresenceReportLine, "\n";
-               print COMBINED $CombinedReportLine, "\n";
-            close PRESENCE;
-            close COMBINED;
-            close CHI;
-                                        
-            $InformativeIndex = first_index{$_ eq max@TestReportData} @TestReportData;
-            $InformativeClass = $Classes[$InformativeIndex];
-            $InformativeClass{$Feature} = $InformativeClass;
-            #open (SUM, ">>$SummaryReport");
-            open (PRESENT, ">>$PresentSummaryReport");
-            open (ABSENT, ">>$AbsentSummaryReport");
-            $Function{$Feature} =~ s/\s//g;
-            
-            if ($PresenceData[$InformativeIndex] == max@PresenceData){
-               push @Present, "$Feature";
-               $InformativePresentClassCount{$Classes[$InformativeIndex]} += 1; 
+         foreach $Class(@Classes){
+            print TEST "$Class,";
+         }
+         print TEST "Represented_Class,Statistical_Prediction\n";
+         
+      }else{
+         $Feature = $TrainingMatrix[$i][0];
+         
+         print TEST "$Feature, $Gene{$Feature},$EC{$Feature},$Function{$Feature},$PercentageOfHit{$Feature},";
 
-               print PRESENT "$Feature,$Gene{$Feature},$EC{$Feature},$Function{$Feature},";
-               foreach $Percentage(@PresenceData){
-                  print PRESENT "$Percentage,";
+         @Percentages = ();
+         @ChiValues = ();
+         for ($j=0;$j<$nClasses*2+1;$j++){ 
+            if ($j<$nClasses+1){
+               if ($j>0){
+                  $Percentage = $Percentages -> [$i][$j];
+                  push @Percentages, "$Percentage";
+               
+                  print TEST "$Percentage,";
                }
-               print PRESENT "$Classes[$InformativeIndex],Present\n";
-               
-               open (CHIPRESENT, ">>$TestInformativePresent");
-                  print CHIPRESENT $TestReportLine, "\n";
-               close CHIPRESENT;
-               
-               open (BOLEAN, ">>$BoleanInformativePresent");
-                  my $InformativeFeature = `grep -w $Feature $TrainingFile`;
-                  chop $InformativeFeature;
-                  chop $InformativeFeature;
-                  print BOLEAN $InformativeFeature, "\n";
-               close BOLEAN;
-               
             }else{
-               push @Absent, "$Feature";
-               $InformativeAbsentClassCount{$Classes[$InformativeIndex]} += 1; 
-               #print SUM "$Feature,$Classes[$InformativeIndex],$PresenceData[$InformativeIndex],Absent\n";                                 
-               print ABSENT "$Feature,$Gene{$Feature},$EC{$Feature},$Function{$Feature},";
-               foreach $Percentage(@PresenceData){
-                  print ABSENT "$Percentage,";
-               }
-               print ABSENT "$Classes[$InformativeIndex],Absent\n";
-               
-               open (CHIABSENT, ">>$TestInformativeAbsent");
-                  print CHIABSENT $TestReportLine, "\n";
-               close CHIABSENT;
-               
-               open (BOLEAN, ">>$BoleanInformativeAbsent");
-                  my $InformativeFeature = `grep -w $Feature $TrainingFile`;
-                  chop $InformativeFeature;
-                  chop $InformativeFeature;
-                  print BOLEAN $InformativeFeature, "\n";
-               close BOLEAN;
-               
+               $ChiValue = $Report -> [$i][$j-$nClasses];
+               push @ChiValues, "$ChiValue";
+               print TEST "$ChiValue,";
             }
-            close PRESENT;
-            close ABSENT;
          }
-      }elsif($Method eq "LO"){
-         if ( any { $_ > "3" or $_ < "-3"} @TestReportData){
-            open (LO, ">>$TestInformative");
-            open (PRESENCE, ">>$PresenceInformative");
-            open (COMBINED, ">>$CombinedInformative");
-               print LO $TestReportLine, "\n";
-               print PRESENCE $PresenceReportLine, "\n";
-               print COMBINED $CombinedReportLine, "\n";
-            close LO;
-            close PRESENCE;
-            close COMBINED;
-                                           
-            open (BOLEAN, ">>$BoleanInformative");
-               my $InformativeFeature = `grep -w $Feature $TrainingFile`;
-               chop $InformativeFeature;
-               chop $InformativeFeature;
-               print BOLEAN $InformativeFeature, "\n";
-            close BOLEAN;
+         if ( any { $_ > $Threshold} @ChiValues){
+            push @SignificantGenes, "$Feature";
+            foreach $ChiValue(@ChiValues){
+               push (@{$ChiValues{$Feature}}, $ChiValue);
+            }
+         }        
+         
+         $InformativeIndex = first_index{$_ eq max@ChiValues} @ChiValues;
+         $InformativeClass{$Feature} = $Classes[$InformativeIndex];
+         if ($Percentages[$InformativeIndex] == max@Percentages){
+            $StatCondition = "Mostly Present";
+            push @Present, $Feature;
+            $PresentClassCount{$InformativeClass{$Feature}} += 1;
+         }else{
+            $StatCondition = "Mostly Absent";
+            push @Absent, $Feature;
+            $AbsentClassCount{$InformativeClass{$Feature}} += 1;
          }
-      }       
-   }    
+         print TEST "$InformativeClass{$Feature},$StatCondition\n";
+      }
 }
-
+close TEST;
 $nPresent = scalar@Present;
+$nAbsent = scalar@Absent;
+$nSignificant = scalar@SignificantGenes;
+
+@TestReport = ReadFile($TestReport);
+
+open (BOLEAN, ">$BoleanInformative");
+      print BOLEAN $TrainingFile[0], "\n";
+close BOLEAN;
+
+    
+open (SIGNIFICANT, ">$SignificantReport");
+print SIGNIFICANT $TestReport[0], "\n";
+close SIGNIFICANT;
+   
+foreach $SignificantGene(@SignificantGenes){
+   $BoleanSignificantGene = `grep -w $SignificantGene $TrainingFile`;
+   $SignificantGeneData = `grep -w $SignificantGene $TestReport`;   
+   open (BOLEAN, ">>$BoleanInformative");
+      print BOLEAN $BoleanSignificantGene;
+   close BOLEAN;
+   
+   if (any{ $_ eq $SignificantGene} @Present){
+      push @SignificantPresent, $SignificantGene;
+      $SignificantPresentClassCount{$InformativeClass{$SignificantGene}} += 1;
+   }elsif(any{ $_ eq $SignificantGene} @Absent){
+      push @SignificantAbsent, $SignificantGene;
+      $SignificantAbsentClassCount{$InformativeClass{$SignificantGene}} += 1;
+   }
+   
+   open (SIGNIFICANT, ">>$SignificantReport");
+      print SIGNIFICANT $SignificantGeneData;
+   close SIGNIFICANT;
+}
+print "Done!";
+
+#system("perl $ConsensusScript $BoleanInformative $ConsensusSeq");
         
-        # Building dot plot
-        print "\n Building Plots...";
-        chdir($OutPath);
+# Building dot plot
+print "\nPlotting Chi values...";
+chdir($OutPath);
         
-        # Dot plot all clases
-        if ($DotPlot eq "AllClasses"){
-                open(RSCRIPT, ">$PlotRScript");
-                        print RSCRIPT 'library(ggplot2)' . "\n";
-                        print RSCRIPT "df <- read.csv(\"$TestReport\")" . "\n";
-                        print RSCRIPT 'ggplot(df, aes(Feature))';
-                        foreach $Class(@Classes){
-                                print RSCRIPT "+ geom_point(aes(y=$Class,color=\"$Class\"))";
-                        }
-                        if($Method eq "X2"){
-                                @ChiConfidences = (0.9,0.95,0.995,0.999);
-                                foreach $ChiConfidence(@ChiConfidences){
-                                        print RSCRIPT "+ geom_hline(aes(yintercept = qchisq($ChiConfidence, df=$nClasses-1), linetype=\"$ChiConfidence\"))";
-                                }
-                        }
-                        print RSCRIPT "+ labs(x=\"Features\", y=\"Chi Values\", title= \"$Test\", color=\"Class\", linetype=\"Confidence Intervals\")";
-                        if($N > 100){
-                                print RSCRIPT '+ theme(axis.text.x = element_text(angle = 90, size=4, hjust = 1))' . "\n";
-                        }
-                        print RSCRIPT "\n";
-                        print RSCRIPT "ggsave(\"$Plot\")" . "\n";
-                        
-                close RSCRIPT;
-                system ("R CMD BATCH $PlotRScript");
-                system ("rm $PlotRScript");
-        }
+# Dot plot all clases
+if ($DotPlot eq "AllClasses"){
+   open(RSCRIPT, ">$PlotRScript");
+      print RSCRIPT 'library(ggplot2)' . "\n";
+      print RSCRIPT "df <- read.csv(\"$TestReport\")" . "\n";
+      print RSCRIPT 'ggplot(df, aes(ORF))';
+      foreach $Class(@Classes){
+         print RSCRIPT "+ geom_point(aes(y=$Class,color=\"$Class\"))";
+      }
+      if($Method eq "X2"){
+         @ChiConfidences = (0.9,0.95,0.995,0.999);
+         foreach $ChiConfidence(@ChiConfidences){
+            print RSCRIPT "+ geom_hline(aes(yintercept = qchisq($ChiConfidence, df=$nClasses-1), linetype=\"$ChiConfidence\"))";
+            print RSCRIPT "+ geom_text(aes(0, qchisq($ChiConfidence, df=$nClasses-1), label= round(qchisq($ChiConfidence, df=$nClasses-1),digits=2)), size=2, vjust=-0.25, hjust=0, nudge_x = 1)";
+         }
+      }
+      print RSCRIPT "+ labs(x=\"Features\", y=\"Chi Values\", title= \"$Test\", color=\"Class\", linetype=\"Confidence Intervals\")";
+      if($N > 100){
+         print RSCRIPT '+ theme(axis.text.x = element_text(angle = 90, size=4, hjust = 1))' . "\n";
+      }
+      print RSCRIPT "\n";
+      print RSCRIPT "ggsave(\"$Plot\")" . "\n";                   
+   close RSCRIPT;
+   
+   system ("R CMD BATCH $PlotRScript");
+   #system ("rm $PlotRScript $OutPath/*.Rout $OutPath/Rplots.pdf");
+}
         
-        # Dot plot for class
-        if ($DotPlot eq "ForClass"){
-                foreach $Class(@Classes){
-                        my $ClassPlotRScript = $OutPath ."/". $Class . "_DotPlotScript.R";
-                        my $ClassPlot = $OutPath ."/". $Test ."_". $Class . "_DotPlot.pdf";
-                        open(FILE, ">$ClassPlotRScript");
-                                print FILE 'library(ggplot2)' . "\n";
-                                print FILE "df <- read.csv(\"$TestReport\")" . "\n";
-                                print FILE 'ggplot(df, aes(Feature))';
-                                print FILE "+ geom_point(aes(y=$Class,color=\"$Class\"))";
-                                if($Method eq "X2"){
-                                        @ChiConfidences = (0.9,0.95,0.975,0.99,0.999);
-                                        foreach $ChiConfidence(@ChiConfidences){
-                                                print FILE "+ geom_hline(aes(yintercept = qchisq($ChiConfidence, df=$nClasses-1), linetype=\"$ChiConfidence\"))";
-                                        }
-                                }
-                                print FILE "+ labs(x=\"Features\", y=\"Chi_Values\", title= \"$Test\", color=\"Class\", linetype=\"Confidence Intervals\")";
-                                if($N > 100){
-                                        print FILE '+ theme(axis.text.x = element_text(angle = 90, size=4, hjust = 1))' . "\n";
-                                }
-                                print FILE "\n";
-                                print FILE "ggsave(\"$ClassPlot\")" . "\n";
-                                
-                        close FILE;
-                        system ("R CMD BATCH $ClassPlotRScript");
-                        system ("rm $ClassPlotRScript");
+# Dot plot for class
+   if ($DotPlot eq "ForClass"){
+      foreach $Class(@Classes){
+         my $ClassPlotRScript = $OutPath ."/". $Class . "_DotPlotScript.R";
+         my $ClassPlot = $OutPath ."/". $Test ."_". $Class . "_DotPlot.pdf";
+         open(FILE, ">$ClassPlotRScript");
+            print FILE 'library(ggplot2)' . "\n";
+            print FILE "df <- read.csv(\"$TestReport\")" . "\n";
+            print FILE 'ggplot(df, aes(Feature))';
+            print FILE "+ geom_point(aes(y=$Class,color=\"$Class\"))";
+            if($Method eq "X2"){
+               @ChiConfidences = (0.9,0.95,0.975,0.99,0.999);
+               foreach $ChiConfidence(@ChiConfidences){
+                  print FILE "+ geom_hline(aes(yintercept = qchisq($ChiConfidence, df=$nClasses-1), linetype=\"$ChiConfidence\"))";
+               }
+            }
+            print FILE "+ labs(x=\"Features\", y=\"Chi_Values\", title= \"$Test\", color=\"Class\", linetype=\"Confidence Intervals\")";
+            if($N > 100){
+               print FILE '+ theme(axis.text.x = element_text(angle = 90, size=4, hjust = 1))' . "\n";
+            }
+            print FILE "\n";
+            print FILE "ggsave(\"$ClassPlot\")" . "\n";        
+         close FILE;
+         
+         system ("R CMD BATCH $ClassPlotRScript");
+         system ("rm -r $ClassPlotRScript $OutPath/*.Rout $OutPath/Rplots.pdf");
                 }
         }
+print "Done!\n";
+
+#HeatMaps
+
+my ($File, $SideColor, $Title, $FontSize, $Out);
+my ($n);
+my (@GenePresence);
+my (%ClassCountOfSignificants);
+
+open ($PRESENT, ">$PresentHeatMapRScript");
+open ($ABSENT, ">$AbsentHeatMapRScript");
+open($CORRELATED, ">$CorrelatedHeatMapRScript");
+
+#my $t = scalar@{$Phenotypes{$Phenotype}};
+#Random Color
+#my @colors = map { 
+#  join "", map { sprintf "%02x", rand(255) } (0..2) 
+#} (0..63);
+#
+#$Color{$Phenotype} =
+
+#################################################################################
+$Color{None_Atrophic_Gastritis} = "darkgreen";
+$Color{Atrophic_Gastritis} = "gold";
+$Color{Intestinal_Metaplasia} = "orange";
+$Color{Gastric_Cancer} = "red";
+$Color{LatinAmerica} = "darkgreen";
+$Color{Mexico} = "darkgreen";
+#################################################################################
+
+#################################################################################
+my ($Country, $Population, $nCountries, $nPopulations, $Color1, $Color2, $Elements,
+    $Color);
+my (@Countries, @Populations);
+my (%Countries, %Populations);
+for ($i=1;$i<$LinesOnMetaDataFile;$i++){
+   $Strain = $MetaDataMatrix[$i][0];
+   $Country = $MetaDataMatrix[$i][3];
+   $Population = $MetaDataMatrix[$i][5];
+   push @Countries, $Country;
+   push @Populations, $Population;
+   push (@{$Countries{$Country}}, $Strain);
+   push (@{$Populations{$Population}}, $Strain);
+}
+@Countries = uniq(@Countries);
+@Populations = uniq(@Populations);
+$nCountries = scalar@Countries;
+$nPopulations = scalar@Populations;
+#################################################################################
+
+#################################################################################
+#for ($i=0; $i<$n; $i++){
+#   $Feature = $GenePresence[$i];
+#   print $FILE "$Feature <- c(";
+#   for ($j=0; $j<scalar@{$ChiValues{$Feature}}-1; $j++){
+#      print $FILE "${$ChiValues{$Feature}}[$j],";
+#   }
+#   print $FILE "${$ChiValues{$Feature}}[$#{$ChiValues{$Feature}}])" . "\n";
+#}
+#
+#foreach my $Country(keys %Countries){
+#print $CORRELATED "$Country <- c(";
+#   foreach (@{$Countries{$Country}}){
+#      print $CORRELATED "\"$_\",";
+#   }
+#   print $CORRELATED "\"\")" . "\n";
+#}
+#foreach my $Population(keys %Populations){
+#print $CORRELATED "$Population <- c(";
+#   foreach (@{$Populations{$Population}}){
+#      print $CORRELATED "\"$_\",";
+#   }
+#   print $CORRELATED "\"\")" . "\n";
+#}
+#################################################################################
+    
+for $FILE ($PRESENT, $ABSENT, $CORRELATED){
+   print $FILE "\n";
+   print $FILE "library(gplots)" . "\n";
+   print $FILE "library(RColorBrewer)" . "\n";
+
+   if($FILE eq $CORRELATED){
+      $Color = "red";
+      $Color1 = $Color;
+      $Color2 = "oldlace";
+      $n = $nStrains;
+      $Elements = "Strains";
+      $SideColor = 'ColSideColor=ClassesCol';
+      $BoleanFile = $BoleanInformative;
+      $Title = "$ProjectName\'s Phylogeny
+      Based on the Presence/Absence of $nSignificant
+      Significant $SelectedClass Associated Genes ($Test,CI=$Threshold)";
+      $Out = $HeatMapOut . "_Correlated.pdf";
+      print $FILE "pdf(\"$Out\",height=11,width=11)" . "\n";
+      
+      print $FILE 'Strains <- c(';
+      for ($i=0; $i<$nStrains-1;$i++){
+         print $FILE "\"$Strains[$i]\",";
+      }
+      print $FILE "\"$Strains[$#Strains]\")" . "\n";
+
+      foreach my $Class(@Classes){
+         print $FILE "$Class <- c(";
+         for ($i=0; $i<scalar@{$Classes{$Class}}-1; $i++){
+            print $FILE "\"${$Classes{$Class}}[$i]\",";
+         }
+         print $FILE "\"${$Classes{$Class}}[$#{$Classes{$Class}}]\")" . "\n";
+      }
+      
+      print $FILE "df <- read.csv(\"$BoleanFile\")" . "\n";
+      print $FILE 'rnames <- df[,1]' . "\n";
+      print $FILE "Matrix <- data.matrix(df[,2:ncol(df)])" . "\n";
+      print $FILE "rownames(Matrix) <- rnames" . "\n";
+      print $FILE "DisMatrix <- 1-cor(Matrix)" . "\n";
+      $Matrix ="DisMatrix";
+       
+   }else{
+      $Color1 = "oldlace";
+      $Elements = "Features";
+      $SideColor = 'RowSideColor=ClassesCol';
+      
+      if($FILE eq $ABSENT){
+         $Color = "blue";
+         $n = scalar@SignificantAbsent;
+         $Color2 = $Color;
+         $BoleanFile = $BoleanAbsent;
+         $Title = "$Test(CI=$Threshold) values of $n Mostly Absent
+         $SelectedClass Associated Genes on
+         $ProjectName Dataset";
+         @GenePresence = @SignificantAbsent;
+         %ClassCountOfSignificants = %SignificantAbsentClassCount;
+         $Out = $HeatMapOut . "_Mostly_Absent.pdf";
+
          
-        # Heat Map;
-        if ($HeatMapPlot eq "on"){
-                open(RSCRIPT, ">$HeatMapRScript");
-                        print RSCRIPT 'library(gplots)' . "\n";
-                        print RSCRIPT 'library(RColorBrewer)' . "\n"; 
+      }elsif($FILE eq $PRESENT){
+         $Color = "red";
+         $n = scalar@SignificantPresent;
+         $Color2 = $Color;
+         $BoleanFile = $BoleanPresent;
+         $Title = "$Test(CI=$Threshold) values of $n Mostly Present
+         $SelectedClass Associated Genes on
+         $ProjectName Dataset";
+         @GenePresence = @SignificantPresent;
+         %ClassCountOfSignificants = %SignificantPresentClassCount;
+         $Out = $HeatMapOut . "_Mostly_Present.pdf";
+      }
+      print $FILE "pdf(\"$Out\",height=9,width=9)" . "\n";
+      
+      $n = scalar@GenePresence;
+      
+      if($n < 50){
+         $FontSize = 1;
+      }elsif($n > 49 && $n < 100){
+         $FontSize = 0.8;
+      }elsif($n > 99 && $n < 150){
+         $FontSize = 0.5;
+      }elsif($n > 149){
+         $FontSize = 0.25;
+      }
+      
+      print $FILE 'Features <- c(';
+      for ($i=0; $i<$n-1;$i++){
+         print $FILE "\"$GenePresence[$i]\",";
+      }
+      print $FILE "\"$GenePresence[$#GenePresence]\")" . "\n";
+      foreach $Class(@Classes){
+         if($ClassCountOfSignificants{$Class}){
+            print $FILE "$Class <- c(";
+            $ClassCount{$Class} = ();
+            for ($i=0; $i<$n; $i++){
+               $Feature = $GenePresence[$i];   
+               if($InformativeClass{$Feature} eq $Class){
+                  $ClassCount{$Class} += 1;  
+                  if($ClassCount{$Class} < $ClassCountOfSignificants{$Class}){
+                     print $FILE "\"$Feature\",";
+                  }else{
+                     print $FILE "\"$Feature\")" . "\n";
+                  }
+               }
+            }
+         }
+      }
+      print $FILE "ORF <- c(";
+      for ($i=0; $i<scalar@Classes-1; $i++){
+         $Class = $Classes[$i];
+         print $FILE "\"$Class\",";
+      }
+      print $FILE "\"$Classes[$#Classes]\")" . "\n";
+      for ($i=0; $i<$n; $i++){
+         $Feature = $GenePresence[$i];
+         print $FILE "$Feature <- c(";
+         for ($j=0; $j<scalar@{$ChiValues{$Feature}}-1; $j++){
+            print $FILE "${$ChiValues{$Feature}}[$j],";
+         }
+         print $FILE "${$ChiValues{$Feature}}[$#{$ChiValues{$Feature}}])" . "\n";
+      }
+      print $FILE "df <- data.frame(";
+      for ($i=0; $i<$n-1; $i++){
+         $Feature = $GenePresence[$i];
+         print $FILE "$Feature,";
+      }
+      print $FILE "$GenePresence[$#GenePresence])" . "\n";
+      print $FILE 'rnames <- ORF' . "\n";
+      print $FILE "Matrix <- data.matrix(df)" . "\n";
+      print $FILE "rownames(Matrix) <- rnames" . "\n";
+      print $FILE "Matrix <- t(Matrix)" . "\n";
+      print $FILE "hc <- hclust(as.dist(1-cor(t(Matrix))))" . "\n";
+      $Matrix = "Matrix";
+   } 
+   print $FILE "ClassesCol <- rep(\"black\",$n)" . "\n";
+   
+   #foreach my $Class(@Classes){
+   #      print $FILE "$Class <- c(";
+   #      for ($i=0; $i<scalar@{$Classes{$Class}}-1; $i++){
+   #         print $FILE "\"${$Classes{$Class}}[$i]\",";
+   #      }
+   #      print $FILE "\"${$Classes{$Class}}[$#{$Classes{$Class}}]\")" . "\n";
+   #   }
+   
+   foreach my $Class(keys %Classes){
+      if ($Class){
+         print $FILE "ClassesCol[$Elements %in% $Class] <- \"$Color{$Class}\"" . "\n";
+      }
+   }
+   print $FILE "Colors <- colorRampPalette(c(\"$Color1\", \"$Color2\"))($n)" . "\n";
+   
+######################
+      #print $FILE "CountryCol <- rep(\"black\",$n)" . "\n";
+      #foreach my $Country(keys %Countries){
+      #   print $FILE "CountryCol[$Elements %in% $Country] <- \"$Color{$Country}\"" . "\n";
+      #}
+      #print $FILE "PopulationCol <- rep(\"black\",$n)" . "\n";
+      #foreach my $Population(keys %Populations){
+      #   print $FILE "ClassesCol[$Elements %in% $Population] <- \"$Color{$Population}\"" . "\n";
+      #}
+######################
+
+   print $FILE "heatmap.2($Matrix," . "\n";
+   print $FILE "$SideColor," ."\n";
+   print $FILE "main = (\"$Title\")," . "\n";
+   print $FILE "xlab = \"$SelectedClass\"," . "\n";
+   print $FILE 'key.title = NA,' . "\n";
+   print $FILE "key.xlab = \"$Test Values\"," . "\n";
+   print $FILE 'trace = "none",' . "\n";                          
+   print $FILE "tracecol = \"white\"," . "\n";
+   print $FILE 'dendrogram = "both",' ."\n";
+   
+   if ($FILE eq $CORRELATED){
+      print $FILE 'srtCol= 90,' ."\n";
+      print $FILE 'cexCol=0.6,' ."\n";
+      print $FILE 'cexRow=0.6,' ."\n";
+      print $FILE 'keysize=0.7,' ."\n";  
+   }else{
+      print $FILE "Rowv=as.dendrogram(hc)," . "\n";
+      print $FILE "ylab = \"Genomic Feature\"," . "\n";
+      print $FILE 'srtCol= 0,' ."\n";
+      print $FILE 'adjCol= c(0.5,1),' ."\n";
+      print $FILE 'adjRow= c(0.25,0.5),' ."\n";
+      print $FILE 'cexCol=1,' ."\n";
+      print $FILE "cexRow=$FontSize," ."\n";
+      print $FILE 'keysize=1,' ."\n";
+      print $FILE 'lhei=c(0.2,1),' ."\n";
+   }
+
+   print $FILE 'col=Colors)' . "\n";
                         
-                        print RSCRIPT 'Features <- c(';
-                        for( $i=0; $i<$nPresent-1; $i++){
-                           $Feature = $Present[$i];
-                              print RSCRIPT "\"$Feature\",";
-                        }
-                        print RSCRIPT "\"$Present[$#Present]\")" . "\n";
-                        
-                        foreach $Class(@Classes){
-                           print RSCRIPT "$Class <- c(";
-                           for ($i=0; $i<$nPresent; $i++){
-                              $Feature = $Present[$i];
-                              if($InformativeClass{$Feature} eq $Class){
-                                 $ClassCount{$Class} += 1;
-                                 
-                                 if($ClassCount{$Class} < $InformativePresentClassCount{$Class}){
-                                    print RSCRIPT "\"$Feature\",";
-                                 }else{
-                                    print RSCRIPT "\"$Feature\")" . "\n";
-                                 }
-                              }
-                           }
-                        }
-                        
-                        print RSCRIPT "ClassesCol <- rep(\"black\",$nPresent)" . "\n";
-                        
-                        ####################
-                        $Color{None_Atrophic_Gastritis} = "darkgreen";
-                        $Color{Atrophic_Gastritis} = "gold";
-                        $Color{Intestinal_Metaplasia} = "orange";
-                        $Color{Gastric_Cancer} = "red";
-                        ####################
-                        foreach $Class(@Classes){
-                           print RSCRIPT "ClassesCol[Features %in% $Class] <- \"$Color{$Class}\"" . "\n";
-                        }
-                        
-                        print RSCRIPT "pdf(\"$HeatMap\",height=9,width=7)" . "\n";
-                        
-                        #print RSCRIPT 'Colors <- colorRampPalette(c("red", "yellow", "green"))(n=100)' . "\n";
-                        #print RSCRIPT 'Colors <- colorRampPalette(c("oldlace", "blue"))(n=150)' . "\n";
-                        print RSCRIPT 'Colors <- colorRampPalette(c("oldlace", "red"))(n=150)' . "\n";
-                        
-                        $Matrix = "Matrix";
-                        print RSCRIPT "df <- read.csv(\"$TestInformativePresent\")" . "\n";
-                        print RSCRIPT 'rnames <- df[,1]' . "\n";
-                        print RSCRIPT "$Matrix <- data.matrix(df[,2:ncol(df)])" . "\n";
-                        print RSCRIPT "rownames($Matrix) <- rnames" . "\n";
-                        print RSCRIPT "hc <- hclust(as.dist(1-cor(t($Matrix))))" . "\n";
-                        
-                        print RSCRIPT "heatmap.2($Matrix," . "\n";
-                        print RSCRIPT "Rowv=as.dendrogram(hc)," . "\n";
-                        print RSCRIPT "main = \"$Test\"," . "\n";                        # Title
-                        print RSCRIPT 'key.title = NA,' . "\n";
-                        print RSCRIPT "key.xlab = \"$Test Values\"," . "\n";
-                        print RSCRIPT 'trace = "none",' . "\n";                          # Turns of trace lines in heat map
-                        print RSCRIPT 'tracecol = "red",' . "\n";
-                        print RSCRIPT 'srtCol= 0,' ."\n";
-                        print RSCRIPT 'adjCol= c (0.5,1),' ."\n";
-                        print RSCRIPT 'cexCol=0.8,' ."\n";
-                        print RSCRIPT 'lhei=c(0.2,1),' ."\n";                        
-                        
-                        #$Round = 5;
-                        #if ($Correlation eq "on"){
-                        #        print RSCRIPT 'xlab = "Class",' . "\n";
-                        #        print RSCRIPT 'ylab = "Class",' . "\n";
-                        #        print RSCRIPT "cellnote = round($Matrix,$Round)," . "\n"; # Shows data in cell
-                        #        print RSCRIPT 'srtRow= 90,' ."\n";
-                        #        print RSCRIPT 'adjRow= c (0.5,1),' ."\n";
-                        #        print RSCRIPT 'cexRow=0.5,' ."\n";
-                        #}else{
-                        #        print RSCRIPT 'xlab = "Class",' . "\n";
-                        #        print RSCRIPT 'ylab = "Feature",' . "\n";
-                        #        if ($nClasses < 11 && $nFeature < 101){
-                        #                print RSCRIPT "cellnote = round($Matrix,$Round)," . "\n"; # Shows data in cell
-                        #        }
-                        #}
-                        
-                        if ($Dendrogram eq "off"){
-                                print RSCRIPT 'dendrogram = "none",' ."\n";              # Hides dendrogram
-                        }elsif($Dendrogram eq "row"){
-                                print RSCRIPT 'dendrogram = "row",' ."\n";               # Shows dendrogram for rows
-                        }elsif($Dendrogram eq "column"){
-                                print RSCRIPT 'dendrogram = "column",' ."\n";            # Shows dendrogram for columns
-                        }elsif($Dendrogram eq "both"){
-                                print RSCRIPT 'dendrogram = "both",' ."\n";              # Shos dendrogram for rows and columns
-                        }
-                        
-                        print RSCRIPT 'RowSideColor=ClassesCol,' ."\n";
-                        #print RSCRIPT 'col=brewer.pal(4,"Blues"))' . "\n";               # Use defined palette
-                        print RSCRIPT 'col=Colors)' . "\n";
-                        
-                        print RSCRIPT 'dev.off()';
-                close RSCRIPT;
-                system ("R CMD BATCH $HeatMapRScript");
-                system ("rm $HeatMapRScript");
-        }
-           
-        system ("rm $OutPath/*.Rout $OutPath/Rplots.pdf");
-        
-        print "Done!\n\n";
-        
-        $TrainingFile = $BoleanInformative;
-        
+   print $FILE 'dev.off()';
+   close $FILE;
+}
+system ("R CMD BATCH $CorrelatedHeatMapRScript");
+system ("R CMD BATCH $PresentHeatMapRScript");
+system ("R CMD BATCH $AbsentHeatMapRScript");
+#system ("rm $OutPath/*.Rout $OutPath/*.R Rplots.pdf");
 exit;

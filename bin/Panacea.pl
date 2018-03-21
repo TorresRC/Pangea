@@ -88,12 +88,10 @@ if($Recovery == "0"){
 
 system("perl $GeneContentPlot $MainPath $ProjectName $List");
 
-if($Functions == "1"){
-        $Presence = $MainPath ."/". $ProjectName ."/". $ProjectName ."/". "_Presence_Absence.csv";
-        $Core     = $MainPath ."/". $ProjectName ."/". $ProjectName ."/". "_CoreGenome.csv";
-        system("perl $Functions $MainPath $ProjectName $AnnotationPath $Presence 1 1");
-        system("perl $Functions $MainPath $ProjectName $AnnotationPath $Core 0 1");
-}
+$Presence = $MainPath ."/". $ProjectName ."/". $ProjectName ."/". "_Presence_Absence.csv";
+$Core     = $MainPath ."/". $ProjectName ."/". $ProjectName ."/". "_CoreGenome.csv";
+system("perl $Functions $MainPath $ProjectName $AnnotationPath $Presence 1 1");
+system("perl $Functions $MainPath $ProjectName $AnnotationPath $Core 0 1");
 
 if($PanGenome){
         system("perl $ConsensusSeq $MainPath $ProjectName 1 0");

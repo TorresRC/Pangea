@@ -6,7 +6,8 @@
 #e-mail:        torres.roberto.c@gmail.com                                      #
 #Date:          11 de octubre de 2017                                           #
 #################################################################################
-use strict; 
+use strict;
+use List::Util qw(sum);
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 use Routines;
@@ -43,7 +44,7 @@ print "\nLoading the Presence/Absence file...";
 ($LinesOnPresenceAbsence, $ColumnsOnPresenceAbsence, @PresenceAbsenceMatrix) = Matrix($PresenceAbsenceFile);
 print "Done!";
 
-print "\nProcessing";
+print "\nTransforming into binary data...";
 $BoleanTable -> [0][0] = $PresenceAbsenceMatrix[0][0];
 for ($i=0; $i<$LinesOnPresenceAbsence; $i++){
      $BoleanTable -> [$i][0] = $PresenceAbsenceMatrix[$i][0];
@@ -66,10 +67,10 @@ for ($i=1; $i<$LinesOnPresenceAbsence; $i++){
                $BoleanTable -> [$i][$j] = "0";
           }
      }
-     Progress($LinesOnPresenceAbsence,$i);
 }
+print "Done!";
 
-print "Writing file...";
+print "\nBuilding a Presence/Absence binary file for the entire Pan-Genome...";
 open (FILE, ">$BoleanReport");
 for ($i=0; $i<$LinesOnPresenceAbsence; $i++){
      for ($j=0; $j<$ColumnsOnPresenceAbsence; $j++){
@@ -80,12 +81,11 @@ for ($i=0; $i<$LinesOnPresenceAbsence; $i++){
         }
      }
      print FILE "\n";
-     Progress($LinesOnPresenceAbsence,$i);
 }
 close FILE;
-print "Done!\n";
+print "Done!";
 
-print "\nWriting a bolean file with only the informative ORFs...";
+print "\nBuilding a Presence/Absence binary file for accessory genes...";
 my @BoleanReport = ReadFile($BoleanReport);  
 open (FILE,">$BoleanInformativeReport");
         print FILE "$BoleanReport[0]\n";
@@ -97,28 +97,22 @@ open (FILE,">$BoleanInformativeReport");
                 shift@Elements;
                 $nElements = scalar@Elements;
 
-                $Count = 0;
-                foreach my $Element(@Elements){
-                        if ($Element ne "0"){
-                                $Count++;
-                        }
-                }
-                if($Count < $nElements && $Count > 1){
+                if(sum(@Elements) < $nElements && sum(@Elements) > 1){
                         print FILE "$Line\n";   
                 }
         }
 close FILE;
-print "Done!\n";
-
+print "Done!";
 
 #Heatmap
+print "\nGenerating a plot for the Present/Absent Pan-Genome genes...";
 open(RSCRIPT, ">$HeatMapRScript");
         print RSCRIPT 'library(gplots)' . "\n";
         print RSCRIPT 'library(RColorBrewer)' . "\n";
         
         print RSCRIPT "pdf(\"$HeatMap\", height=12, width=10)" . "\n";
         
-        print RSCRIPT 'Colors <- colorRampPalette(c("beige","red"))(n=100)' . "\n";
+        print RSCRIPT 'Colors <- colorRampPalette(c("beige","red"))(n=2)' . "\n";
         
         $Matrix = "Matrix";
         print RSCRIPT "df <- read.csv(\"$BoleanReport\")" . "\n";
@@ -127,18 +121,22 @@ open(RSCRIPT, ">$HeatMapRScript");
         print RSCRIPT "rownames($Matrix) <- rnames" . "\n";
         print RSCRIPT "heatmap.2($Matrix," . "\n";
         print RSCRIPT "main = \"Pan-Genome of $ProjectName\"," . "\n";   
-        print RSCRIPT 'density.info="none",' . "\n";                     
+        print RSCRIPT 'density.info="none",' . "\n";
+        print RSCRIPT 'key = FALSE,' . "\n"; 
         print RSCRIPT 'trace = "none",' . "\n";                          
-        print RSCRIPT 'xlab = "Class",' . "\n";
+        print RSCRIPT 'xlab = "Genomes",' . "\n";
         print RSCRIPT 'ylab = "Genes",' . "\n";    
         print RSCRIPT 'Rowv = "NA",' . "\n";                             
-        print RSCRIPT "Colv = as.dendrogram(hclust(as.dist(1-cor(t($Matrix)))))," . "\n";
-        print RSCRIPT 'dendrogram = "column",' ."\n";                    
+        print RSCRIPT 'Colv = "NA",' . "\n";
+        print RSCRIPT 'dendrogram = "none",' ."\n";                    
         
+        print RSCRIPT "labCol= c(1:ncol($Matrix))," ."\n";
+        print RSCRIPT "labRow= c(1:nrow($Matrix))," ."\n";
         print RSCRIPT 'adjCol= c(1,1),' ."\n";
         print RSCRIPT 'cexCol=0.3,' ."\n";                               
-        print RSCRIPT 'cexRow=0.3,' ."\n";                               
-        print RSCRIPT 'lhei=c(0.2,1),' ."\n";
+        print RSCRIPT 'cexRow=0.3,' ."\n";
+        print RSCRIPT 'lwid=c(1,6),' ."\n";
+        print RSCRIPT 'lhei=c(1.5,10),' ."\n";
         print RSCRIPT 'offsetRow=0,' ."\n";
         print RSCRIPT 'offsetCol=0,' ."\n";
         print RSCRIPT 'col = Colors)' . "\n";                            
@@ -148,7 +146,6 @@ close RSCRIPT;
 system ("R CMD BATCH $HeatMapRScript");
 system ("rm $HeatMapRScript");
         
-system ("rm $Project/*.Rout $Project/Rplots.pdf");
+system ("rm *.Rout");
 print "Done!\n\n";
-
 exit;

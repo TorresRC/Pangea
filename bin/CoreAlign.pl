@@ -38,19 +38,8 @@ $AlignedCoresPath = $Project ."/". "CoreSequences";
 $SeqExt = ".fasta";
 $AlnExt = ".aln" . $SeqExt;
 
-#@CoreGenome = ReadFile($CoreGenome);
-#$LinesOnCoreGenome = scalar@CoreGenome;
-# 
 #print "Loading the Core-Genome table:\n";
-#for ($i=0; $i<$LinesOnCoreGenome; $i++){
-#     $Line = $CoreGenome[$i];
-#     @CoreGenomeFields = split(",",$Line);
-#     $ColumnsOnCoreGenome = scalar@CoreGenomeFields;
-#     push (@CoreGenomeArray, [@CoreGenomeFields]);
-#     Progress($LinesOnCoreGenome, $i);
-#}
-
-($LinesOnCoregenome, $ColumnsOnCoreGenome, @CoreGenomeArray) = Matrix($CoreGenome);
+($LinesOnCoreGenome, $ColumnsOnCoreGenome, @CoreGenomeArray) = Matrix($CoreGenome);
 
 print "Buiding aligned Core-Genomes fasta sequences:\n";
 for ($i=1; $i<$LinesOnCoreGenome; $i++){
@@ -60,7 +49,7 @@ for ($i=1; $i<$LinesOnCoreGenome; $i++){
         chomp $ORFAln;
         %Seq = ();
         
-        open (FILE, $ORFAln) or die ("Could not open $ORFAln file. On $0 line 63.");
+        open (FILE, $ORFAln) or die ("Could not open $ORFAln file. On $0 line 52.");
         while (<FILE>){
                 next unless /\S/;
                 next if /^\s*\#/;
