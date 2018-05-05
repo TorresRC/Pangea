@@ -185,9 +185,6 @@ for ($i=$Progress; $i<$TotalQry; $i++){
                         @BestHitArray = split(",",$BestHit);
                         $Entry = $BestHitArray[0];
                         
-#print "->$Entry\<-n";
-#exit;
-                        
                         #$Strand = $BestHitArray[8];
                         $QryORFSeq = $ORFpath ."/". $QryGenomeName ."-". $Entry . $SeqExt;
                         
