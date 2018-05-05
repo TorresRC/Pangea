@@ -58,6 +58,7 @@ for ($i=1; $i<$LinesOnPresenceAbsence; $i++){
      for ($j=1; $j<$ColumnsOnPresenceAbsence; $j++){
           if (defined $PresenceAbsenceMatrix[$i]->[$j]){          
                $Field = $PresenceAbsenceMatrix[$i]->[$j];
+               $Field =~s/\W//g;
                if ($Field ne ""){   
                     $BoleanTable -> [$i][$j] = "1";
                }else{
@@ -146,6 +147,6 @@ close RSCRIPT;
 system ("R CMD BATCH $HeatMapRScript");
 system ("rm $HeatMapRScript");
         
-system ("rm *.Rout");
+#system ("rm *.Rout");
 print "Done!\n\n";
 exit;
