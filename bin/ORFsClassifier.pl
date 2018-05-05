@@ -52,14 +52,15 @@ my($Test, $Run, $TestReport, $PercentagesReport, $Plot, $HeatMap, $PlotRScript,
    $StatCondition, $ChiValue, $SignificantGene, $BoleanSignificantGene, $SignificantGeneData,
    $Strain, $nStrains, $PresentHeatMap, $PresentHeatMapRScript, $AbsentHeatMap,
    $AbsentHeatMapRScript, $CorrelatedHeatMap, $CorrelatedHeatMapRScript, $BoleanFile,
-   $HeatMapOut, $ConsensusSeq);
+   $HeatMapOut, $ConsensusSeq, $Class1, $Class2, $Class3);
 my($i, $j, $nPresent, $nAbsent, $BoleanPresent, $BoleanAbsent, $nSignificant);
 my ($FILE, $PRESENT, $ABSENT, $CORRELATED, $BOLEAN);
 my(@TrainingFile, @TrainingFileFields, @TrainingMatrix, @MetaDataFile,
    @MetaDataFileFields, @MetaDataMatrix, @Classes, @Elements, @ChiConfidence,
    @ChiConfidences, @TestReport, @Combined, @TestReportData, @Presence,
    @PresenceData, @Annotation, @AnnotationData, @Present, @Absent, @InformativeFiles,
-   @Percentages, @ChiValues, @SignificantGenes, @Strains, @SignificantAbsent, @SignificantPresent);
+   @Percentages, @ChiValues, @SignificantGenes, @Strains, @SignificantAbsent, @SignificantPresent,
+   @Columns);
 my(%ClassOfElement, %Elements, %pClass, %cpClass, %ClassHits,
    %HitsOfFeaturesInClass, %TotalFeatureHits, %Test,%PercentageOfFeatureInClass,
    %Gene, %EC, %Function, %InformativeClass, %Color, %PresentClassCount,
@@ -97,15 +98,30 @@ for ($i=1;$i<$ColumnsOnMetaDataFile;$i++){
         $PossibleClass = $MetaDataMatrix[0][$i];
         print "\n\t[$i] $PossibleClass";
 }
-print "\n\nPlease type the index of the desired class: ";
+print "\n\nPlease type the index of the desired class (1 to 3 classes could be selected using a comma separation but only the first one will be used in the clustering analysis. ej. 1,2,3): ";
 $Column = <STDIN>;
 chomp $Column;
 
-$SelectedClass = $MetaDataMatrix[0]->[$Column];
+@Columns = split(",",$Column);
+
+if (scalar@Columns == 1){
+   $Class1 = $Columns[0];
+}elsif (scalar@Columns == 2){
+   $Class1 = $Columns[0];
+   $Class2 = $Columns[1];
+}elsif (scalar@Columns == 3){
+   $Class1 = $Columns[0];
+   $Class2 = $Columns[1];
+   $Class3 = $Columns[2];
+}
+
+$SelectedClass = $MetaDataMatrix[0]->[$Class1];
 
 for ($i=1;$i<$LinesOnMetaDataFile;$i++){
    $Strain = $MetaDataMatrix[$i]->[0];
-	$Class = $MetaDataMatrix[$i]->[$Column];
+	$Class = $MetaDataMatrix[$i]->[$Class1];
+   $ClassOfElement{$Strain} = $Class;
+   $Elements{$Class}++; #   <-------- Number of elements in each class
    push @Classes, $Class;
    push @Strains, $Strain;
    push (@{$Classes{$Class}}, $Strain);
@@ -142,17 +158,19 @@ open (BOLEANINFORMATIVE, ">$BoleanInformative");
    print BOLEANINFORMATIVE "$TrainingHeader\n";
 close BOLEANINFORMATIVE;
         
-for ($i=0;$i<$nClasses;$i++){
-   for ($j=1;$j<$ColumnsOnTrainingFile;$j++){
-      $Element = $TrainingMatrix[0]->[$j];
-      $Class = $MetaDataMatrix[$j]->[$Column];
-      $ClassOfElement{$Element} = $Class;
-                        
-      if($Class eq $Classes[$i]){
-         $Elements{$Classes[$i]}++; #   <-------- Number of elements in each class
-      }
-   }
-}
+#for ($i=0;$i<$nClasses;$i++){
+#   for ($j=1;$j<$ColumnsOnTrainingFile;$j++){
+#      $Element = $TrainingMatrix[0]->[$j];
+#      $Class = $MetaDataMatrix[$j]->[$Class1];
+#      $ClassOfElement{$Element} = $Class;
+#                        
+#      if($Class eq $Classes[$i]){
+#         $Elements{$Classes[$i]}++; #   <-------- Number of elements in each class
+#      }
+#   }
+#}
+
+
 
 # Hits into the training matrix
 $GlobalHits = 0;
@@ -346,16 +364,56 @@ print "Done!";
 # Building dot plot
 print "\nPlotting Chi values...";
 chdir($OutPath);
+
+#################################################################################
+$Color{Non_Atrophic_Gastritis} = "darkgreen";
+$Color{Atrophic_Gastritis} = "gold";
+$Color{Intestinal_Metaplasia} = "orange";
+$Color{Gastric_Cancer} = "red";
+
+$Color{Mexico} = "darkgreen";
+$Color{Peru} = "peru";
+$Color{Nicaragua} = "tan4";
+$Color{Colombia} = "blue";
+$Color{Venezuela} = "darkkhaki";
+$Color{USA} = "red";
+$Color{Canada} = "skyblue";
+$Color{Australia} = "violet";
+$Color{China} = "gold";
+$Color{Japan} = "goldenrod1";
+$Color{India} = "orange";
+$Color{UK} = "pink";
+$Color{Sweden} = "plum";
+
+$Color{LatinAmerica} = "darkgreen";
+$Color{Amerind} = "cyan";
+$Color{USA_Canada} = "skyblue";
+$Color{NEurope} = "plum";
+$Color{Australia} = "violet";
+$Color{Asia2} = "goldenrod";
+$Color{EAsia} = "darkorange";
+#################################################################################
         
 # Dot plot all clases
 if ($DotPlot eq "AllClasses"){
    open(RSCRIPT, ">$PlotRScript");
       print RSCRIPT 'library(ggplot2)' . "\n";
       print RSCRIPT "df <- read.csv(\"$TestReport\")" . "\n";
+      print RSCRIPT 'Colours <- c(';
+      
+#################################################################################
+      for ($i=0; $i<scalar@Classes-1;$i++){
+         $Class = $Classes[$i];
+         print RSCRIPT "$Class = \"$Color{$Class}\",";
+      }
+      print RSCRIPT "$Classes[$#Classes] = \"$Color{$Classes[$#Classes]}\"";
+      print RSCRIPT ')' . "\n";
+#################################################################################
       print RSCRIPT 'ggplot(df, aes(ORF))';
       foreach $Class(@Classes){
          print RSCRIPT "+ geom_point(aes(y=$Class,color=\"$Class\"))";
       }
+      print RSCRIPT "+ scale_colour_manual(values=Colours)";
       if($Method eq "X2"){
          @ChiConfidences = (0.9,0.95,0.995,0.999);
          foreach $ChiConfidence(@ChiConfidences){
@@ -363,7 +421,8 @@ if ($DotPlot eq "AllClasses"){
             print RSCRIPT "+ geom_text(aes(0, qchisq($ChiConfidence, df=$nClasses-1), label= round(qchisq($ChiConfidence, df=$nClasses-1),digits=2)), size=2, vjust=-0.25, hjust=0, nudge_x = 1)";
          }
       }
-      print RSCRIPT "+ labs(x=\"Features\", y=\"Chi Values\", title= \"$Test\", color=\"Class\", linetype=\"Confidence Intervals\")";
+      print RSCRIPT "+ labs(x=\"Features\", y=\"Chi Values\", title= \"By $SelectedClass $Test Values of $nFeature Genes on
+$ProjectName Dataset\", color=\"Class\", linetype=\"Confidence Interval\")";
       if($N > 100){
          print RSCRIPT '+ theme(axis.text.x = element_text(angle = 90, size=4, hjust = 1))' . "\n";
       }
@@ -391,7 +450,7 @@ if ($DotPlot eq "AllClasses"){
                   print FILE "+ geom_hline(aes(yintercept = qchisq($ChiConfidence, df=$nClasses-1), linetype=\"$ChiConfidence\"))";
                }
             }
-            print FILE "+ labs(x=\"Features\", y=\"Chi_Values\", title= \"$Test\", color=\"Class\", linetype=\"Confidence Intervals\")";
+            print FILE "+ labs(x=\"Genomic Feature\", y=\"Chi_Values\", title= \"$Test\", color=\"Class\", linetype=\"Confidence Interval\")";
             if($N > 100){
                print FILE '+ theme(axis.text.x = element_text(angle = 90, size=4, hjust = 1))' . "\n";
             }
@@ -425,23 +484,23 @@ open($CORRELATED, ">$CorrelatedHeatMapRScript");
 #$Color{$Phenotype} =
 
 #################################################################################
-$Color{None_Atrophic_Gastritis} = "darkgreen";
-$Color{Atrophic_Gastritis} = "gold";
-$Color{Intestinal_Metaplasia} = "orange";
-$Color{Gastric_Cancer} = "red";
-$Color{LatinAmerica} = "darkgreen";
-$Color{Mexico} = "darkgreen";
-#################################################################################
-
-#################################################################################
 my ($Country, $Population, $nCountries, $nPopulations, $Color1, $Color2, $Elements,
     $Color);
 my (@Countries, @Populations);
 my (%Countries, %Populations);
 for ($i=1;$i<$LinesOnMetaDataFile;$i++){
    $Strain = $MetaDataMatrix[$i][0];
-   $Country = $MetaDataMatrix[$i][3];
-   $Population = $MetaDataMatrix[$i][5];
+   chomp $Strain;
+   $Strain =~s/\r//g;
+   $Strain =~s/\s//g;
+   $Country = $MetaDataMatrix[$i][$Class2];
+   chomp $Country;
+   $Country =~s/\r//g;
+   $Country =~s/\s//g;
+   $Population = $MetaDataMatrix[$i][$Class3];
+   chomp $Population;
+   $Population =~s/\r//g;
+   $Population =~s/\s//g;
    push @Countries, $Country;
    push @Populations, $Population;
    push (@{$Countries{$Country}}, $Strain);
@@ -451,32 +510,6 @@ for ($i=1;$i<$LinesOnMetaDataFile;$i++){
 @Populations = uniq(@Populations);
 $nCountries = scalar@Countries;
 $nPopulations = scalar@Populations;
-#################################################################################
-
-#################################################################################
-#for ($i=0; $i<$n; $i++){
-#   $Feature = $GenePresence[$i];
-#   print $FILE "$Feature <- c(";
-#   for ($j=0; $j<scalar@{$ChiValues{$Feature}}-1; $j++){
-#      print $FILE "${$ChiValues{$Feature}}[$j],";
-#   }
-#   print $FILE "${$ChiValues{$Feature}}[$#{$ChiValues{$Feature}}])" . "\n";
-#}
-#
-#foreach my $Country(keys %Countries){
-#print $CORRELATED "$Country <- c(";
-#   foreach (@{$Countries{$Country}}){
-#      print $CORRELATED "\"$_\",";
-#   }
-#   print $CORRELATED "\"\")" . "\n";
-#}
-#foreach my $Population(keys %Populations){
-#print $CORRELATED "$Population <- c(";
-#   foreach (@{$Populations{$Population}}){
-#      print $CORRELATED "\"$_\",";
-#   }
-#   print $CORRELATED "\"\")" . "\n";
-#}
 #################################################################################
     
 for $FILE ($PRESENT, $ABSENT, $CORRELATED){
@@ -492,7 +525,7 @@ for $FILE ($PRESENT, $ABSENT, $CORRELATED){
       $Elements = "Strains";
       $SideColor = 'ColSideColor=ClassesCol';
       $BoleanFile = $BoleanInformative;
-      $Title = "$ProjectName\'s Phylogeny
+      $Title = "Clusters of $ProjectName\'s Dataset
       Based on the Presence/Absence of $nSignificant
       Significant $SelectedClass Associated Genes ($Test,CI=$Threshold)";
       $Out = $HeatMapOut . "_Correlated.pdf";
@@ -510,7 +543,23 @@ for $FILE ($PRESENT, $ABSENT, $CORRELATED){
             print $FILE "\"${$Classes{$Class}}[$i]\",";
          }
          print $FILE "\"${$Classes{$Class}}[$#{$Classes{$Class}}]\")" . "\n";
+      } 
+#################################################################################
+      foreach my $Country(keys %Countries){
+         print $FILE "$Country <- c(";
+         for ($i=0; $i<scalar@{$Countries{$Country}}-1; $i++){
+            print $FILE "\"${$Countries{$Country}}[$i]\",";
+         }
+         print $FILE "\"${$Countries{$Country}}[$#{$Countries{$Country}}]\")" . "\n";
       }
+      foreach my $Population(keys %Populations){
+         print $FILE "$Population <- c(";
+         for ($i=0; $i<scalar@{$Populations{$Population}}-1; $i++){
+            print $FILE "\"${$Populations{$Population}}[$i]\",";
+         }
+         print $FILE "\"${$Populations{$Population}}[$#{$Populations{$Population}}]\")" . "\n";
+      }
+#################################################################################
       
       print $FILE "df <- read.csv(\"$BoleanFile\")" . "\n";
       print $FILE 'rnames <- df[,1]' . "\n";
@@ -535,7 +584,6 @@ for $FILE ($PRESENT, $ABSENT, $CORRELATED){
          @GenePresence = @SignificantAbsent;
          %ClassCountOfSignificants = %SignificantAbsentClassCount;
          $Out = $HeatMapOut . "_Mostly_Absent.pdf";
-
          
       }elsif($FILE eq $PRESENT){
          $Color = "red";
@@ -550,18 +598,7 @@ for $FILE ($PRESENT, $ABSENT, $CORRELATED){
          $Out = $HeatMapOut . "_Mostly_Present.pdf";
       }
       print $FILE "pdf(\"$Out\",height=9,width=9)" . "\n";
-      
       $n = scalar@GenePresence;
-      
-      if($n < 50){
-         $FontSize = 1;
-      }elsif($n > 49 && $n < 100){
-         $FontSize = 0.8;
-      }elsif($n > 99 && $n < 150){
-         $FontSize = 0.5;
-      }elsif($n > 149){
-         $FontSize = 0.25;
-      }
       
       print $FILE 'Features <- c(';
       for ($i=0; $i<$n-1;$i++){
@@ -611,16 +648,19 @@ for $FILE ($PRESENT, $ABSENT, $CORRELATED){
       print $FILE "Matrix <- t(Matrix)" . "\n";
       print $FILE "hc <- hclust(as.dist(1-cor(t(Matrix))))" . "\n";
       $Matrix = "Matrix";
-   } 
-   print $FILE "ClassesCol <- rep(\"black\",$n)" . "\n";
+   }
    
-   #foreach my $Class(@Classes){
-   #      print $FILE "$Class <- c(";
-   #      for ($i=0; $i<scalar@{$Classes{$Class}}-1; $i++){
-   #         print $FILE "\"${$Classes{$Class}}[$i]\",";
-   #      }
-   #      print $FILE "\"${$Classes{$Class}}[$#{$Classes{$Class}}]\")" . "\n";
-   #   }
+   if($n < 50){
+      $FontSize = 1;
+   }elsif($n > 49 && $n < 80){
+      $FontSize = 0.8;
+   }elsif($n > 79 && $n < 150){
+      $FontSize = 0.6;
+   }elsif($n > 149){
+      $FontSize = 0.25;
+   }
+   
+   print $FILE "ClassesCol <- rep(\"black\",$n)" . "\n";
    
    foreach my $Class(keys %Classes){
       if ($Class){
@@ -630,14 +670,21 @@ for $FILE ($PRESENT, $ABSENT, $CORRELATED){
    print $FILE "Colors <- colorRampPalette(c(\"$Color1\", \"$Color2\"))($n)" . "\n";
    
 ######################
-      #print $FILE "CountryCol <- rep(\"black\",$n)" . "\n";
-      #foreach my $Country(keys %Countries){
-      #   print $FILE "CountryCol[$Elements %in% $Country] <- \"$Color{$Country}\"" . "\n";
-      #}
-      #print $FILE "PopulationCol <- rep(\"black\",$n)" . "\n";
-      #foreach my $Population(keys %Populations){
-      #   print $FILE "ClassesCol[$Elements %in% $Population] <- \"$Color{$Population}\"" . "\n";
-      #}
+   if ($FILE eq $CORRELATED){
+      print $FILE "CountryCol <- rep(\"black\",$n)" . "\n";
+      foreach my $Country(keys %Countries){
+         if($Country){
+            print $FILE "CountryCol[$Elements %in% $Country] <- \"$Color{$Country}\"" . "\n";
+         }
+      }
+      
+      print $FILE "PopulationCol <- rep(\"black\",$n)" . "\n";
+      foreach my $Population(keys %Populations){
+         if($Population){
+            print $FILE "PopulationCol[$Elements %in% $Population] <- \"$Color{$Population}\"" . "\n";
+         }
+      }
+   }
 ######################
 
    print $FILE "heatmap.2($Matrix," . "\n";
@@ -651,9 +698,16 @@ for $FILE ($PRESENT, $ABSENT, $CORRELATED){
    print $FILE 'dendrogram = "both",' ."\n";
    
    if ($FILE eq $CORRELATED){
+#################################################################################
+      print $FILE "RowSideColor = CountryCol," ."\n";
+      print $FILE "colRow = PopulationCol," ."\n";
+      print $FILE "ylab = \"Region Of Origin\"," . "\n";
+#################################################################################
       print $FILE 'srtCol= 90,' ."\n";
-      print $FILE 'cexCol=0.6,' ."\n";
-      print $FILE 'cexRow=0.6,' ."\n";
+      #print $FILE 'adjRow= c(0.25,0.5),' ."\n";
+      #print $FILE 'adjCol= c(0.25,0.5),' ."\n";
+      print $FILE "cexCol=0.4," ."\n";
+      print $FILE "cexRow=0.4," ."\n";
       print $FILE 'keysize=0.7,' ."\n";  
    }else{
       print $FILE "Rowv=as.dendrogram(hc)," . "\n";
@@ -675,5 +729,5 @@ for $FILE ($PRESENT, $ABSENT, $CORRELATED){
 system ("R CMD BATCH $CorrelatedHeatMapRScript");
 system ("R CMD BATCH $PresentHeatMapRScript");
 system ("R CMD BATCH $AbsentHeatMapRScript");
-#system ("rm $OutPath/*.Rout $OutPath/*.R Rplots.pdf");
+system ("rm $OutPath/*.Rout $OutPath/*.R Rplots.pdf");
 exit;
