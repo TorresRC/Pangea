@@ -1,9 +1,7 @@
 #!/usr/bin/perl -w
 
 #################################################################################
-#   Programa Pre-Core-Genome                                                    #
-#   Nota: Se debe ajustar la ruta de lib y de la variable $PathSeq a las que    #
-#   realmente se tengan donde se instalción el programa.                        #
+#   Programa CoreGenome                                                         #
 #                                                                               #
 # Programador:   Roberto C. Torres                                              #
 # Fecha:         11 de abril de 2017                                            #
@@ -18,7 +16,7 @@ use List::MoreUtils qw(uniq first_index);
 my ($Usage, $ProjectName, $List, $CPUs, $Recovery, $Add, $AddList,
     $OutPath);
 
-$Usage = "\tUsage: CoreGenome.pl <Project Name> <List File Name> <CPUs> <Main_Path>\n";
+$Usage = "\tUsage: CoreGenome.pl <Project Name> <List File Name> <CPUs> <Out_Path>\n";
 unless(@ARGV) {
         print $Usage;
         exit;
@@ -37,7 +35,8 @@ my($SeqExt, $AlnExt, $stoExt, $HmmExt, $SharedORFs, $CoreGenomeFile,
    $BestHit, $Entry, $Strand, $QryORFSeq, $PreviousAln, $CheckAln,
    $FindingPreviousAln, $PreviousAlnName, $PreviousAlnPrefix, $CurrentAlnPrefix,
    $LastORFAln, $NewORFAln, $Strain, $Db, $OutCore, $Gene, $cmd, $CoreGenomeHmmDb,
-   $ScanTempFile, $ORF, $SharedORF, $MaxScore, $Score, $QryEntry);
+   $ScanTempFile, $ORF, $SharedORF, $MaxScore, $Score, $QryEntry, $ORFpath,
+   $ORFhmm, $EntrySeq);
 my($i,$j,$k, $nCoreGenes);
 my(@List, @PresenceAbsenceArray, @PresenceAbsenceMatrix, @Fields, @CoreGenes,
    @CoreGenomeMatrix, @AnalyzedORFs, @nHMMerReport, @BestHitArray, @SplitAlnPath,
@@ -188,10 +187,21 @@ for ($i=0; $i<$TotalQry; $i++){
        print "Building $Strain CoreGenome file...";
        for($j=0; $j<scalar@SharedORFs; $j++){
          $ORF = $SharedORFs[$j];
-              $Entry = $Entry{$ORF}{$Strain};
-              $cmd = `blastdbcmd -db $Db -dbtype nucl -entry "$Entry" -out $TempFile`;          
-              $cmd = `cat $TempFile >> "$OutCore"`;   
-              $cmd = `rm $TempFile`;
+         $Entry = $Entry{$ORF}{$Strain};
+         
+         $ORFpath = $ORFsPath ."/". $ORF;
+         $LastORFAln = $ORFpath ."/". $i+1 ."_". $ORF . ".aln.fasta";
+         $NewORFAln = $ORFpath ."/". $i+2 ."_". $ORF .".aln.fasta";
+         $ORFhmm = $ORFpath ."/". $ORF . ".hmm";
+         $EntrySeq = $ORFpath ."/". $Entry . ".fasta";
+         
+         $cmd = `blastdbcmd -db $Db -dbtype nucl -entry "$Entry" -out $EntrySeq`;
+         $cmd = `cat $EntrySeq >> "$OutCore"`;
+         
+         system("hmmalign -o $NewORFAln --mapali $LastORFAln $ORFhmm $EntrySeq");
+         system("hmmbuild $ORFhmm $NewORFAln");
+         system("rm $LastORFAln");
+         
        }
        print "Done!\n";
 }
