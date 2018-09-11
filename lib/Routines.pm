@@ -72,6 +72,7 @@ sub ReadFile{
         close FILE;
         my @File;
         foreach my $Row (@Temp){
+               $Row =~ s/\r//g;
                if ($Row =~/^#/) {
                }else{
 				push @File, $Row;     
@@ -219,11 +220,39 @@ sub Matrix{
         $Lines = scalar@File;
         $Columns = scalar(split(",",$File[0])); 
         foreach $Line(@File){
+            $Line =~ s/\r//g;
+            $Line =~ s/\s//g;
             @Fields = split(",",$Line);
             push (@Matrix, [@Fields]);
         }
         
         return ($Lines, $Columns, @Matrix);
+}
+
+#################################################################################
+sub Mapping{
+        my ($File) = @_;
+        my ($Line, $Key, $Value);
+        my (@File, @Fields);
+        my (%Map);
+        
+        @File = ReadFile($File);
+        foreach $Line(@File){
+            if ($Line){
+                @Fields = split('\t',$Line);
+                $Key = $Fields[0];
+                $Value = $Fields[1];
+                $Map{$Key} = $Value;
+            }
+        }
+        
+        return %Map;
+}
+
+sub RGB{
+    my $RGB = "#" . join "", map {sprintf "%02x", rand(255)} (0..2);
+    
+    return $RGB;
 }
 
 1;

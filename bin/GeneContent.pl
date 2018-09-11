@@ -16,7 +16,7 @@ use Routines;
 my $Src = "$FindBin::Bin";
 
 my ($Usage, $ProjectName, $List, $CPUs, $MainPath, $eValue, $MolType, $Recovery,
-    $AnnotationPath, $Add, $AddList);
+    $AnnotationPath, $Add, $AddList, $OutPath);
 
 $Usage = "\tUsage: CoreGenome.pl <Main_Path> <Project Name> <List File Name> <Molecule Type> <e-value> <CPUs>\n";
 unless(@ARGV) {
@@ -24,12 +24,12 @@ unless(@ARGV) {
         exit;
 }
 chomp @ARGV;
-$MainPath       = $ARGV[0];
-$ProjectName    = $ARGV[1];
-$List           = $ARGV[2];
-$MolType        = $ARGV[3];
-$eValue         = $ARGV[4];
-$CPUs           = $ARGV[5];
+$ProjectName    = $ARGV[0];
+$List           = $ARGV[1];
+$MolType        = $ARGV[2];
+$eValue         = $ARGV[3];
+$CPUs           = $ARGV[4];
+$OutPath        = $ARGV[5];
 $Recovery       = $ARGV[6];
 $AnnotationPath = $ARGV[7];
 
@@ -46,19 +46,21 @@ my($Project, $MainList, $ORFeomesPath, $BlastPath, $ORFsPath,
    $QryId, $NewORFId, $Summary, $NewCounter, $NewORF, $NewORFPath, $NewORFSeq,
    $NewORFHmm, $PreviousAln, $nPanGenome, $NewStrains, $Progress, $CheckAln,
    $DbHeaders, $Index, $QryGenomeRemainingORFs, $ORFSufix, $MolExt,
-   $FormatORFeomes, $TempList, $HmmSearch, $HmmTblOut);
+   $FormatORFeomes, $TempList, $HmmSearch, $HmmTblOut, $PanGenomeDbDir,
+   $PanGenomeHmmDb, $PurgeSearch, $nORFs
+   );
 my($LinesOnPresenceAbsence, $ColumnsOnPresenceAbsence, $LinesOnCoreGenome,
    $nCore, $i, $j, $k, $LastCount, $NewCount);
 my(@List, @PresenceAbsence, @nHMMerReport, @BestHitArray, @DataInRow,
    @LastReportColumnData, @NewReport, @PresenceAbsenceArray,
    @PresenceAbsenceFields, @SharedORFsArray, @LapArray, @CoreFile, @OrfLine,
    @CoreData, @Temp, @StoAln, @AlnData, @CoreGenome, @QryIDs, @NewORFs,
-   @SplitPreviousAlnName, @SplitAlnPath, @AnalyzedORFs, @Progress);
+   @SplitPreviousAlnName, @SplitAlnPath, @AnalyzedORFs, @Progress, @Purge, @ID);
 my $NewReport = [ ];
 my $PermutationsFile = [ ];
 my $Statistics = [ ];
 
-$Project = $MainPath ."/". $ProjectName;
+$Project = $OutPath;
 
 $SeqExt = ".fasta";
 $AlnExt = ".aln.fasta";
@@ -69,7 +71,7 @@ $BlastPath              = $Project ."/". "Blast";
 $ORFsPath               = $Project ."/". "ORFs";
 $CoreSeqsPath           = $Project ."/". "CoreSequences";
 
-$MainList               = $Project ."/". $List;
+$MainList               = $List;
 $InitialPresenceAbsence = $Project ."/". $ProjectName . "_Initial_Presence_Absence.csv";
 
 $PresenceAbsence        = $Project ."/". $ProjectName . "_Presence_Absence.csv";
@@ -140,7 +142,7 @@ for ($i=$Progress; $i<$TotalQry; $i++){
                 open (FILE, ">$TempList");
                         print FILE $QryGenomeName;
                 close FILE;
-                system("perl $FormatORFeomes $MainPath $ProjectName $TempList $AnnotationPath $MolType");
+                system("perl $FormatORFeomes $ProjectName $TempList $AnnotationPath $MolType $OutPath");
                 system("rm $TempList");
                 $cmd = `makeblastdb -in $QryGenomeSeq -dbtype $MolType -parse_seqids -out $QryDb`;
         }
@@ -159,7 +161,7 @@ for ($i=$Progress; $i<$TotalQry; $i++){
         @AnalyzedORFs = "";
         for ($j=1; $j<$nPanGenome+1; $j++){
                 
-                $Counter = sprintf "%.4d", $j; #Using the numeber of PanGenome's genes as index
+                $Counter = sprintf "%.4d", $j; #Using the number of PanGenome's genes as index
                 $TestingORF = "ORF" ."_". $Counter;
                 $ORFpath = $ORFsPath ."/". $TestingORF;
                 $Hmm = $ORFpath ."/". $TestingORF . $HmmExt;
@@ -184,8 +186,8 @@ for ($i=$Progress; $i<$TotalQry; $i++){
                         $BestHit =~ s/\s+/,/g;
                         @BestHitArray = split(",",$BestHit);
                         $Entry = $BestHitArray[0];
-                        
                         #$Strand = $BestHitArray[8];
+                        
                         $QryORFSeq = $ORFpath ."/". $QryGenomeName ."-". $Entry . $SeqExt;
                         
                         #If the Entry is not already analyzed, extract it and incloude it into the hmm 
@@ -217,7 +219,8 @@ for ($i=$Progress; $i<$TotalQry; $i++){
                                         $NewORFAln = $ORFpath ."/". $CurrentAlnPrefix ."-". $TestingORF . $AlnExt;
                                         
                                         print "\tUpdating hmm previous alignment...";
-                                        system("hmmalign -o $NewORFAln --trim --mapali $LastORFAln $Hmm $QryORFSeq");
+                                        #system("hmmalign -o $NewORFAln --trim --mapali $LastORFAln $Hmm $QryORFSeq");
+                                         system("hmmalign -o $NewORFAln --mapali $LastORFAln $Hmm $QryORFSeq");
                                         system("hmmbuild $Hmm $NewORFAln");
                                         print "Done!\n";
                                         
@@ -238,58 +241,100 @@ for ($i=$Progress; $i<$TotalQry; $i++){
                         $NewReport -> [$j][$i+2] = "";
                 }
                 system("rm $ORFTemp");
+                $nORFs = $j;
+        }
+        
+        ##Solving duplicates and fragmented genes
+        ##################################### 
+        #Purge: {
+        #        for($j=0;$j<$TotalNewORFs;$j++){
+        #                $LastCount = scalar@QryIDs;
+        #                
+        #                if ($LastCount > 0){
+        #                        for($k=0; $k<$LastCount; $k++){
+        #                                $Gene = $QryIDs[$k];
+        #                                $cmd = `blastdbcmd -db $QryDb -dbtype $MolType -entry "$Gene" >> $QryGenomeRemainingORFs`;
+        #                        }
+        #                                
+        #                        for ($k=1; $k<$Counter; $k++){
+        #                                $ORFSufix = sprintf "%.4d", $k;
+        #                                $TestingORF = "ORF" ."_". $ORFSufix;
+        #                                $ORFpath = $ORFsPath ."/". $TestingORF;
+        #                                $Hmm = $ORFpath ."/". $TestingORF . $HmmExt;
+        #                                $ORFTemp = $ORFpath ."/". $TestingORF ."-". $QryGenomeName . ".temp";
+        #                                
+        #                                system("$HmmSearch -E 1e-3 --cpu $CPUs --noali --tblout $ORFTemp $Hmm $QryGenomeRemainingORFs");
+        #                                
+        #                                #@nHMMerReport = ReadFile($ORFTemp);
+        #                                if(@nHMMerReport){
+        #                                        open (FILE, ">$ORFTemp");
+        #                                                $BestHit = <FILE>;
+        #                                        #        print FILE $nHMMerReport[0];
+        #                                        close FILE;
+        #                                        @nHMMerReport = ReadFile($ORFTemp);
+        #                                        
+        #                                        #$BestHit = $nHMMerReport[0];
+        #                                        $BestHit =~ s/\s^//g;
+        #                                        $BestHit =~ s/\s+/,/g;
+        #                                        @BestHitArray = split(",",$BestHit);
+        #                                        $Entry = $BestHitArray[0];
+        #                                        
+        #                                        if ( any { $_ eq $Entry} @QryIDs){  
+        #                                                $Index = first_index{$_ eq $Entry} @QryIDs;
+        #                                                splice@QryIDs,$Index,1;
+        #                                        }
+        #                                }
+        #                                system("rm $ORFTemp");
+        #                        }
+        #                                
+        #                        $NewCount = scalar@QryIDs;
+        #                        system("rm $QryGenomeRemainingORFs");
+        #                        if ($LastCount == $NewCount){
+        #                                last Purge;
+        #                        }
+        #                }
+        #        }
+        #####################################
+        
+        
+        $PanGenomeDbDir = $OutPath ."/". "PanGenomeHmmDb";
+        $PanGenomeHmmDb = $PanGenomeDbDir ."/". "PanGenomeDb.hmm";
+        
+        if (-e $PanGenomeHmmDb){
+                system ("rm -r $PanGenomeDbDir");
         }
         
         #Solving duplicates and fragmented genes
-        #################################### 
-        Purge: {
-                for($j=0;$j<$TotalNewORFs;$j++){
-                        $LastCount = scalar@QryIDs;
-                        
-                        if ($LastCount > 0){
-                                for($k=0; $k<$LastCount; $k++){
-                                        $Gene = $QryIDs[$k];
-                                        $cmd = `blastdbcmd -db $QryDb -dbtype $MolType -entry "$Gene" >> $QryGenomeRemainingORFs`;
-                                }
-                                        
-                                for ($k=1; $k<$Counter; $k++){
-                                        $ORFSufix = sprintf "%.4d", $k;
-                                        $TestingORF = "ORF" ."_". $ORFSufix;
-                                        $ORFpath = $ORFsPath ."/". $TestingORF;
-                                        $Hmm = $ORFpath ."/". $TestingORF . $HmmExt;
-                                        $ORFTemp = $ORFpath ."/". $TestingORF ."-". $QryGenomeName . ".temp";
-                                        
-                                        system("$HmmSearch -E $eValue --cpu $CPUs --noali --tblout $ORFTemp $Hmm $QryGenomeRemainingORFs");
-                                        
-                                        @nHMMerReport = ReadFile($ORFTemp);
-                                        if(@nHMMerReport){
-                                                open (FILE, ">$ORFTemp");
-                                                        print FILE $nHMMerReport[0];
-                                                close FILE;
-                                                @nHMMerReport = ReadFile($ORFTemp);
-                                                
-                                                $BestHit = $nHMMerReport[0];
-                                                $BestHit =~ s/\s^//g;
-                                                $BestHit =~ s/\s+/,/g;
-                                                @BestHitArray = split(",",$BestHit);
-                                                $Entry = $BestHitArray[0];
-                                                
-                                                if ( any { $_ eq $Entry} @QryIDs){  
-                                                        $Index = first_index{$_ eq $Entry} @QryIDs;
-                                                        splice@QryIDs,$Index,1;
-                                                }
-                                        }
-                                        system("rm $ORFTemp");
-                                }
-                                        
-                                $NewCount = scalar@QryIDs;
-                                system("rm $QryGenomeRemainingORFs");
-                                if ($LastCount == $NewCount){
-                                        last Purge;
-                                }
+        ####################################
+        $TotalNewORFs = scalar@QryIDs;
+        @Purge = @QryIDs;
+        MakeDir($PanGenomeDbDir);
+        for ($k=1; $k<$nORFs; $k++){
+                $ORFSufix = sprintf "%.4d", $k;
+                $TestingORF = "ORF" ."_". $ORFSufix;
+                $ORFpath = $ORFsPath ."/". $TestingORF;
+                $Hmm = $ORFpath ."/". $TestingORF . $HmmExt;
+                system("cat $Hmm >> $PanGenomeHmmDb");
+        }
+        system ("hmmpress $PanGenomeHmmDb");
+        for($j=0;$j<$TotalNewORFs;$j++){
+                $Gene = $QryIDs[$j];
+                @ID = split("_",$Gene);
+                #$QryGenomeName = $ID[0];
+                $QryGenomeRemainingORFs = $ORFeomesPath ."/". $Gene . "_Temp" . $SeqExt;
+                $cmd = `blastdbcmd -db $QryDb -dbtype $MolType -entry "$Gene" > $QryGenomeRemainingORFs`;
+                $PurgeSearch = $PanGenomeDbDir ."/". $Gene . "Purge.Temp";
+                system ("hmmscan -E 1e-3 --cpu $CPUs --noali -Z 1 --domZ 1 --tblout $PurgeSearch $PanGenomeHmmDb $QryGenomeRemainingORFs");
+                @nHMMerReport = ReadFile($PurgeSearch);
+                if(@nHMMerReport){
+                        if ( any { $_ eq $Gene} @Purge){
+                                $Index = first_index{$_ eq $Gene} @Purge;
+                                splice@Purge,$Index,1;
                         }
                 }
+                system ("rm $PurgeSearch $QryGenomeRemainingORFs");
         }
+        @QryIDs = @Purge;
         ####################################
         
         # Processing all non shared genes from query file

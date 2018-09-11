@@ -13,8 +13,12 @@ use Routines;
 
 my $Src      = "$FindBin::Bin";
 my $MainPath = "$FindBin::Bin/../..";
+my $Usage    = "USAGE:\n  $0 [--help] [--project -p prefix] [--list -l filename]
+      [--trusted -c filename] [--evalue -e evalue] [--ident -i percentage]
+      [--cpus -t]
+\n  Use \'--help\' to print detailed descriptions of options.\n\n";
 
-my ($Usage, $ProjectName, $List, $TrustedORFeome, $eVal, $PIdent, $CPUs, $Help,
+my ($ProjectName, $List, $TrustedORFeome, $eVal, $PIdent, $CPUs, $Help,
     $PanGenome, $CoreGenome, $Bolean, $AnnotationPath, $MolType, $Recovery);
 
 $Recovery = 0;
@@ -32,10 +36,7 @@ GetOptions(
         'annotation|a=s' => \$AnnotationPath,
         'moltype|m=s'    => \$MolType,
         'recovery|r'     => \$Recovery
-        ) or die "USAGE:\n  $0 [--help] [--project -p prefix] [--list -l filename]
-      [--trusted -c filename] [--evalue -e evalue] [--ident -i percentage]
-      [--cpus -t]
-\n  Use \'--help\' to print detailed descriptions of options.\n\n";
+        ) or die $Usage;
 
 if($Help){
         print "

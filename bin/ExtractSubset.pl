@@ -43,15 +43,18 @@ for ($i=1;$i<$LinesOnPresenceabsenceFile;$i++){
    $ORF =~ s/\s//g;
    $ORF =~ s/\n//g;
    
-   if ($PresenceAbsenceMatrix[$i]->[$j] ne ""){
-      $Gene = $PresenceAbsenceMatrix[$i]->[$j];
+   if (defined $PresenceAbsenceMatrix[$i]->[$j]){
+    if ($PresenceAbsenceMatrix[$i]->[$j] ne ""){
+        $Gene = $PresenceAbsenceMatrix[$i]->[$j];
+    }else{
+        $Gene = "";
+    }
    }else{
-      $Gene = "";
+    $Gene = "";
    }
    $GeneOfStrain{$ORF}{$Strain} = $Gene;
   }
 }
-
 @List = ReadFile($List);
 $nSubset = scalar@List;
 

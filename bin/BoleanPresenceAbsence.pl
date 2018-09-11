@@ -7,7 +7,7 @@
 #Date:          11 de octubre de 2017                                           #
 #################################################################################
 use strict;
-use List::Util qw(sum);
+use List::Util qw(sum sum0);
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 use Routines;
@@ -26,10 +26,11 @@ $ProjectName = $ARGV[1];
 my ($Project, $PresenceAbsenceFile, $BoleanReport, $TotalQry,
     $LinesOnPresenceAbsence, $ColumnsOnPresenceAbsence, $Row, $Field,
     $BoleanInformativeReport, $Line, $nElements, $Count, $ORF, $HeatMapRScript,
-    $HeatMap, $Matrix);
-my ($i, $j);
+    $HeatMap, $Matrix, $Sum, $Strain);
+my ($i, $j, $N);
 my (@PresenceAbsence, @PresenceAbsenceFields, @PresenceAbsenceArray,
     @Elements, @PresenceAbsenceMatrix);
+my (%Count);
 my $BoleanTable = [ ];
 my $GenesAnnotationReport = [ ];
 
@@ -44,6 +45,8 @@ print "\nLoading the Presence/Absence file...";
 ($LinesOnPresenceAbsence, $ColumnsOnPresenceAbsence, @PresenceAbsenceMatrix) = Matrix($PresenceAbsenceFile);
 print "Done!";
 
+$N = $ColumnsOnPresenceAbsence-1;
+
 print "\nTransforming into binary data...";
 $BoleanTable -> [0][0] = $PresenceAbsenceMatrix[0][0];
 for ($i=0; $i<$LinesOnPresenceAbsence; $i++){
@@ -53,15 +56,28 @@ for ($i=0; $i<$LinesOnPresenceAbsence; $i++){
      }
 }
 
+for ($i=1; $i<$LinesOnPresenceAbsence; $i++){
+    $ORF = $PresenceAbsence[$i][0];
+     for ($j=1; $j<$ColumnsOnPresenceAbsence; $j++){
+        $Strain = $PresenceAbsence[0][$j];
+        $Count{$ORF}{$Strain} = 0;
+     }
+}
+
 #Setting the bolean data ("1" for presence and "0" for absence)
 for ($i=1; $i<$LinesOnPresenceAbsence; $i++){
+    $ORF = $PresenceAbsence[$i][0];
      for ($j=1; $j<$ColumnsOnPresenceAbsence; $j++){
+        $Strain = $PresenceAbsence[0][$j];
           if (defined $PresenceAbsenceMatrix[$i]->[$j]){          
                $Field = $PresenceAbsenceMatrix[$i]->[$j];
                $Field =~s/\W//g;
-               if ($Field ne ""){   
+               if ($Field ne ""){
+               #if ($Field eq 1){ 
                     $BoleanTable -> [$i][$j] = "1";
+                    $Count{$ORF}{$Strain} += 1; 
                }else{
+               #}elsif($Field eq 0){
                     $BoleanTable -> [$i][$j] = "0";
                }
           }else{
@@ -74,11 +90,15 @@ print "Done!";
 print "\nBuilding a Presence/Absence binary file for the entire Pan-Genome...";
 open (FILE, ">$BoleanReport");
 for ($i=0; $i<$LinesOnPresenceAbsence; $i++){
+    $ORF = $PresenceAbsence[$i][0];
      for ($j=0; $j<$ColumnsOnPresenceAbsence; $j++){
-        if ($j < $ColumnsOnPresenceAbsence-1){
+        $Strain = $PresenceAbsence[0][$j];
+        if ($Count{$ORF}{$Strain} > 0){
+            if ($j < $ColumnsOnPresenceAbsence-1){
                 print FILE $BoleanTable -> [$i][$j], ",";
-        }else{
+            }else{
                 print FILE $BoleanTable -> [$i][$j];
+            }
         }
      }
      print FILE "\n";

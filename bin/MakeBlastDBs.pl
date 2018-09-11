@@ -11,7 +11,7 @@ use FindBin;
 use lib "$FindBin::Bin/../lib";
 use Routines;
 
-my ($Usage, $ProjectName, $List, $TrustedORFeome, $MainPath, $MolType);
+my ($Usage, $ProjectName, $List, $Trusted, $MainPath, $MolType, $OutPath);
 
 $Usage = "\tUsage: MakeBlastDBs.pl <Project_Name> <List_File.ext> <Trusted_ORFeome.fasta> <Main_Path> <Molecule type>\n";
 unless(@ARGV) {
@@ -19,25 +19,25 @@ unless(@ARGV) {
         exit;
 }
 chomp @ARGV;
-$MainPath       = $ARGV[0];
-$ProjectName    = $ARGV[1];
-$List           = $ARGV[2];
-$TrustedORFeome = $ARGV[3];
-$MolType        = $ARGV[4];  # nucl or prot
+$ProjectName    = $ARGV[0];
+$List           = $ARGV[1];
+$Trusted        = $ARGV[2];
+$MolType        = $ARGV[3];  # nucl or prot
+$OutPath        = $ARGV[4];
 
-my ($Project, $ORFeomesPath, $MainList, $BlastPath, $TrustedORFeomeDb, $SeqExt,
-	$i, $n, $Qry, $InputFile, $Db, $cmd, $LogFile, $TrustedORFeomePrefix);
+my ($Project, $ORFeomesPath, $BlastPath, $TrustedORFeomeDb, $SeqExt,
+	$i, $n, $Qry, $InputFile, $Db, $cmd, $LogFile, $TrustedPrefix);
 my (@List);
 
-$Project              = $MainPath ."/". $ProjectName;
-$MainList             = $Project ."/". $List;
-$BlastPath            = $Project ."/". "Blast";
-$ORFeomesPath         = $Project ."/". "ORFeomes";
-$TrustedORFeomePrefix = Prefix($TrustedORFeome);
-$TrustedORFeome       = $ORFeomesPath ."/". $TrustedORFeome;
-$TrustedORFeomeDb     = $BlastPath ."/". $TrustedORFeomePrefix . "Db";
+#$Project              = $OutPath ."/". $ProjectName;
+$Project = $OutPath;
+$BlastPath            = $OutPath ."/". "Blast";
+$ORFeomesPath         = $OutPath ."/". "ORFeomes";
 
-$LogFile              = $Project ."/". $ProjectName . ".log";
+$TrustedPrefix        = Prefix($Trusted);
+$Trusted              = $ORFeomesPath ."/". $Trusted;
+$TrustedORFeomeDb     = $BlastPath ."/". $TrustedPrefix . "Db";
+$LogFile              = $OutPath ."/". $ProjectName . ".log";
 
 if ($MolType eq "nucl"){
 	$SeqExt = ".ffn";
@@ -51,19 +51,16 @@ print "\nBuilding data bases:\n";
 
 MakeDir($BlastPath); 
 
-@List = ReadFile($MainList); 
+@List = ReadFile($List); 
 $n = scalar@List;
 
-$cmd = `makeblastdb -in $TrustedORFeome -dbtype $MolType -parse_seqids -out $TrustedORFeomeDb`;
+$cmd = `makeblastdb -in $Trusted -dbtype $MolType -parse_seqids -out $TrustedORFeomeDb`;
 
 for ($i=0; $i<$n; $i++){
 	$Qry = $List[$i];
-
 	$InputFile = $ORFeomesPath ."/". $Qry . $SeqExt;     
 	$Db = $BlastPath ."/". $Qry;
-
 	$cmd = `makeblastdb -in $InputFile -dbtype $MolType -parse_seqids -out $Db`;  
-
 	Progress($n, $i);
 }
 exit;

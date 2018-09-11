@@ -8,9 +8,10 @@
 use strict;
 use FindBin;
 use lib "$FindBin::Bin/../lib";
+use List::MoreUtils qw{any};
 use Routines;
 
-my ($Usage, $MainPath, $ProjectName, $List, $Trusted, $AnnotationPath, $MolType);
+my ($Usage, $ProjectName, $List, $TrustedName, $AnnotationPath, $MolType, $OutPath);
 
 $Usage = "\tUsage: FormatORFeomes.pl <Main_Path> <Project Name> <List File Name> <Annotation Path> <Molecule Type>\n";
 unless(@ARGV) {
@@ -19,20 +20,20 @@ unless(@ARGV) {
 }
 chomp @ARGV;
 
-$MainPath       = $ARGV[0];
-$ProjectName    = $ARGV[1];
-$List           = $ARGV[2];
-$Trusted        = $ARGV[3];
-$AnnotationPath = $ARGV[4];
-$MolType        = $ARGV[5];    #nucl or prot
+$ProjectName    = $ARGV[0];
+$List           = $ARGV[1];
+$TrustedName    = $ARGV[2];
+$AnnotationPath = $ARGV[3];
+$MolType        = $ARGV[4];    #nucl or prot
+$OutPath        = $ARGV[5];
 
 my ($Project, $MainList, $ORFeomesPath, $Ext, $Qry, $Prefix, $OriginalORFeome,
 	 $FormatedORFeome, $Line, $FormatedHeader);
 my ($i, $n);
 my (@List, @ORFeome, @ORFHeader);
 
-$Project      = $MainPath ."/". $ProjectName;
-$MainList     = $Project ."/". $List;
+#$Project      = $OutPath ."/". $ProjectName;
+$Project      = $OutPath;
 $ORFeomesPath = $Project ."/". "ORFeomes";
 
 if ($MolType eq "nucl"){
@@ -41,31 +42,30 @@ if ($MolType eq "nucl"){
 	$Ext = ".faa";
 }
 
+MakeDir($OutPath);
 MakeDir($ORFeomesPath);
 
-@List = ReadFile($MainList);
-
-unshift @List, $Trusted;
-
+@List = ReadFile($List);
+if ( any {$_ ne $TrustedName} @List){
+        unshift @List, $TrustedName;
+}
 $n = scalar@List;
+
 for ($i=0;$i<$n;$i++){
 	$Qry = $List[$i];
-	$Prefix = Prefix($Qry);
-	
+	$Prefix = Prefix($Qry);	
 	$OriginalORFeome = $AnnotationPath ."/". $Prefix ."/". $Prefix.$Ext;
 	@ORFeome = ReadFile($OriginalORFeome);
-
-	$FormatedORFeome = $ORFeomesPath ."/". $Prefix.$Ext;
-	
+	$FormatedORFeome = $ORFeomesPath ."/". $Prefix.$Ext;	
 	open(FILE, ">>$FormatedORFeome");
 	foreach $Line (@ORFeome){	
 		if ($Line =~ "^>" ){
 			@ORFHeader = split (" ", $Line);
 			$FormatedHeader = $ORFHeader[0];
 			chomp $FormatedHeader;
-
 			print FILE "$FormatedHeader\n";
 		}else{
+			$Line =~ s/-//g;
 			print FILE "$Line\n";
 		}
 	}

@@ -29,12 +29,11 @@ my ($n);
 my (@List);
 
 $Project  = $MainPath ."/". $ProjectName;
-$MainList = $Project ."/". $List;
 $Progress = $Project ."/". $ProjectName . '_Progress.csv';
 $Plot     = $Project ."/". $ProjectName . "_GeneContentPlot.pdf";
 $RScript  = $Project ."/". "GeneContentScript.R";
 
-@List = ReadFile($MainList);
+@List = ReadFile($List);
 $n = scalar@List;
 
 chdir ($Project);
