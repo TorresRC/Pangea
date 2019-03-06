@@ -36,7 +36,7 @@ my($SeqExt, $AlnExt, $stoExt, $HmmExt, $SharedORFs, $CoreGenomeFile,
    $FindingPreviousAln, $PreviousAlnName, $PreviousAlnPrefix, $CurrentAlnPrefix,
    $LastORFAln, $NewORFAln, $Strain, $Db, $OutCore, $Gene, $cmd, $CoreGenomeHmmDb,
    $ScanTempFile, $ORF, $SharedORF, $MaxScore, $Score, $QryEntry, $ORFpath,
-   $ORFhmm, $EntrySeq);
+   $ORFhmm, $EntrySeq, $LastIndex, $NewIndex);
 my($i,$j,$k, $nCoreGenes);
 my(@List, @PresenceAbsenceArray, @PresenceAbsenceMatrix, @Fields, @CoreGenes,
    @CoreGenomeMatrix, @AnalyzedORFs, @nHMMerReport, @BestHitArray, @SplitAlnPath,
@@ -88,14 +88,13 @@ for ($i=0; $i<$LinesOnPresenceAbsence; $i++){
          }         
       }
    }
-   if ($j > 0){
+   if ($i > 0){
       $Gene = $PresenceAbsenceMatrix[$i][0];
       if($Count == $ColumnsOnPresenceAbsence){
          push @CoreGenes, $Gene;
       }
    }
 }
-
 foreach $Gene (@CoreGenes){
    $Hmm = $ORFsPath ."/". $Gene ."/". $Gene . $HmmExt;
    system("cat $Hmm >> $CoreGenomeHmmDb");
@@ -188,10 +187,11 @@ for ($i=0; $i<$TotalQry; $i++){
        for($j=0; $j<scalar@SharedORFs; $j++){
          $ORF = $SharedORFs[$j];
          $Entry = $Entry{$ORF}{$Strain};
-         
+	 $LastIndex = $i+1;
+	 $NewIndex = $i+2;
          $ORFpath = $ORFsPath ."/". $ORF;
-         $LastORFAln = $ORFpath ."/". $i+1 ."_". $ORF . ".aln.fasta";
-         $NewORFAln = $ORFpath ."/". $i+2 ."_". $ORF .".aln.fasta";
+         $LastORFAln = $ORFpath ."/". $LastIndex .'-'. $ORF . ".aln.fasta";
+         $NewORFAln = $ORFpath ."/". $NewIndex .'-'. $ORF .".aln.fasta";
          $ORFhmm = $ORFpath ."/". $ORF . ".hmm";
          $EntrySeq = $ORFpath ."/". $Entry . ".fasta";
          

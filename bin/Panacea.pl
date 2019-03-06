@@ -15,11 +15,12 @@ my $Src      = "$FindBin::Bin";
 my $MainPath = "$FindBin::Bin/../..";
 my $Usage    = "USAGE:\n  $0 [--help] [--project -p prefix] [--list -l filename]
       [--trusted -c filename] [--evalue -e evalue] [--ident -i percentage]
-      [--cpus -t]
+      [--cpus -t] [--out -o path]
 \n  Use \'--help\' to print detailed descriptions of options.\n\n";
 
 my ($ProjectName, $List, $TrustedORFeome, $eVal, $PIdent, $CPUs, $Help,
-    $PanGenome, $CoreGenome, $Bolean, $AnnotationPath, $MolType, $Recovery);
+    $PanGenome, $CoreGenome, $Bolean, $AnnotationPath, $MolType, $OutPath,
+    $Recovery);
 
 $Recovery = 0;
 GetOptions(
@@ -35,6 +36,7 @@ GetOptions(
         'boleantbl|b'    => \$Bolean,
         'annotation|a=s' => \$AnnotationPath,
         'moltype|m=s'    => \$MolType,
+        'out|o=s'        => \$OutPath,
         'recovery|r'     => \$Recovery
         ) or die $Usage;
 
@@ -78,32 +80,32 @@ $CoreAlign             = $Src ."/". "CoreAlign.pl";
 $Functions             = $Src ."/". "ORFsFunctions.pl";
 
 if($Recovery == "0"){
-        system("perl $FormatORFeomes $MainPath $ProjectName $List $TrustedORFeome $AnnotationPath $MolType");
+        system("perl $FormatORFeomes $ProjectName $List $TrustedORFeome $AnnotationPath $MolType $OutPath");
         #system("perl $FilterORFeomes $ProjectName $List $TrustedORFeome $MainPath");
-        system("perl $MakeBlastDb $MainPath $ProjectName $List $TrustedORFeome $MolType");
-        system("perl $InitialComparison $MainPath $ProjectName $List $TrustedORFeome $MolType $eVal $PIdent $CPUs");
-        system("perl $GeneContent $MainPath $ProjectName $List $MolType $eVal $CPUs $Recovery $AnnotationPath");
+        system("perl $MakeBlastDb $ProjectName $List $TrustedORFeome $MolType $OutPath");
+        system("perl $InitialComparison $ProjectName $List $TrustedORFeome $MolType $eVal $PIdent $CPUs $OutPath");
+        system("perl $GeneContent $ProjectName $List $MolType $eVal $CPUs $OutPath $Recovery $AnnotationPath");
 }elsif($Recovery == "1"){
-        system("perl $GeneContent $MainPath $ProjectName $List $MolType $eVal $CPUs $Recovery $AnnotationPath");
+        system("perl $GeneContent $ProjectName $List $MolType $eVal $CPUs $OutPath $Recovery $AnnotationPath");
 }
 
-system("perl $GeneContentPlot $MainPath $ProjectName $List");
+system("perl $GeneContentPlot $ProjectName $List $OutPath");
 
-$Presence = $MainPath ."/". $ProjectName ."/". $ProjectName ."/". "_Presence_Absence.csv";
-$Core     = $MainPath ."/". $ProjectName ."/". $ProjectName ."/". "_CoreGenome.csv";
-system("perl $Functions $MainPath $ProjectName $AnnotationPath $Presence 1 1");
-system("perl $Functions $MainPath $ProjectName $AnnotationPath $Core 0 1");
+$Presence = $OutPath ."/". $ProjectName ."/". $ProjectName ."/". "_Presence_Absence.csv";
+$Core     = $OutPath ."/". $ProjectName ."/". $ProjectName ."/". "_CoreGenome.csv";
+system("perl $Functions $ProjectName $AnnotationPath $Presence $OutPath 1 1");
+system("perl $Functions $ProjectName $AnnotationPath $Core $OutPath 0 1");
 
 if($PanGenome){
-        system("perl $ConsensusSeq $MainPath $ProjectName 1 0");
+        system("perl $ConsensusSeq $ProjectName $OutPath 1 0");
 }
 
 if($CoreGenome){
-        system("perl $CoreAlign $MainPath $ProjectName 125");
+        system("perl $CoreAlign $ProjectName $OutPath 125");
 }
 
 if($Bolean){
-        system("perl $BoleanPresenceAbsence $MainPath $ProjectName");
+        system("perl $BoleanPresenceAbsence $ProjectName $OutPath");
 }
 
 #Timestamp

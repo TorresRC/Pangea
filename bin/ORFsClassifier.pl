@@ -169,6 +169,7 @@ if (scalar@Columns > 1){
    $nClasses3 = scalar@Classes3;
 }
 
+
 @TrainingFile = ReadFile($TrainingFile);
         
 # Loading the boolean training file
@@ -470,18 +471,23 @@ if ($DotPlot eq "AllClasses"){
       }
       print RSCRIPT "+ scale_colour_manual(values=Colours)";
       if($Method eq "X2"){
-         @ChiConfidences = (0.5,0.6,0.7,0.8,0.9,0.95,0.995,0.999);
+         @ChiConfidences = (0.9,0.95,0.9904,0.999);
          #@ChiConfidences = (0.999);
          foreach $ChiConfidence(@ChiConfidences){
             print RSCRIPT "+ geom_hline(aes(yintercept = qchisq($ChiConfidence, df=$nClasses-1), linetype=\"$ChiConfidence\"))";
             print RSCRIPT "+ geom_text(aes(0, qchisq($ChiConfidence, df=$nClasses-1), label= round(qchisq($ChiConfidence, df=$nClasses-1),digits=2)), size=2, vjust=-0.25, hjust=0, nudge_x = 1)";
          }
       }
+      #print RSCRIPT "+ geom_hline(aes(yintercept = 5, linetype=\"5\"))";
+      print RSCRIPT '+ theme_classic()';
+
+      
       print RSCRIPT "+ labs(x=\"Features\", y=\"Chi Values\", title= \"$Test Values of $nFeature Accessory Genes of
 $ProjectName\'s Dataset\", color=\"$SelectedClass\", linetype=\"Confidence Interval\")";
-      if($N > 100){
-         print RSCRIPT '+ theme(axis.text.x = element_text(angle = 90, size=4, hjust = 1))' . "\n";
-      }
+      #if($N > 100){
+      #   print RSCRIPT '+ theme(axis.text.x = element_text(angle = 90, size=4, hjust = 1))' . "\n";
+      #}
+      print RSCRIPT '+ theme(axis.text.x = element_blank())' . "\n";
       print RSCRIPT "\n";
       print RSCRIPT "ggsave(\"$Plot\")" . "\n";                   
    close RSCRIPT;

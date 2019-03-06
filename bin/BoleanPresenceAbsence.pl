@@ -36,8 +36,8 @@ my $GenesAnnotationReport = [ ];
 
 $Project                 = $MainPath ."/". $ProjectName;
 $PresenceAbsenceFile     = $Project ."/". $ProjectName . "_Presence_Absence.csv";
-$BoleanReport            = $Project ."/". $ProjectName . "_Bolean_PanGenome.csv";
-$BoleanInformativeReport = $Project ."/". $ProjectName . "_Bolean_AccessoryGenes.csv";
+$BoleanReport            = $Project ."/". $ProjectName . "_Boolean_PanGenome.csv";
+$BoleanInformativeReport = $Project ."/". $ProjectName . "_Boolean_AccessoryGenes.csv";
 $HeatMapRScript          = $Project ."/". $ProjectName . "_Presence_Absence_HeatMapScript" . ".R";
 $HeatMap                 = $Project ."/". $ProjectName . "_PanGenome_HeatMap" . ".pdf";
 
@@ -117,9 +117,13 @@ open (FILE,">$BoleanInformativeReport");
                 $ORF = $Elements[0];
                 shift@Elements;
                 $nElements = scalar@Elements;
-
-                if(sum(@Elements) < $nElements && sum(@Elements) > 1){
-                        print FILE "$Line\n";   
+                
+                my $SpecificCutoff = $nElements*0.05;
+                my $CoreCutoff = $nElements*0.9;
+                #if(sum(@Elements) < $nElements && sum(@Elements) > 1){
+                if(sum(@Elements) < $CoreCutoff && sum(@Elements) > $SpecificCutoff){
+                #if(sum(@Elements) > $AccessoryCutoff){
+                        print FILE "$Line\n";
                 }
         }
 close FILE;

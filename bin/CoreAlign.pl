@@ -42,6 +42,13 @@ $AlnExt = ".aln" . $SeqExt;
 ($LinesOnCoreGenome, $ColumnsOnCoreGenome, @CoreGenomeArray) = Matrix($CoreGenome);
 
 print "Buiding aligned Core-Genomes fasta sequences:\n";
+for ($i=1; $i<$ColumnsOnCoreGenome; $i++){
+	$Genome = $CoreGenomeArray[0]->[$i];
+	$AlignedCore = $AlignedCoresPath ."/". $Genome . "-CoreGenome". $AlnExt;
+	open (FILE, ">>$AlignedCore");
+		print FILE ">$Genome\n";
+	close FILE;
+}
 for ($i=1; $i<$LinesOnCoreGenome; $i++){
         $ORF = $CoreGenomeArray[$i]->[0];
         $ORFPath = $ORFsPath ."/". $ORF;
@@ -68,11 +75,12 @@ for ($i=1; $i<$LinesOnCoreGenome; $i++){
                 $Genome = $IndexedName[0];
                 $AlignedCore = $AlignedCoresPath ."/". $Genome . "-CoreGenome". $AlnExt;
                 open (FILE, ">>$AlignedCore");
-                        print FILE ">$ORF~$Key\n";
+                        #print FILE ">$ORF~$Key\n";
                         for ($j=0; $j<length$Seq{$Key}; $j+=$Columns){
                                 print FILE substr($Seq{$Key}, $j, $Columns), "\n";
                         }
-                        print FILE "X\n";
+                        #print FILE "X\n";
+			print FILE "\n";
                 close FILE;
         }
         Progress($LinesOnCoreGenome, $i);
