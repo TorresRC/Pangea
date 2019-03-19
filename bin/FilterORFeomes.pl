@@ -8,7 +8,7 @@
 #################################################################################
 use strict; 
 use FindBin;
-use lib "$FindBin::Bin/../lib";
+use lib "$FindBin::Bin/../lib_nt";
 use Routines;
 
 my ($Usage, $ProjectName, $List, $TrustedORFeome, $MainPath);
@@ -32,7 +32,7 @@ my (@List);
 $SeqExt                 = ".ffn";
 $Project                = $MainPath ."/". $ProjectName;
 $MainList               = $Project ."/". $List;
-$ORFeomesPath           = $Project ."/". "ORFeomes/Sorted";
+$ORFeomesPath           = $Project ."/". "ORFeomes";
 $FilteredORFsPath       = $ORFeomesPath ."/". "Filtered";
 $ClstrsPath             = $Project ."/". "GeneClusters";
 $TrustedFile            = $ORFeomesPath ."/". $TrustedORFeome;

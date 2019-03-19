@@ -12,7 +12,7 @@ use FindBin;
 use lib "$FindBin::Bin/../lib";
 use Routines;
 
-my ($Usage, $ProjectName, $Columns, $MainPath);
+my ($Usage, $ProjectName, $Columns, $CoreGenome, $ORFsPath, $OutPath);
 
 $Usage = "\tUsage: ConsensusPanGenome.pl <Project Name> <Columns> <Main_Path>\n";
 unless(@ARGV) {
@@ -22,35 +22,31 @@ unless(@ARGV) {
 chomp @ARGV;
 $ProjectName = $ARGV[0];
 $Columns     = $ARGV[1];
-$MainPath    = $ARGV[2];
+$CoreGenome  = $ARGV[2];
+$ORFsPath    = $ARGV[3];
+$OutPath     = $ARGV[4];
 
-my($Project, $ORFsPath, $CoreGenome, $Line, $ORF, $ORFAln, $Name, $Seq, $Key,
-   $AlnExt, $ORFPath, $Genome, $AlignedCoresPath, $SeqExt, $AlignedCore,
-   $CoreFile, $Header);
+my($Line, $ORF, $ORFAln, $Name, $Seq, $Key, $AlnExt, $ORFPath, $Genome,
+   $AlignedCoresPath, $SeqExt, $AlignedCore, $CoreFile, $Header);
 my($i, $j, $LinesOnCoreGenome, $ColumnsOnCoreGenome);
 my(@CoreGenome, @CoreGenomeFields, @CoreGenomeArray, @File, @IndexedName, @Seq);
 my(%Seq);
 
-$Project = $MainPath ."/". $ProjectName;
-$ORFsPath = $Project ."/". "ORFs";
-$CoreGenome = $Project ."/". $ProjectName . "_CoreGenome.csv";
-$AlignedCoresPath = $Project ."/". "CoreSequences";
+$AlignedCoresPath = $OutPath ."/". "CoreSequences";
 $SeqExt = ".fasta";
 $AlnExt = ".aln" . $SeqExt;
 
-@CoreGenome = ReadFile($CoreGenome);
-$LinesOnCoreGenome = scalar@CoreGenome;
- 
-print "Loading the Core-Genome table:\n";
-for ($i=0; $i<$LinesOnCoreGenome; $i++){
-     $Line = $CoreGenome[$i];
-     @CoreGenomeFields = split(",",$Line);
-     $ColumnsOnCoreGenome = scalar@CoreGenomeFields;
-     push (@CoreGenomeArray, [@CoreGenomeFields]);
-     Progress($LinesOnCoreGenome, $i);
-}
+#print "Loading the Core-Genome table:\n";
+($LinesOnCoreGenome, $ColumnsOnCoreGenome, @CoreGenomeArray) = Matrix($CoreGenome);
 
 print "Buiding aligned Core-Genomes fasta sequences:\n";
+for ($i=1; $i<$ColumnsOnCoreGenome; $i++){
+	$Genome = $CoreGenomeArray[0]->[$i];
+	$AlignedCore = $AlignedCoresPath ."/". $Genome . "-CoreGenome". $AlnExt;
+	open (FILE, ">>$AlignedCore");
+		print FILE ">$Genome\n";
+	close FILE;
+}
 for ($i=1; $i<$LinesOnCoreGenome; $i++){
         $ORF = $CoreGenomeArray[$i]->[0];
         $ORFPath = $ORFsPath ."/". $ORF;
@@ -58,9 +54,7 @@ for ($i=1; $i<$LinesOnCoreGenome; $i++){
         chomp $ORFAln;
         %Seq = ();
         
-        #print "\nAligning $ORF:\n";
-        
-        open (FILE, $ORFAln) or die ("Could not open $ORFAln file. On $0 line 63.");
+        open (FILE, $ORFAln) or die ("Could not open $ORFAln file. On $0 line 52.");
         while (<FILE>){
                 next unless /\S/;
                 next if /^\s*\#/;
@@ -79,11 +73,12 @@ for ($i=1; $i<$LinesOnCoreGenome; $i++){
                 $Genome = $IndexedName[0];
                 $AlignedCore = $AlignedCoresPath ."/". $Genome . "-CoreGenome". $AlnExt;
                 open (FILE, ">>$AlignedCore");
-                        print FILE ">$ORF~$Key\n";
+                        #print FILE ">$ORF~$Key\n";
                         for ($j=0; $j<length$Seq{$Key}; $j+=$Columns){
                                 print FILE substr($Seq{$Key}, $j, $Columns), "\n";
                         }
-                        print FILE "X\n";
+                        #print FILE "X\n";
+			print FILE "\n";
                 close FILE;
         }
         Progress($LinesOnCoreGenome, $i);

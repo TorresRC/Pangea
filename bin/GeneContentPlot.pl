@@ -12,42 +12,40 @@ use FindBin;
 use lib "$FindBin::Bin/../lib";
 use Routines;
 
-my ($Usage, $ProjectName, $List, $MainPath);
+my ($Usage, $ProgressFile, $Prefix, $OutPath, $List);
 
-$Usage = "\tUsage: CoreGenome.pl <Project_Name> <List_File_Name> <Main_Path>\n";
+$Usage = "\tUsage: CoreGenome.pl <Main_Path> <Project_Name> <List_File_Name>\n";
 unless(@ARGV) {
         print $Usage;
         exit;
 }
 chomp @ARGV;
-$ProjectName = $ARGV[0];
-$List        = $ARGV[1];
-$MainPath    = $ARGV[2];
+$ProgressFile = $ARGV[0];
+$Prefix       = $ARGV[1];
+$List         = $ARGV[2];
+$OutPath      = $ARGV[3];
 
-my ($Project, $MainList, $PresenceAbsence, $Plot, $RScript);
+my ($Plot, $RScript);
 my ($n);
 my (@List);
 
-$Project         = $MainPath ."/". $ProjectName;
-$MainList        = $Project ."/". $List;
-$PresenceAbsence = $Project ."/". $ProjectName . '_Statistics.csv';
-$Plot            = $Project ."/". $ProjectName . "_GeneContentPlot.pdf";
-$RScript         = $Project ."/". "GeneContentScript.R";
+$Plot     = $OutPath ."/". $Prefix . "_GeneContentPlot.pdf";
+$RScript  = $OutPath ."/". $Prefix . "_GeneContentScript.R";
 
-@List = ReadFile($MainList);
+@List = ReadFile($List);
 $n = scalar@List;
 
-chdir ($Project);
+chdir ($OutPath);
 
 open (RSCRIPT, ">$RScript");
         print RSCRIPT 'library(ggplot2)' . "\n";
-        print RSCRIPT "df <- read.csv(\"$PresenceAbsence\")" . "\n";
+        print RSCRIPT "df <- read.csv(\"$ProgressFile\")" . "\n";
         print RSCRIPT 'ggplot(df, aes(NumberOfNewStrains))';
         print RSCRIPT '+ geom_line(aes(y=CoreGenome,linetype="CoreGenome"))';
         print RSCRIPT '+ geom_line(aes(y=PanGenome,linetype="PanGenome"))';
         print RSCRIPT '+ geom_line(aes(y=NewGenes,linetype="NewGenes"))';
         print RSCRIPT "+ scale_x_continuous(breaks = 0:$n+1)";
-        print RSCRIPT "+ labs(x=\"Number of Genomes\", y=\"Number of Genes\", title= \"$ProjectName Gene Content\")";
+        print RSCRIPT "+ labs(x=\"Number of Genomes\", y=\"Number of Genes\", title= \"$Prefix Gene Content\")";
         print RSCRIPT '+ scale_linetype_discrete(name=NULL)';
         print RSCRIPT '+ theme(axis.text.x = element_text(angle = 90, size=4, hjust = 1))' . "\n";
         print RSCRIPT "ggsave(\"$Plot\")";
@@ -57,6 +55,6 @@ print "\n Building a Gene Content Plot...";
 system ("R CMD BATCH $RScript");
 print "Done!\n\n";
 
-system ("rm $RScript $Project/*.Rout $Project/Rplots.pdf");
+system ("rm $RScript $OutPath/*.Rout $OutPath/*Rplots.pdf");
 
 exit;

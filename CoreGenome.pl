@@ -10,7 +10,7 @@
 #################################################################################
 use strict;
 use FindBin;
-use lib "$FindBin::Bin/../lib";
+use lib "$FindBin::Bin/lib";
 use Routines;
 use List::MoreUtils qw{any};
 
@@ -48,6 +48,8 @@ $AlnExt = ".aln" . $SeqExt;
 $stoExt = ".sto";
 $HmmExt = ".hmm";
 
+#################################################################################
+
 $MainList        = $Project ."/". $List;
 $ORFeomesPath    = $Project ."/". "ORFeomes" ."/". "Sorted" ."/". "Filtered";
 $BlastPath       = $Project ."/". "Blast";
@@ -58,6 +60,8 @@ $CoreGenomeFile  = $Project ."/". $ProjectName . "_CoreGenome.csv";
 $TempFile        = $Project ."/". "temp";
 
 $LogFile         = $Project ."/". $ProjectName . ".log";
+
+#################################################################################
 
 open (STDERR, "| tee -ai $LogFile") or die "$0: dup: $!";
 
@@ -189,11 +193,10 @@ for ($i=2; $i<$TotalQry; $i++){
                 }
         close FILE;
 }
-
-@PresenceAbsenceArray = ReadFile($PresenceAbsence);
-($LinesOnPresenceAbsence, $ColumnsOnPresenceAbsence, @PresenceAbsenceMatrix) = Matrix($PresenceAbsence);
+exit;
 
 open (FILE,">$PresenceAbsence");
+        print FILE "$PresenceAbsenceArray[0]\n";
         foreach $Line(@PresenceAbsenceArray){
                 @Fields = split(",",$Line);
                 chomp@Fields;
@@ -209,8 +212,8 @@ open (FILE,">$PresenceAbsence");
         }
 close FILE;
 
-system("mv $PresenceAbsence $CoreGenomeFile");
-($LinesOnCoreGenome, $ColumnsOnCoreGenome, @CoreGenomeMatrix) = Matrix($CoreGenomeFile);
+($LinesOnCoreGenome, $ColumnsOnCoreGenome, @CoreGenomeMatrix) = Matrix($PresenceAbsence);
+
 MakeDir($CoreSeqsPath);
 
 for ($i=1; $i<$ColumnsOnCoreGenome; $i++){

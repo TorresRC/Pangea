@@ -45,6 +45,7 @@ sub MakeDir{
 sub Prefix{
         my ($FileName) = @_;
         my @SplitName = split ('\.',$FileName);
+        chomp @SplitName;
         my $Prefix = $SplitName[0];
         my $Ext = $SplitName[1];
         
@@ -72,6 +73,7 @@ sub ReadFile{
         close FILE;
         my @File;
         foreach my $Row (@Temp){
+               $Row =~ s/\r//g;
                if ($Row =~/^#/) {
                }else{
 				push @File, $Row;     
@@ -178,10 +180,10 @@ sub DismissORFs{
 
 ################################################################################
 sub Extract{
-        my ($Qry, $DataBase,$Entry,$OutSeq, $null) = @_;
+        my ($Qry,$DataBase,$MolType,$Entry,$OutSeq,$null) = @_;
         print "\tExtracting ORF from $Qry...";
-        #my $cmd = `blastdbcmd -db $DataBase -dbtype nucl -entry "$Entry" -out $OutSeq`;
-        my $cmd = `blastdbcmd -db $DataBase -dbtype prot -entry "$Entry" -out $OutSeq`;
+        my $cmd = `blastdbcmd -db $DataBase -dbtype $MolType -entry "$Entry" -out $OutSeq`;
+        #my $cmd = `blastdbcmd -db $DataBase -dbtype prot -entry "$Entry" -out $OutSeq`;
         print "Done!\n";
 }
 
@@ -196,9 +198,15 @@ sub Align{
 
 ################################################################################
 sub HMM{
-        my ($CPUs, $HmmFile, $AlnFile, $null) = @_;
+        my ($AlnFile,$MolType,$HmmFile,$CPUs,$null) = @_;
+        my $Mol;
+        if ($MolType eq "nucl"){
+            $Mol = "dna";
+        }elsif($MolType eq "prot"){
+            $Mol = "amino";
+        }
         print "\tBuilding a HMM...";
-        my $cmd = `hmmbuild --amino --cpu $CPUs $HmmFile $AlnFile`;
+        my $cmd = `hmmbuild --$Mol --cpu $CPUs $HmmFile $AlnFile`;
         print "Done!\n";
 }
 
@@ -211,14 +219,42 @@ sub Matrix{
         
         @File = ReadFile($File);
         $Lines = scalar@File;
-        for ($i=0;$i<$Lines;$i++){
-                $Line = $File[$i];
-                @Fields = split(",",$Line);
-                push (@Matrix, [@Fields]);
+        $Columns = scalar(split(",",$File[0])); 
+        foreach $Line(@File){
+            $Line =~ s/\r//g;
+            $Line =~ s/\s//g;
+            @Fields = split(",",$Line);
+            push (@Matrix, [@Fields]);
         }
-        $Columns = scalar@Fields;
         
         return ($Lines, $Columns, @Matrix);
+}
+
+#################################################################################
+sub Mapping{
+        my ($File) = @_;
+        my ($Line, $Key, $Value);
+        my (@File, @Fields);
+        my (%Map);
+        
+        @File = ReadFile($File);
+        foreach $Line(@File){
+            if ($Line){
+                @Fields = split('\t',$Line);
+                $Key = $Fields[0];
+                $Value = $Fields[1];
+                $Map{$Key} = $Value;
+            }
+        }
+        
+        return %Map;
+}
+
+#################################################################################
+sub RGB{
+    my $RGB = "#" . join "", map {sprintf "%02x", rand(255)} (0..2);
+    
+    return $RGB;
 }
 
 1;

@@ -1,0 +1,9 @@
+Pasos para calcular CoreGenome: 
+
+1) Crear una carpeta para el organismo de interés
+
+2) Dejar una carpeta src "universal" para todos los analisis siguientes (pendiente). 
+
+3) Modificar la ruta hacia los datos de las secuencias de los genomas (enlistar cuales son los nombres de los scripts y especificar como identificar las líneas ques se deben modificarse). 
+
+4) Descargar las tablas de features de los genomas y los genomas con el script RetrieveSeq.pl (cuyo funcionamiento aún está pendiente en esta plataforma). 
