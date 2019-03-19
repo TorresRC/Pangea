@@ -1,5 +1,5 @@
 # Pangea
-Pangea: The Pan-Genome Analysis Pipeline
+The Pan-Genome Analysis Pipeline
 
 Pangea is a pipeline to calculate the entire gene collection of a set of prokaryotic organisms (Pan genome). It is based on an all-against-all algorithm to find shared and non-shared genes between samples. 
 
@@ -49,13 +49,13 @@ Depending on the used options, the possible outputs include the following:
 
 
 
+
 ## Citation
 
 Seemann T.  
 *Prokka: rapid prokaryotic genome annotation*  
 **Bioinformatics** 2014 Jul 15;30(14):2068-9.   
 [PMID:24642063](http://www.ncbi.nlm.nih.gov/pubmed/24642063)
-
 
 
 
