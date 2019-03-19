@@ -12,8 +12,7 @@ use FindBin;
 use lib "$FindBin::Bin/../lib";
 use Routines;
 
-my ($Usage, $ProjectName, $AnnotationPath, $OutPath, $PresenceAbsence,
-    $ORFsFunctionsList, $AnnotatedTable);
+my ($Usage, $ProjectName, $Prefix, $AnnotationPath, $OutPath, $PresenceAbsence);
 
 $Usage = "\tUsage: ORFsFunctions.pl <Main_Path> <Project Name> <Annotation_Path> <Presence-Absence>\n";
 unless(@ARGV) {
@@ -21,14 +20,16 @@ unless(@ARGV) {
         exit;
 }
 chomp @ARGV;
-$AnnotationPath    = $ARGV[0];
-$PresenceAbsence   = $ARGV[1];
-$OutPath           = $ARGV[2];
+$ProjectName       = $ARGV[0];
+$Prefix            = $ARGV[1];
+$AnnotationPath    = $ARGV[2];
+$PresenceAbsence   = $ARGV[3];
+$OutPath           = $ARGV[4];
 
 my ($Project, $AnnotatedPresenceAnsence, $LinesOnPresenceAbsence,
     $ColumnsOnPresenceAbsence, $ORF, $cmd, $OTU, $AnnotationFile, $Function,
     $OTUORF, $Index, $ColumnsOnAnnotation, $Gene, $ECNumber, $ORFsFunctionsFile,
-    $Prefix, $Line, $LocusTag
+    $Line, $LocusTag
     );
 my ($i,$j);
 my (@PresenceAbsenceMatrix, @Annotation, @PresenceAbsence, @Header, @ORFData,
@@ -37,10 +38,7 @@ my (%Annotation, %RepresentantLocus, %RepresentantOTU, %LocusTag, %Function, %Re
     %RepresentantGene, %RepresentantECN);
 my $Annotated = [ ];
 
-@InFileName = split("/",$PresenceAbsence);
-$Prefix = $InFileName[3];
-
-$AnnotatedPresenceAnsence = $OutPath ."/". "Annotated_Presence_Absence.csv";
+$AnnotatedPresenceAnsence = $OutPath ."/". $ProjectName ."_". $Prefix . "_Annotated_Presence_Absence.csv";
         
 print "\nLoading Presence Absence File...";
 ($LinesOnPresenceAbsence, $ColumnsOnPresenceAbsence, @PresenceAbsenceMatrix) = Matrix($PresenceAbsence);
@@ -59,8 +57,8 @@ for ($i=1; $i<$LinesOnPresenceAbsence; $i++){
       
       $AnnotationFile = $AnnotationPath ."/". $OTU ."/". $OTU . ".tsv";
      
-      if ($ORF ne ""){
-         $cmd = `grep \"$ORF\tCDS\" $AnnotationFile`;
+      if ($ORF){
+         $cmd = `grep \"$ORF\t" $AnnotationFile`;
          
          @Annotation = split("\t",$cmd);
          $Function = $Annotation[$#Annotation];

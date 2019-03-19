@@ -45,6 +45,7 @@ sub MakeDir{
 sub Prefix{
         my ($FileName) = @_;
         my @SplitName = split ('\.',$FileName);
+        chomp @SplitName;
         my $Prefix = $SplitName[0];
         my $Ext = $SplitName[1];
         

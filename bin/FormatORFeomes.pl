@@ -53,8 +53,9 @@ $n = scalar@List;
 
 for ($i=0;$i<$n;$i++){
 	$Qry = $List[$i];
-	$Prefix = Prefix($Qry);	
+	$Prefix = Prefix($Qry);
 	$OriginalORFeome = $AnnotationPath ."/". $Prefix ."/". $Prefix.$Ext;
+	
 	@ORFeome = ReadFile($OriginalORFeome);
 	$FormatedORFeome = $ORFeomesPath ."/". $Prefix.$Ext;	
 	open(FILE, ">>$FormatedORFeome");

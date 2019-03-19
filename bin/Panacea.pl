@@ -63,21 +63,29 @@ print "\nProject: $ProjectName\nList: $List\nTrusted: $TrustedORFeome\ne: $eVal\
 my ($Project, $FormatORFeomes, $SortGenes, $FilterORFeomes, $MakeBlastDb,
     $InitialComparison, $GeneContent, $GeneContentPlot, $BoleanPresenceAbsence,
     $ConsensusSeq, $CoreAlign, $Start, $End, $Time, $RunTime, $Period,
-    $Functions, $Presence, $Core);
+    $ORFsFunctions, $PresenceAbsenceAnnotation, $PresenceAbsenceFile, $Core,
+    $ProgressFile, $GeneContentRScript);
 
 $Start = time();
 
-$FormatORFeomes        = $Src ."/". "FormatORFeomes.pl";
-$SortGenes             = $Src ."/". "SortGenes.pl";
-$FilterORFeomes        = $Src ."/". "FilterORFeomes.pl";
-$MakeBlastDb           = $Src ."/". "MakeBlastDBs.pl";
-$InitialComparison     = $Src ."/". "InitialComparison.pl";
-$GeneContent           = $Src ."/". "GeneContent.pl";
-$GeneContentPlot       = $Src ."/". "GeneContentPlot.pl";
-$BoleanPresenceAbsence = $Src ."/". "BoleanPresenceAbsence.pl";
-$ConsensusSeq          = $Src ."/". "ConsensusSeq.pl";
-$CoreAlign             = $Src ."/". "CoreAlign.pl";
-$Functions             = $Src ."/". "ORFsFunctions.pl";
+$FormatORFeomes            = $Src ."/". "FormatORFeomes.pl";
+$SortGenes                 = $Src ."/". "SortGenes.pl";
+$FilterORFeomes            = $Src ."/". "FilterORFeomes.pl";
+$MakeBlastDb               = $Src ."/". "MakeBlastDBs.pl";
+$InitialComparison         = $Src ."/". "InitialComparison.pl";
+$GeneContent               = $Src ."/". "GeneContent.pl";
+$GeneContentPlot           = $Src ."/". "GeneContentPlot.pl";
+$BoleanPresenceAbsence     = $Src ."/". "BooleanPresenceAbsence.pl";
+$ConsensusSeq              = $Src ."/". "ConsensusSeq.pl";
+$CoreAlign                 = $Src ."/". "CoreAlign.pl";
+$ORFsFunctions             = $Src ."/". "ORFsFunctions.pl";
+$PresenceAbsenceAnnotation = $Src ."/". "PresenceAbsenceAnnotation.pl";
+
+$ProgressFile          = $OutPath ."/". $ProjectName . '_Progress.csv';
+$GeneContentPlot       = $OutPath ."/". $ProjectName . "_GeneContentPlot.pdf";
+$GeneContentRScript    = $OutPath ."/". $ProjectName . "_GeneContentScript.R";
+$PresenceAbsenceFile   = $OutPath ."/". $ProjectName . "_Presence_Absence.csv";
+$Core                  = $OutPath ."/". $ProjectName . "_CoreGenome.csv";
 
 if($Recovery == "0"){
         system("perl $FormatORFeomes $ProjectName $List $TrustedORFeome $AnnotationPath $MolType $OutPath");
@@ -89,23 +97,21 @@ if($Recovery == "0"){
         system("perl $GeneContent $ProjectName $List $MolType $eVal $CPUs $OutPath $Recovery $AnnotationPath");
 }
 
-system("perl $GeneContentPlot $ProjectName $List $OutPath");
-
-$Presence = $OutPath ."/". $ProjectName ."/". $ProjectName ."/". "_Presence_Absence.csv";
-$Core     = $OutPath ."/". $ProjectName ."/". $ProjectName ."/". "_CoreGenome.csv";
-system("perl $Functions $ProjectName $AnnotationPath $Presence $OutPath 1 1");
-system("perl $Functions $ProjectName $AnnotationPath $Core $OutPath 0 1");
+system("perl $GeneContentPlot $ProgressFile $ProjectName $List $OutPath");
+system("perl $ORFsFunctions $ProjectName $AnnotationPath $PresenceAbsenceFile $OutPath");
+system("perl $PresenceAbsenceAnnotation $ProjectName PanGenes $AnnotationPath $PresenceAbsenceFile $OutPath");
+system("perl $PresenceAbsenceAnnotation $ProjectName CoreGenes $AnnotationPath $Core $OutPath");
 
 if($PanGenome){
-        system("perl $ConsensusSeq $ProjectName $OutPath 1 0");
+        system("perl $ConsensusSeq $ProjectName PanGenome $PresenceAbsenceFile $OutPath/ORFs $OutPath");
 }
 
 if($CoreGenome){
-        system("perl $CoreAlign $ProjectName $OutPath 125");
+        system("perl $CoreAlign $ProjectName 125 $Core $OutPath/ORFs $OutPath");
 }
 
 if($Bolean){
-        system("perl $BoleanPresenceAbsence $ProjectName $OutPath");
+        system("perl $BoleanPresenceAbsence $ProjectName $PresenceAbsenceFile $OutPath");
 }
 
 #Timestamp

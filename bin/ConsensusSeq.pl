@@ -12,7 +12,7 @@ use FindBin;
 use lib "$FindBin::Bin/../lib";
 use Routines;
 
-my ($Usage, $PresenceAbsence, $ORFsPath, $OutPath);
+my ($Usage, $ProjectName, $Prefix, $PresenceAbsence, $ORFsPath, $OutPath);
 
 $Usage = "\tUsage: ConsensusSeq.pl <Main_Path> <Project Name> <ORFs Table> <Consensus Fasta File Name>\n";
 unless(@ARGV) {
@@ -20,21 +20,19 @@ unless(@ARGV) {
         exit;
 }
 chomp @ARGV;
-$PresenceAbsence = $ARGV[0];
-$ORFsPath = $ARGV[1];
-$OutPath = $ARGV[2];
+$ProjectName     = $ARGV[0];
+$Prefix          = $ARGV[1];
+$PresenceAbsence = $ARGV[2];
+$ORFsPath        = $ARGV[3];
+$OutPath         = $ARGV[4];
 
-my($TotalPresenceAbsence, $Row, $ORF, $ORFHmm, $LogFile, $ConsensusSeq,
+my($TotalPresenceAbsence, $Row, $ORF, $ORFHmm, $ConsensusSeq,
    $LinesOnPresenceabsenceFile, $ColumnsOnPresenceabsenceFile);
 my($i, $j);
 my(@PresenceAbsence, @PresenceAbsenceFields, @PresenceAbsenceArray,
    @PresenceAbsenceMatrix);
 
-#$LogFile            = $OutPath ."/". $ProjectName . ".log";
-
-open (STDERR, "| tee -ai $LogFile") or die "$0: dup: $!";
-
-$ConsensusSeq = $OutPath ."/". "ConsensusSeq.fasta";
+$ConsensusSeq = $OutPath ."/". $ProjectName . "_Consensus_" . $Prefix . ".fasta";
 
 print "Loading the Presence/Absence file...";
 ($LinesOnPresenceabsenceFile, $ColumnsOnPresenceabsenceFile, @PresenceAbsenceMatrix) = Matrix($PresenceAbsence);

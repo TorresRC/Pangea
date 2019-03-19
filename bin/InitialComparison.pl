@@ -95,7 +95,7 @@ $BlastReport            = $OutPath ."/". $ProjectName . "_UniqueBlastComparison.
 $PresenceAbsence        = $OutPath ."/". $ProjectName . "_Initial_Presence_Absence.csv";
 $PanGenomeSeq           = $OutPath ."/". $ProjectName . "_PanGenome" . $SeqExt;
 $Progress               = $OutPath ."/". $ProjectName . "_Progress.csv";
-$Summary	        = $OutPath ."/". $ProjectName . "_Summary.txt";
+$Summary	            = $OutPath ."/". $ProjectName . "_Summary.txt";
 $LogFile                = $OutPath ."/". $ProjectName . ".log";
 
 MakeDir ($ORFsPath);

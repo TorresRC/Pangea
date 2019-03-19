@@ -12,7 +12,7 @@ use FindBin;
 use lib "$FindBin::Bin/../lib";
 use Routines;
 
-my ($Usage, $ProjectName, $List, $MainPath);
+my ($Usage, $ProjectName, $PresenceAbsenceFile, $OutPath);
 
 $Usage = "\tUsage: CoreGenome.pl <Main_Path> <Project_Name>\n";
 unless(@ARGV) {
@@ -20,13 +20,13 @@ unless(@ARGV) {
         exit;
 }
 chomp @ARGV;
-$MainPath    = $ARGV[0];
-$ProjectName = $ARGV[1];
+$ProjectName         = $ARGV[0];
+$PresenceAbsenceFile = $ARGV[1];
+$OutPath             = $ARGV[2];
 
-my ($Project, $PresenceAbsenceFile, $BoleanReport, $TotalQry,
-    $LinesOnPresenceAbsence, $ColumnsOnPresenceAbsence, $Row, $Field,
-    $BoleanInformativeReport, $Line, $nElements, $Count, $ORF, $HeatMapRScript,
-    $HeatMap, $Matrix, $Sum, $Strain);
+my ($Project, $BoleanReport, $TotalQry, $LinesOnPresenceAbsence,
+    $ColumnsOnPresenceAbsence, $Row, $Field, $BoleanInformativeReport, $Line,
+    $nElements, $Count, $ORF, $HeatMapRScript, $HeatMap, $Matrix, $Sum, $Strain);
 my ($i, $j, $N);
 my (@PresenceAbsence, @PresenceAbsenceFields, @PresenceAbsenceArray,
     @Elements, @PresenceAbsenceMatrix);
@@ -34,12 +34,11 @@ my (%Count);
 my $BoleanTable = [ ];
 my $GenesAnnotationReport = [ ];
 
-$Project                 = $MainPath ."/". $ProjectName;
-$PresenceAbsenceFile     = $Project ."/". $ProjectName . "_Presence_Absence.csv";
-$BoleanReport            = $Project ."/". $ProjectName . "_Boolean_PanGenome.csv";
-$BoleanInformativeReport = $Project ."/". $ProjectName . "_Boolean_AccessoryGenes.csv";
-$HeatMapRScript          = $Project ."/". $ProjectName . "_Presence_Absence_HeatMapScript" . ".R";
-$HeatMap                 = $Project ."/". $ProjectName . "_PanGenome_HeatMap" . ".pdf";
+
+$BoleanReport            = $OutPath ."/". $ProjectName . "_Boolean_PanGenome.csv";
+$BoleanInformativeReport = $OutPath ."/". $ProjectName . "_Boolean_AccessoryGenes.csv";
+$HeatMapRScript          = $OutPath ."/". $ProjectName . "_Presence_Absence_HeatMapScript" . ".R";
+$HeatMap                 = $OutPath ."/". $ProjectName . "_PanGenome_HeatMap" . ".pdf";
 
 print "\nLoading the Presence/Absence file...";
 ($LinesOnPresenceAbsence, $ColumnsOnPresenceAbsence, @PresenceAbsenceMatrix) = Matrix($PresenceAbsenceFile);

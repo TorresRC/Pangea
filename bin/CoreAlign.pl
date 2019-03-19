@@ -12,7 +12,7 @@ use FindBin;
 use lib "$FindBin::Bin/../lib";
 use Routines;
 
-my ($Usage, $ProjectName, $Columns, $MainPath);
+my ($Usage, $ProjectName, $Columns, $CoreGenome, $ORFsPath, $OutPath);
 
 $Usage = "\tUsage: ConsensusPanGenome.pl <Project Name> <Columns> <Main_Path>\n";
 unless(@ARGV) {
@@ -20,21 +20,19 @@ unless(@ARGV) {
         exit;
 }
 chomp @ARGV;
-$MainPath    = $ARGV[0];
-$ProjectName = $ARGV[1];
-$Columns     = $ARGV[2];
+$ProjectName = $ARGV[0];
+$Columns     = $ARGV[1];
+$CoreGenome  = $ARGV[2];
+$ORFsPath    = $ARGV[3];
+$OutPath     = $ARGV[4];
 
-my($Project, $ORFsPath, $CoreGenome, $Line, $ORF, $ORFAln, $Name, $Seq, $Key,
-   $AlnExt, $ORFPath, $Genome, $AlignedCoresPath, $SeqExt, $AlignedCore,
-   $CoreFile, $Header);
+my($Line, $ORF, $ORFAln, $Name, $Seq, $Key, $AlnExt, $ORFPath, $Genome,
+   $AlignedCoresPath, $SeqExt, $AlignedCore, $CoreFile, $Header);
 my($i, $j, $LinesOnCoreGenome, $ColumnsOnCoreGenome);
 my(@CoreGenome, @CoreGenomeFields, @CoreGenomeArray, @File, @IndexedName, @Seq);
 my(%Seq);
 
-$Project = $MainPath ."/". $ProjectName;
-$ORFsPath = $Project ."/". "ORFs";
-$CoreGenome = $Project ."/". $ProjectName . "_CoreGenome.csv";
-$AlignedCoresPath = $Project ."/". "CoreSequences";
+$AlignedCoresPath = $OutPath ."/". "CoreSequences";
 $SeqExt = ".fasta";
 $AlnExt = ".aln" . $SeqExt;
 
