@@ -34,6 +34,7 @@ You have to create a text file that lists all the samples you want to analyze. T
 
 Additionally you can include a reference sample. This can be declared at the beginning of your sample list or you can use the --trusted option to include it. See the Usage section.
 
+
 ## Outputs
 Depending on the used options, the possible outputs include the following:
 
@@ -45,7 +46,38 @@ Depending on the used options, the possible outputs include the following:
 |ORFs|Dir|Contains all the analyzed features. One folder per feature|
 |CoreSequences|Dir|Contains the core and the aligned-core fasta files of each query|
 |\*UniqueBlastComparison.txt|File|Contains the blast report of the first comparison|
+|\*Progress.csv|File|Records the progress of the analysis. It includes the total number of features, the size of the pan-genome and the number of new genes added in each sample analyzed|
+|\*Summary.txt|File|Contains a summary of the parameters used for the analysis and the final size of the pan and core genome|
+|\*Presence_Absence.csv|File|Contains the record of the features present in each sample. Each gene is identified by its locus tag|
+|\*CoreGenome.csv|File|Contains the record of the features present in the core genome defined as features present in the 100% of samples. Each gene is identified by its locus tag|
+|\*Boolean_PanGenome.csv|File|Contains the record of the features present in each sample. Presence of a feature is represented by 1 while absence is represented by 0|
+|\*Boolean_AccessoryGenes.csv|File|Contains the record of the dispensable features defined as features present in more than one sample but not present in the 100% of samples. Presence of a feature is represented by 1 while absence is represented by 0|
+|\*PanGenome.fasta|File|Multifasta file with the sequences of features of the final pan genome. Features included were extracted from the first sample that each feature was detected|
+|\*ConsensusPanGenome|File|Multifasta file with the consensus sequence of the pan genome obtained from the profile HMM of each feature|
+|\*PanGenome_HeatMap.pdf|Plot|Representation of the Presence/Absence of fueatures of the pan genome|
 
+
+
+## Usage
+
+       Usage:
+          $./Pangea.pl [options] --list Full/Path/Of/Sample/List --annotation /Full/Path/Of/Annotation/Directory --moltype nucl/prot --out Full/Path/For/Outputs
+
+       Options:  
+          --help                      Print this help message
+          --project      -p   STR     Set a prefix name for the project
+          --list         -l   STR     File with the list of samples. Full path is mandatory
+          --trusted      -c   STR     Name of the sample that you want to use as reference. Annotation of reference shuld to be included in the same directory as the rest of the samples
+          --evalue       -e   REAL    Expectation value threshold used on blast and HMMER comparisons
+          --ident        -i   REAL    Minimum percentage of identity for blast and HMMER
+          --cpus         -t   INT     Number of threads used only on some steps of blast and HMMER searches
+          --conpan       -P           Create a multifasta file of consensus pan genes
+          --alncore      -C           Creaate a multifasta file of aligned core genes
+          --booleantbl   -b           Create gene presence/absence table for the pan and accessory genes where presence is represented by 1 and abence by 0
+          --annotation   -a   STR     Full path of the annotation directory           
+          --moltype      -m   STR     Type of molecule you want to analyze, "nucl" for nucleotides and "prot" for aminoacids
+          --out          -o   STR     Output directory
+          --recovery     -r           Recover an interrupted process and/or increase the analysis with additional samples. Increase the analysis requires adding the new samples to the sample list
 
 
 
