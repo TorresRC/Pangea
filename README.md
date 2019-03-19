@@ -61,23 +61,30 @@ Depending on the used options, the possible outputs include the following:
 ## Usage
 
        Usage:
-          $./Pangea.pl [options] --list Full/Path/Of/Sample/List --annotation /Full/Path/Of/Annotation/Directory --moltype nucl/prot --out Full/Path/For/Outputs
+          $./Pangea.pl [options] --list Full/Path/Of/Sample/List --annotation /Full/Path/Of/Annotation/Directory 
+          --moltype nucl/prot --out Full/Path/For/Outputs
 
        Options:  
           --help                      Print this help message
           --project      -p   STR     Set a prefix name for the project
           --list         -l   STR     File with the list of samples. Full path is mandatory
-          --trusted      -c   STR     Name of the sample that you want to use as reference. Annotation of reference shuld to be included in the same directory as the rest of the samples
+          --trusted      -c   STR     Name of the sample that you want to use as reference. 
+                                      Annotation of reference shuld to be included in the same 
+                                      directory as the rest of the samples
           --evalue       -e   REAL    Expectation value threshold used on blast and HMMER comparisons
           --ident        -i   REAL    Minimum percentage of identity for blast and HMMER
           --cpus         -t   INT     Number of threads used only on some steps of blast and HMMER searches
           --conpan       -P           Create a multifasta file of consensus pan genes
           --alncore      -C           Creaate a multifasta file of aligned core genes
-          --booleantbl   -b           Create gene presence/absence table for the pan and accessory genes where presence is represented by 1 and abence by 0
+          --booleantbl   -b           Create gene presence/absence table for the pan and accessory genes 
+                                      where presence is represented by 1 and abence by 0
           --annotation   -a   STR     Full path of the annotation directory           
-          --moltype      -m   STR     Type of molecule you want to analyze, "nucl" for nucleotides and "prot" for aminoacids
+          --moltype      -m   STR     Type of molecule you want to analyze, "nucl" for nucleotides 
+                                      and "prot" for aminoacids
           --out          -o   STR     Output directory
-          --recovery     -r           Recover an interrupted process and/or increase the analysis with additional samples. Increase the analysis requires adding the new samples to the sample list
+          --recovery     -r           Recover an interrupted process and/or increase the analysis 
+                                      with additional samples. Increase the analysis requires adding 
+                                      the new samples to the sample list
 
 
 
