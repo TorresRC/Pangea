@@ -1,5 +1,5 @@
 # Pangea
-The Pan-Genome Analysis Pipeline
+### The Pan-Genome Analysis Pipeline
 
 [![DOI](https://zenodo.org/badge/103137305.svg)](https://zenodo.org/badge/latestdoi/103137305)
 
