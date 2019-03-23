@@ -3,8 +3,6 @@ The Pan-Genome Analysis Pipeline
 
 [![DOI](https://zenodo.org/badge/103137305.svg)](https://zenodo.org/badge/latestdoi/103137305)
 
-[![Download Pangea](https://a.fsdn.com/con/app/sf-download-button)](https://sourceforge.net/projects/pangea-pipeline/files/latest/download)
-
 Pangea is a pipeline to calculate the entire gene collection of a set of prokaryotic organisms (Pan genome). It is based on an all-against-all algorithm to find shared and non-shared genes between samples. 
 
 Pangea was designed to compare high diverse prokaryotic genomes using profile Hidden Markov Model (profile HMM) to make a position-specific scoring. Pangea builds a profile HMM for each gene that constitutes the pan genome. Then each profile is used to search the corresponding gene in each sample. During this search the profiles are iteratively populated with the corresponding homologous sequences. This allows each profile HMM to include all the variations that a gene presents between samples, increasing the robustness and therefore the accuracy of the search.
@@ -95,6 +93,8 @@ Depending on the used options, the possible outputs include the following:
 
 
 
+
+
 ## Citation
 
 Seemann T.  
@@ -103,6 +103,6 @@ Seemann T.
 [PMID:24642063](http://www.ncbi.nlm.nih.gov/pubmed/24642063)
 
 
-
-
 Website: https://torresrc.github.io/Pangea/
+
+[![Download Pangea](https://sourceforge.net/sflogo.php?type=16&group_id=3079307)](https://sourceforge.net/p/pangea-pipeline/)
