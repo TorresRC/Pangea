@@ -95,6 +95,8 @@ Depending on the used options, the possible outputs include the following:
 
 
 
+
+
 ## Citation
 
 Seemann T.  
@@ -102,7 +104,10 @@ Seemann T.
 **Bioinformatics** 2014 Jul 15;30(14):2068-9.   
 [PMID:24642063](http://www.ncbi.nlm.nih.gov/pubmed/24642063)
 
-
-
+---
 
 Website: https://torresrc.github.io/Pangea/
+
+## Also available from: 
+
+[![Download Pangea](https://sourceforge.net/sflogo.php?type=16&group_id=3079307)](https://sourceforge.net/p/pangea-pipeline/)
