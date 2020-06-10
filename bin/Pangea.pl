@@ -14,12 +14,11 @@ use Routines;
 my $Src      = "$FindBin::Bin";
 my $MainPath = "$FindBin::Bin/../..";
 my $Usage    = "USAGE:\n  $0 [--help] [--project -p prefix] [--list -l filename]
-      [--trusted -c filename] [--evalue -e evalue] [--ident -i percentage]
-      [--cpus -t] [--out -o path]
+      [--evalue -e evalue] [--ident -i percentage] [--cpus -t] [--out -o path]
 \n  Use \'--help\' to print detailed descriptions of options.\n\n";
 
-my ($ProjectName, $List, $TrustedORFeome, $eVal, $PIdent, $CPUs, $Help,
-    $PanGenome, $CoreGenome, $Bolean, $AnnotationPath, $MolType, $OutPath,
+my ($ProjectName, $List, $eVal, $PIdent, $CPUs, $Help, $PanGenome, 
+    $CoreGenome, $Boolean, $AnnotationPath, $MolType, $OutPath,
     $Recovery);
 
 $Recovery = 0;
@@ -27,13 +26,12 @@ GetOptions(
         'help'           => \$Help,
         'project|p=s'    => \$ProjectName,
         'list|l=s'       => \$List,
-        'trusted|c=s'    => \$TrustedORFeome,
         'evalue|e=f'     => \$eVal,
         'ident|i=i'      => \$PIdent,
         'cpus|t=i'       => \$CPUs,
         'conpan|P'       => \$PanGenome,
         'alncore|C'      => \$CoreGenome,
-        'boleantbl|b'    => \$Bolean,
+        'booleantbl|b'   => \$Boolean,
         'annotation|a=s' => \$AnnotationPath,
         'moltype|m=s'    => \$MolType,
         'out|o=s'        => \$OutPath,
@@ -44,16 +42,15 @@ if($Help){
         print "
         \t--project      <Project_Name>
         \t--list         <List_File_Name>
-        \t--trusted      <TrustedFile.fasta>
         \t--evalue       <e-value>
         \t--ident        <Percetage_of_Identity>
         \t--cpus         <CPUs>
-        \t--conpan       <Bolean>
-        \t--alncore      <Bolean>
-        \t--boleantbl    <Bolean>
-        \t--annotatedtbl <Bolean>
+        \t--conpan       <Boolean>
+        \t--alncore      <Boolean>
+        \t--booleantbl   <Boolean>
+        \t--annotatedtbl <Boolean>
         \t--moltype      <nucl or prot>
-        \t--recovery     <Bolean>
+        \t--recovery     <Boolean>
         \n\n";
         exit;
 }
@@ -61,7 +58,7 @@ if($Help){
 print "\nProject: $ProjectName\nList: $List\nTrusted: $TrustedORFeome\ne: $eVal\nPI: $PIdent\nCPUs $CPUs\nMol type: $MolType\n\n";
 
 my ($Project, $FormatORFeomes, $SortGenes, $FilterORFeomes, $MakeBlastDb,
-    $InitialComparison, $GeneContent, $GeneContentPlot, $BoleanPresenceAbsence,
+    $InitialComparison, $GeneContent, $GeneContentPlot, $BooleanPresenceAbsence,
     $ConsensusSeq, $CoreAlign, $Start, $End, $Time, $RunTime, $Period,
     $ORFsFunctions, $PresenceAbsenceAnnotation, $PresenceAbsenceFile, $Core,
     $ProgressFile, $GeneContentRScript);
@@ -75,7 +72,7 @@ $MakeBlastDb               = $Src ."/". "MakeBlastDBs.pl";
 $InitialComparison         = $Src ."/". "InitialComparison.pl";
 $GeneContent               = $Src ."/". "GeneContent.pl";
 $GeneContentPlot           = $Src ."/". "GeneContentPlot.pl";
-$BoleanPresenceAbsence     = $Src ."/". "BooleanPresenceAbsence.pl";
+$BooleanPresenceAbsence    = $Src ."/". "BooleanPresenceAbsence.pl";
 $ConsensusSeq              = $Src ."/". "ConsensusSeq.pl";
 $CoreAlign                 = $Src ."/". "CoreAlign.pl";
 $ORFsFunctions             = $Src ."/". "ORFsFunctions.pl";
@@ -88,10 +85,9 @@ $PresenceAbsenceFile   = $OutPath ."/". $ProjectName . "_Presence_Absence.csv";
 $Core                  = $OutPath ."/". $ProjectName . "_CoreGenome.csv";
 
 if($Recovery == "0"){
-        system("perl $FormatORFeomes $ProjectName $List $TrustedORFeome $AnnotationPath $MolType $OutPath");
-        #system("perl $FilterORFeomes $ProjectName $List $TrustedORFeome $MainPath");
-        system("perl $MakeBlastDb $ProjectName $List $TrustedORFeome $MolType $OutPath");
-        system("perl $InitialComparison $ProjectName $List $TrustedORFeome $MolType $eVal $PIdent $CPUs $OutPath");
+        system("perl $FormatORFeomes $ProjectName $List $AnnotationPath $MolType $OutPath");
+        system("perl $MakeBlastDb $ProjectName $List $MolType $OutPath");
+        system("perl $InitialComparison $ProjectName $List $MolType $eVal $PIdent $CPUs $OutPath");
         system("perl $GeneContent $ProjectName $List $MolType $eVal $CPUs $OutPath $Recovery $AnnotationPath");
 }elsif($Recovery == "1"){
         system("perl $GeneContent $ProjectName $List $MolType $eVal $CPUs $OutPath $Recovery $AnnotationPath");
@@ -110,8 +106,8 @@ if($CoreGenome){
         system("perl $CoreAlign $ProjectName 125 $Core $OutPath/ORFs $OutPath");
 }
 
-if($Bolean){
-        system("perl $BoleanPresenceAbsence $ProjectName $PresenceAbsenceFile $OutPath");
+if($Boolean){
+        system("perl $BooleanPresenceAbsence $ProjectName $PresenceAbsenceFile $OutPath");
 }
 
 #Timestamp
