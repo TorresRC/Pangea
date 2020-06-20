@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 ################################################################################
-# Routine colection to DNA parsing                                             #
+# Routine colection                                                            #
 # By Roberto Torres                                                            #
 ################################################################################
 use strict;
@@ -34,10 +34,8 @@ sub Counter{
 ################################################################################
 sub MakeDir{
     my ($NewDir) = @_;
-	if (-d "$NewDir"){
-	}else{
-		my $cmd = `mkdir $NewDir`;
-        return $cmd;
+	if (!-d "$NewDir"){
+		my $cmd = `mkdir $NewDir >/dev/null 2>&1`;
 	}
 }
 
@@ -181,10 +179,8 @@ sub DismissORFs{
 ################################################################################
 sub Extract{
         my ($Qry,$DataBase,$MolType,$Entry,$OutSeq,$null) = @_;
-        print "\tExtracting ORF from $Qry...";
         my $cmd = `blastdbcmd -db $DataBase -dbtype $MolType -entry "$Entry" -out $OutSeq`;
         #my $cmd = `blastdbcmd -db $DataBase -dbtype prot -entry "$Entry" -out $OutSeq`;
-        print "Done!\n";
 }
 
 ################################################################################
@@ -194,6 +190,16 @@ sub Align{
         my $cmd = `cat $Seq1 $Seq2 > $ToAlign`;
         $cmd = `muscle -in $ToAlign -out $AlnFile -quiet`;
         print "Done!\n";
+}
+
+################################################################################
+sub Blast{
+    my ($MolType, $Qry, $Db, $Out, $e, $PIdent, $CPUs) = @_;
+    if ($MolType eq "nucl"){
+        my $cmd =`blastn -query $Qry -db $Db -out $Out -outfmt '6 qacc sacc length qlen slen qstart qend sstart send pident evalue bitscore' -evalue $e -max_hsps 1 -max_target_seqs 1 -qcov_hsp_perc 90 -perc_identity $PIdent -num_threads $CPUs >/dev/null 2>&1`;
+    }elsif($MolType eq "prot"){
+        my $cmd = `blastp -query $Qry -db $Db -out $Out -outfmt '6 qacc sacc length qlen slen qstart qend sstart send pident evalue bitscore' -evalue $e -max_hsps 1 -max_target_seqs 1 -qcov_hsp_perc 90 -num_threads $CPUs >/dev/null 2>&1`;
+    }	
 }
 
 ################################################################################
